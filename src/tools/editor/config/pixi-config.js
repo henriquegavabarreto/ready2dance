@@ -2,7 +2,7 @@ import editorConfig from './editor-config.js'
 
 var pixiConfig = {
   transparent: false,
-  backgroundColor:0x000000 ,
+  backgroundColor: 0x000000,
   autoResize: true,
   resolution: 2,
   antialias: true,

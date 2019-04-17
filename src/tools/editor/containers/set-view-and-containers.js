@@ -1,9 +1,9 @@
-import { circleSelection, backgroundChart, noteElements, guideNumbers, fixedGraphics, cueContainer, copyPasteSelection } from '../config/containers'
+import { circleSelection, backgroundStaff, noteElements, guideNumbers, fixedGraphics, cueContainer, copyPasteSelection } from '../config/containers'
 
 function setViewAndContainers (app) {
   document.getElementById('canvas').appendChild(app.view)
 
-  app.stage.addChild(backgroundChart)
+  app.stage.addChild(backgroundStaff)
   app.stage.addChild(noteElements)
   app.stage.addChild(copyPasteSelection)
   app.stage.addChild(fixedGraphics)

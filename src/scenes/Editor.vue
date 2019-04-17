@@ -11,6 +11,7 @@
 import playerConfig from '../tools/editor/config/youtube-player'
 import pixiConfig from '../tools/editor/config/pixi-config'
 import setViewAndContainers from '../tools/editor/containers/set-view-and-containers'
+import setInitialGraphics from '../tools/editor/containers/set-initial-graphics'
 import SongManager from '../tools/config/song-manager'
 import danceChart from '../tools/editor/data/dance-chart'
 import * as PIXI from 'pixi.js'
@@ -29,9 +30,10 @@ export default {
     this.editorView = new PIXI.Application(pixiConfig)
   },
   mounted () {
-    this.player = new YTPlayer('#player', playerConfig)
     setViewAndContainers(this.editorView)
+    this.player = new YTPlayer('#player', playerConfig)
     this.songManager = new SongManager(this.player, danceChart)
+    setInitialGraphics()
   },
   methods: {
     loadVideo: function () {
@@ -44,3 +46,8 @@ export default {
   }
 }
 </script>
+<style scoped>
+  #player {
+    right: 0;
+  }
+</style>
