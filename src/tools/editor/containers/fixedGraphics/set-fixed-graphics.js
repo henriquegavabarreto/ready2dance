@@ -9,7 +9,6 @@ function setFixedGraphics () {
   setGuideline()
   setVideoText()
   setTimeText()
-  setMenuButtons()
 }
 
 function setGuideline () {
@@ -31,7 +30,7 @@ function setVideoText () {
   })
 
   videoText.x = editorConfig.width / 2.8
-  videoText.y = editorConfig.height / 6
+  videoText.y = 10
   videoText.name = 'videoText'
 
   fixedGraphics.addChild(videoText)
@@ -55,44 +54,4 @@ function setTimeText () {
   fixedGraphics.addChild(timeText)
 }
 
-function setMenuButtons () {
-  let menuHeight = editorConfig.height / 20
-
-  let timeButton = PIXI.Sprite.from('https://henriquegavabarreto.github.io/paraparagame/assets/timing.png')
-  timeButton.x = editorConfig.width / 2.35
-  setButtonDefaults(timeButton, menuHeight)
-  timeButton.on('mousedown', (event) => {
-    // showTimingModal()
-    console.log('show timing modal')
-  })
-
-  let songButton = PIXI.Sprite.from('https://henriquegavabarreto.github.io/paraparagame/assets/song.png')
-  songButton.x = timeButton.x + 130
-  setButtonDefaults(songButton, menuHeight)
-  songButton.on('mousedown', (event) => {
-    console.log('show song modal')
-    // showSongModal()
-  })
-
-  let menuButton = PIXI.Sprite.from('https://henriquegavabarreto.github.io/paraparagame/assets/menu.png')
-  menuButton.x = songButton.x + 130
-  setButtonDefaults(menuButton, menuHeight)
-  menuButton.on('mousedown', (event) => {
-    // showMenuModal()
-    console.log('show menu modal')
-  })
-
-  fixedGraphics.addChild(timeButton)
-  fixedGraphics.addChild(songButton)
-  fixedGraphics.addChild(menuButton)
-}
-
-function setButtonDefaults (btn, h) {
-  btn.y = h
-  btn.name = `${btn}`
-  btn.interactive = true
-  btn.buttonMode = true
-  btn.scale.x = 0.8
-  btn.scale.y = 0.8
-}
 export default setFixedGraphics

@@ -1,5 +1,6 @@
 <template>
   <div>
+    <editorheader></editorheader>
     <button v-on:click="loadVideo">Load Video</button>
     <button v-on:click="pauseVideo">Pause Video</button>
     <div id="canvas"></div>
@@ -8,6 +9,7 @@
 </template>
 
 <script>
+import Editorheader from '../components/Editorheader'
 import playerConfig from '../tools/editor/config/youtube-player'
 import pixiConfig from '../tools/editor/config/pixi-config'
 import setViewAndContainers from '../tools/editor/containers/set-view-and-containers'
@@ -19,6 +21,9 @@ import * as PIXI from 'pixi.js'
 const YTPlayer = require('yt-player')
 
 export default {
+  components: {
+    Editorheader
+  },
   data () {
     return {
       player: null,
@@ -46,8 +51,3 @@ export default {
   }
 }
 </script>
-<style scoped>
-  #player {
-    right: 0;
-  }
-</style>

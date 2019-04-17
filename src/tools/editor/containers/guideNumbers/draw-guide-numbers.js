@@ -13,21 +13,19 @@ function drawGuideNumbers (player, danceChart, songManager) {
   var lastNumber = Math.round((videoEnd - danceChart.offset) / songManager.tempo)
 
   for (let i = firstNumber; i <= lastNumber; i += 1) {
-    if (Math.abs(i % editorConfig.adjustments.numbers) === 0) {
-      var text = new PIXI.Text(i + 1, {
-        fontSize: 14,
-        fontFamily: 'Arial',
-        fill: '#1ec503',
-        align: 'center',
-        stroke: '#1ec503'
-      })
+    var text = new PIXI.Text(i + 1, {
+      fontSize: 14,
+      fontFamily: 'Arial',
+      fill: '#1ec503',
+      align: 'center',
+      stroke: '#1ec503'
+    })
 
-      text.x = 195
-      text.y = 56 + (56 * i)
+    text.x = 195
+    text.y = 56 + (56 * i)
 
-      text.cacheAsBitmap = true
-      guideNumbers.addChild(text)
-    }
+    text.cacheAsBitmap = true
+    guideNumbers.addChild(text)
   }
   player.seek(songManager.getNearestBeatTime())
 }
