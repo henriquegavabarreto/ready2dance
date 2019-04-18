@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js'
-import { circleSelection } from '../../config/containers.js'
+import { selectionCircles } from '../../config/containers.js'
 import grid from '../../config/grid.js'
 // import { addSelectionToArray } from '../../circles/add-selection-to-array.js'
 // import { addSelectionToMove } from '../../circles/add-selection-to-move.js'
@@ -19,7 +19,7 @@ function setSelectionCircles () {
     circle.drawCircle(grid[i].x, grid[i].y, circleConfig.size)
     circle.cacheAsBitmap = true
     circle.name = `${i}`
-    circle.interactive = true
+    circle.buttonMode = true
 
     circle.on('mouseover', (event) => {
       circle.alpha = 0.1
@@ -40,7 +40,7 @@ function setSelectionCircles () {
       //   // addSelectionToMove(circle.name)
       // }
     })
-    circleSelection.addChild(circle)
+    selectionCircles.addChild(circle)
   }
 }
 

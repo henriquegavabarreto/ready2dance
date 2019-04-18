@@ -1,9 +1,6 @@
 import * as PIXI from 'pixi.js'
 import { fixedGraphics } from '../../config/containers.js'
 import editorConfig from '../../config/editor-config.js'
-// var showTimingModal = require('../../listeners/menus/show-timing-modal.js')
-// var showMenuModal = require('../../listeners/menus/show-menu-modal.js')
-// var showSongModal = require('../../listeners/menus/show-song-modal.js')
 
 function setFixedGraphics () {
   setGuideline()

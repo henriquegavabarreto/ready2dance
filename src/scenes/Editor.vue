@@ -9,6 +9,7 @@
       @keydown.arrow-up="moveToPreviousQuarterBeat"
       @keydown.arrow-right="moveToNextBeat"
       @keydown.arrow-left="moveToPreviousBeat"
+      @keyup.p="playAndPause"
     ></div>
     <div id="player"></div>
   </div>
@@ -24,6 +25,9 @@ import SongManager from '../tools/config/song-manager'
 import danceChart from '../tools/editor/data/dance-chart'
 import editorConfig from '../tools/editor/config/editor-config'
 import drawGuideNumbers from '../tools/editor/containers/guideNumbers/draw-guide-numbers'
+import redrawStaff from '../tools/editor/containers/backgroundStaff/redraw-staff'
+import updateTimeText from '../tools/editor/animations/update-time-text'
+import updateTimeline from '../tools/editor/animations/update-timeline'
 import * as PIXI from 'pixi.js'
 
 const YTPlayer = require('yt-player')
@@ -52,7 +56,12 @@ export default {
   methods: {
     loadVideo: function () {
       this.player.load('YOtKiiUrIvk')
+      // expected behaviours after the video is loaded
       editorConfig.status = true
+      this.editorView.ticker.add(() => {
+        updateTimeText(this.player)
+        updateTimeline(this.songManager.currentBeat)
+      })
     },
     pauseVideo: function () {
       this.player.pause()
@@ -60,6 +69,7 @@ export default {
     },
     drawNumbers: function () {
       drawGuideNumbers(this.player, this.danceChart, this.songManager)
+      redrawStaff(this.player, this.danceChart, this.songManager)
     },
     moveToNextQuarterBeat: function () {
       if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
@@ -74,34 +84,54 @@ export default {
       }
     },
     moveToPreviousQuarterBeat: function () {
-      let skippedBeats = -1
-      this.player.seek(this.songManager.getNearestBeatTime(skippedBeats))
-      // createNoteWhenSelected(skippedBeats)
-      // setTimeout(function () {
-      //   showMoveInfo()
-      //   drawCues()
-      //   if (editor.selectingMoves) drawSelectionRectangle()
-      // }, 200)
+      if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
+        let skippedBeats = -1
+        this.player.seek(this.songManager.getNearestBeatTime(skippedBeats))
+        // createNoteWhenSelected(skippedBeats)
+        // setTimeout(function () {
+        //   showMoveInfo()
+        //   drawCues()
+        //   if (editor.selectingMoves) drawSelectionRectangle()
+        // }, 200)
+      }
     },
     moveToNextBeat: function () {
-      let skippedBeats = 4
-      this.player.seek(this.songManager.getNearestBeatTime(skippedBeats))
-      // createNoteWhenSelected(skippedBeats)
-      // setTimeout(function () {
-      //   showMoveInfo()
-      //   drawCues()
-      //   if (editor.selectingMoves) drawSelectionRectangle()
-      // }, 200)
+      if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
+        let skippedBeats = 4
+        this.player.seek(this.songManager.getNearestBeatTime(skippedBeats))
+        // createNoteWhenSelected(skippedBeats)
+        // setTimeout(function () {
+        //   showMoveInfo()
+        //   drawCues()
+        //   if (editor.selectingMoves) drawSelectionRectangle()
+        // }, 200)
+      }
     },
     moveToPreviousBeat: function () {
-      let skippedBeats = -4
-      this.player.seek(this.songManager.getNearestBeatTime(skippedBeats))
-      // createNoteWhenSelected(skippedBeats)
-      // setTimeout(function () {
-      //   showMoveInfo()
-      //   drawCues()
-      //   if (editor.selectingMoves) drawSelectionRectangle()
-      // }, 200)
+      if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
+        let skippedBeats = -4
+        this.player.seek(this.songManager.getNearestBeatTime(skippedBeats))
+        // createNoteWhenSelected(skippedBeats)
+        // setTimeout(function () {
+        //   showMoveInfo()
+        //   drawCues()
+        //   if (editor.selectingMoves) drawSelectionRectangle()
+        // }, 200)
+      }
+    },
+    playAndPause: function () {
+      if (editorConfig.status && !editorConfig.areaSelect) {
+        if (this.player.getState() === 'playing') {
+          this.player.pause()
+          this.player.seek(this.songManager.getNearestBeatTime())
+          // setTimeout(function () {
+          //   showMoveInfo()
+          //   drawCues()
+          // }, 200)
+        } else {
+          this.player.play()
+        }
+      }
     }
   }
 }
