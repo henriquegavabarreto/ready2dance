@@ -1,7 +1,7 @@
 import editorConfig from './editor-config'
 
 function createGrid () {
-  let referenceGrid = ['-']
+  let referenceGrid = ['-'] // placeholder for the first so position 1 can be index 1
 
   let distance = 130
   let initX = (editorConfig.width * 2 / 3) - distance

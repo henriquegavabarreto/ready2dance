@@ -15,6 +15,10 @@
         <v-icon>save</v-icon>
       </v-btn>
       <v-btn color="primary">
+        info
+        <v-icon>info</v-icon>
+      </v-btn>
+      <v-btn color="primary">
         Back
         <v-icon>exit_to_app</v-icon>
       </v-btn>

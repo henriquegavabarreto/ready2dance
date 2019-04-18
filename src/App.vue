@@ -10,7 +10,7 @@ import Editor from './scenes/Editor'
 export default {
   name: 'App',
   components: {
-    Editor
+    'editor': Editor
   },
   data () {
     return {

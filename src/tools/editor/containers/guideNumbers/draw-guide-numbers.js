@@ -1,6 +1,5 @@
 import * as PIXI from 'pixi.js'
 import { guideNumbers } from '../../config/containers'
-import editorConfig from '../../config/editor'
 
 // Use when options are saved and numbers need to be drawn again
 function drawGuideNumbers (player, danceChart, songManager) {
@@ -30,4 +29,4 @@ function drawGuideNumbers (player, danceChart, songManager) {
   player.seek(songManager.getNearestBeatTime())
 }
 
-export { drawGuideNumbers }
+export default drawGuideNumbers

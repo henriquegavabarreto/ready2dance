@@ -37,4 +37,8 @@ export default class SongManager {
     let beatTime = ((beat / 4) * this.tempo + this.danceChart.offset)
     return beatTime
   }
+
+  update (changedDanceChart) {
+    this.danceChart = changedDanceChart
+  }
 }
