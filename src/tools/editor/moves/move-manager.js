@@ -209,6 +209,27 @@ export default class MoveManager {
     }
   }
 
+  addBeatToArray (beat = this.songManager.nearestBeat) {
+    if (!editorConfig.beatArray.includes(beat)) editorConfig.beatArray.push(beat)
+  }
+
+  // clears the array
+  clearBeatArray () {
+    editorConfig.beatArray = []
+  }
+
+  sortBeatArray () {
+    editorConfig.beatArray.sort(function (a, b) { return a - b })
+  }
+
+  getCircleCount () {
+    if (editorConfig.beatArray.length === 1) {
+      return 1
+    } else {
+      return 2
+    }
+  }
+
   update (songManager) {
     this.songManager = songManager
   }
