@@ -93,9 +93,9 @@ export default {
       if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
         let skippedBeats = 1
         this.player.seek(this.songManager.getNearestBeatTime(skippedBeats))
-        if (editorConfig.selectingMoves) drawSelection(this.songManager)
         // createNoteWhenSelected(skippedBeats)
-        setTimeout(function () {
+        setTimeout(() => {
+          if (editorConfig.selectingMoves) drawSelection(this.songManager)
           // showMoveInfo()
           // drawCues()
         }, 200)
@@ -105,9 +105,9 @@ export default {
       if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
         let skippedBeats = -1
         this.player.seek(this.songManager.getNearestBeatTime(skippedBeats))
-        if (editorConfig.selectingMoves) drawSelection(this.songManager)
         // createNoteWhenSelected(skippedBeats)
-        setTimeout(function () {
+        setTimeout(() => {
+          if (editorConfig.selectingMoves) drawSelection(this.songManager)
           // showMoveInfo()
           // drawCues()
         }, 200)
@@ -117,9 +117,9 @@ export default {
       if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
         let skippedBeats = 4
         this.player.seek(this.songManager.getNearestBeatTime(skippedBeats))
-        if (editorConfig.selectingMoves) drawSelection(this.songManager)
         // createNoteWhenSelected(skippedBeats)
-        setTimeout(function () {
+        setTimeout(() => {
+          if (editorConfig.selectingMoves) drawSelection(this.songManager)
           // showMoveInfo()
           // drawCues()
         }, 200)
@@ -129,9 +129,9 @@ export default {
       if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
         let skippedBeats = -4
         this.player.seek(this.songManager.getNearestBeatTime(skippedBeats))
-        if (editorConfig.selectingMoves) drawSelection(this.songManager)
         // createNoteWhenSelected(skippedBeats)
-        setTimeout(function () {
+        setTimeout(() => {
+          if (editorConfig.selectingMoves) drawSelection(this.songManager)
           // showMoveInfo()
           // drawCues()
         }, 200)
@@ -166,7 +166,7 @@ export default {
       if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
         editorConfig.creatingMove = true
         editorConfig.pressedKey = 'x'
-        editorConfig.beatArray.push(this.songManager.nearestBeat)
+        this.noteManager.addBeatToArray(this.songManager.nearestBeat)
         this.noteManager.createNote('x')
       }
     },
@@ -174,7 +174,7 @@ export default {
       if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
         editorConfig.creatingMove = true
         editorConfig.pressedKey = 'z'
-        editorConfig.beatArray.push(this.songManager.nearestBeat)
+        this.moveManager.addBeatToArray(this.songManager.nearestBeat)
         this.noteManager.createNote('z')
       }
     },
@@ -183,6 +183,7 @@ export default {
         if (this.moveManager.isValidInsert(this.danceChart)) {
           this.moveManager.addRequiredMoves(danceChart, 'x')
           this.player.seek(this.songManager.getBeatTime(editorConfig.beatArray[0]))
+          this.moveManager.setCircleCount()
           enableSelection()
         }
         editorConfig.creatingMove = false
@@ -193,6 +194,7 @@ export default {
       if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
         editorConfig.creatingMove = false
         editorConfig.pressedKey = ''
+        this.moveManager.setCircleCount()
       }
     }
   }

@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js'
-import { selectionCircles } from '../../config/containers.js'
+import { selectionCircles } from '../../config/containers'
 import grid from '../../config/grid.js'
-import editorConfig from '../../config/editor-config.js'
+import editorConfig from '../../config/editor-config'
 
 function setSelectionCircles () {
   var circleConfig = {
@@ -30,7 +30,8 @@ function setSelectionCircles () {
     circle.on('mousedown', (event) => {
       circle.alpha = 1
       editorConfig.selectedCircles.push(circle.name)
-      if (editorConfig.selectedCircles.lenght === editorConfig.circleCount) console.log('GOTCHA!')
+      console.log(editorConfig.selectedCircles)
+      console.log(editorConfig.circleCount)
     })
     selectionCircles.addChild(circle)
   }
