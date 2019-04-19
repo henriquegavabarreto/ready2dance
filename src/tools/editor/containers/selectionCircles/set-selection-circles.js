@@ -30,6 +30,7 @@ function setSelectionCircles () {
     circle.on('mousedown', (event) => {
       circle.alpha = 1
       editorConfig.selectedCircles.push(circle.name)
+      if (editorConfig.selectedCircles.lenght === editorConfig.circleCount) console.log('GOTCHA!')
     })
     selectionCircles.addChild(circle)
   }

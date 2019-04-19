@@ -18,6 +18,7 @@ var editorConfig = {
   selectingMoves: false,
   pressedKey: '',
   beatArray: [],
+  circleCount: 0,
   selectedCircles: [],
   selectedHand: '',
   copySelection: [],

@@ -5,7 +5,7 @@ export default class MoveManager {
     this.songManager = songManager
   }
 
-  checkForMove (danceChart, beat = this.songManager.nearestBeat) {
+  checkForMoves (danceChart, beat = this.songManager.nearestBeat) {
     if (danceChart.moves.length === 0) {
       return -1
     } else {
@@ -22,7 +22,7 @@ export default class MoveManager {
   }
 
   getHandMove (danceChart, beat, hand) {
-    let i = this.checkForMove(beat)
+    let i = this.checkForMoves(beat)
     if (i >= 0) {
       let move = danceChart.moves[i]
       move = move.split(',')
@@ -68,18 +68,18 @@ export default class MoveManager {
     let beatOnMove = this.checkForMoves(danceChart, beat)
 
     if (beatOnMove === -1) { // if there is no move on the beat yet
-      if (pressedKey === editorConfig.shortCuts.rightHand) { // S for selected and X for no data
+      if (editorConfig.pressedKey === 'x') { // S for selected and X for no data
         danceChart.moves.push(`${beat},1,X,S`)
-      } else if (pressedKey === editorConfig.shortCuts.leftHand) {
+      } else if (editorConfig.pressedKey === 'z') {
         danceChart.moves.push(`${beat},1,S,X`)
       }
     } else { // if there is a move on this beat
       let moves = danceChart.moves[beatOnMove].split(',')
-      if (pressedKey === editorConfig.shortCuts.rightHand && moves[3] === 'X') { // select right hand
+      if (editorConfig.pressedKey === 'x' && moves[3] === 'X') { // select right hand
         moves[3] = 'S'
         moves = moves.join(',')
         danceChart.moves[beatOnMove] = moves
-      } else if (pressedKey === editorConfig.shortCuts.leftHand && moves[2] === 'X') { // select left hand
+      } else if (editorConfig.pressedKey === 'z' && moves[2] === 'X') { // select left hand
         moves[2] = 'S'
         moves = moves.join(',')
         danceChart.moves[beatOnMove] = moves
@@ -90,7 +90,7 @@ export default class MoveManager {
   addHandInfo (danceChart) {
     let moveType = this.moveType
     editorConfig.beatArray.forEach((beat, index) => {
-      let moveIndex = this.checkForMove(danceChart, beat)
+      let moveIndex = this.checkForMoves(danceChart, beat)
       let move = danceChart.moves[moveIndex].split(',')
       if (moveType === 'S') {
         if (move[2] !== 'X' && move[2].length === 1) {
@@ -133,7 +133,7 @@ export default class MoveManager {
   isValidInsert (danceChart) {
     let isValid = false
     for (let i = 0; i < editorConfig.beatArray.length; i++) {
-      let moveIndex = this.checkForMove(danceChart, editorConfig.beatArray[i])
+      let moveIndex = this.checkForMoves(danceChart, editorConfig.beatArray[i])
       if (moveIndex !== -1) { // if there are moves
         let move = danceChart.moves[moveIndex]
         move = move.split(',')
@@ -153,7 +153,7 @@ export default class MoveManager {
 
   addRequiredMoves (danceChart, key) {
     editorConfig.beatArray.forEach((beat) => {
-      this.addMovesToChart(danceChart, key, beat)
+      this.addMoveToChart(danceChart, key, beat)
     })
   }
 
@@ -228,11 +228,11 @@ export default class MoveManager {
     editorConfig.beatArray.sort(function (a, b) { return a - b })
   }
 
-  getCircleCount () {
+  setCircleCount () {
     if (editorConfig.beatArray.length === 1) {
-      return 1
+      editorConfig.circleCount = 1
     } else {
-      return 2
+      editorConfig.circleCount = 2
     }
   }
 

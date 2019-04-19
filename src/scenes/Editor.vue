@@ -168,7 +168,6 @@ export default {
         editorConfig.pressedKey = 'x'
         editorConfig.beatArray.push(this.songManager.nearestBeat)
         this.noteManager.createNote('x')
-        enableSelection()
       }
     },
     startLeftHandCreation: function () {
@@ -177,7 +176,6 @@ export default {
         editorConfig.pressedKey = 'z'
         editorConfig.beatArray.push(this.songManager.nearestBeat)
         this.noteManager.createNote('z')
-        enableSelection()
       }
     },
     stopRightHandCreation: function () {
@@ -185,17 +183,14 @@ export default {
         if (this.moveManager.isValidInsert(this.danceChart)) {
           this.moveManager.addRequiredMoves(danceChart, 'x')
           this.player.seek(this.songManager.getBeatTime(editorConfig.beatArray[0]))
+          enableSelection()
         }
-        editorConfig.beatArray.push(this.songManager.nearestBeat)
-        this.noteManager.createNote('x')
         editorConfig.creatingMove = false
         editorConfig.pressedKey = ''
       }
     },
     stopLeftHandCreation: function () {
       if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
-        editorConfig.beatArray.push(this.songManager.nearestBeat)
-        this.noteManager.createNote('x')
         editorConfig.creatingMove = false
         editorConfig.pressedKey = ''
       }
