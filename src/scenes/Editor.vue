@@ -4,14 +4,19 @@
     <button v-on:click="loadVideo">Load Video</button>
     <button v-on:click="pauseVideo">Pause Video</button>
     <button v-on:click="drawNumbers">Draw Numbers</button>
-    <div id="canvas" tabindex = "0"
-      @keydown.arrow-down="moveToNextQuarterBeat"
-      @keydown.arrow-up="moveToPreviousQuarterBeat"
-      @keydown.arrow-right="moveToNextBeat"
-      @keydown.arrow-left="moveToPreviousBeat"
-      @keyup.p="playAndPause"
-    ></div>
-    <div id="player"></div>
+    <div id="wrapper">
+      <div id="canvas" tabindex = "0"
+        @keydown.arrow-down="moveToNextQuarterBeat"
+        @keydown.arrow-up="moveToPreviousQuarterBeat"
+        @keydown.arrow-right="moveToNextBeat"
+        @keydown.arrow-left="moveToPreviousBeat"
+        @keyup.p="playAndPause"
+        @keydown.c="startCopySelection"
+        @keyup.c="endCopySelection"
+        @keydown.x="rightHandCreation"
+      ></div>
+      <div id="player"></div>
+    </div>
   </div>
 </template>
 
@@ -28,6 +33,8 @@ import drawGuideNumbers from '../tools/editor/containers/guideNumbers/draw-guide
 import redrawStaff from '../tools/editor/containers/backgroundStaff/redraw-staff'
 import updateTimeText from '../tools/editor/animations/update-time-text'
 import updateTimeline from '../tools/editor/animations/update-timeline'
+import drawSelection from '../tools/editor/containers/copyPasteSelection/draw-selection'
+import copy from '../tools/editor/copyPaste/copy'
 import * as PIXI from 'pixi.js'
 
 const YTPlayer = require('yt-player')
@@ -51,6 +58,7 @@ export default {
     setViewAndContainers(this.editorView)
     setInitialGraphics()
     this.player = new YTPlayer('#player', playerConfig)
+    this.player.on('paused', () => { this.player.seek(this.songManager.getNearestBeatTime()) })
     this.songManager = new SongManager(this.player, this.danceChart)
   },
   methods: {
@@ -75,55 +83,54 @@ export default {
       if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
         let skippedBeats = 1
         this.player.seek(this.songManager.getNearestBeatTime(skippedBeats))
-      //   createNoteWhenSelected(skippedBeats)
-      //   setTimeout(function () {
-      //     showMoveInfo()
-      //     drawCues()
-      //     if (editor.selectingMoves) drawSelectionRectangle()
-      // }, 200)
+        if (editorConfig.selectingMoves) drawSelection(this.songManager)
+        // createNoteWhenSelected(skippedBeats)
+        setTimeout(function () {
+          // showMoveInfo()
+          // drawCues()
+        }, 200)
       }
     },
     moveToPreviousQuarterBeat: function () {
       if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
         let skippedBeats = -1
         this.player.seek(this.songManager.getNearestBeatTime(skippedBeats))
+        if (editorConfig.selectingMoves) drawSelection(this.songManager)
         // createNoteWhenSelected(skippedBeats)
-        // setTimeout(function () {
-        //   showMoveInfo()
-        //   drawCues()
-        //   if (editor.selectingMoves) drawSelectionRectangle()
-        // }, 200)
+        setTimeout(function () {
+          // showMoveInfo()
+          // drawCues()
+        }, 200)
       }
     },
     moveToNextBeat: function () {
       if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
         let skippedBeats = 4
         this.player.seek(this.songManager.getNearestBeatTime(skippedBeats))
+        if (editorConfig.selectingMoves) drawSelection(this.songManager)
         // createNoteWhenSelected(skippedBeats)
-        // setTimeout(function () {
-        //   showMoveInfo()
-        //   drawCues()
-        //   if (editor.selectingMoves) drawSelectionRectangle()
-        // }, 200)
+        setTimeout(function () {
+          // showMoveInfo()
+          // drawCues()
+        }, 200)
       }
     },
     moveToPreviousBeat: function () {
       if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
         let skippedBeats = -4
         this.player.seek(this.songManager.getNearestBeatTime(skippedBeats))
+        if (editorConfig.selectingMoves) drawSelection(this.songManager)
         // createNoteWhenSelected(skippedBeats)
-        // setTimeout(function () {
-        //   showMoveInfo()
-        //   drawCues()
-        //   if (editor.selectingMoves) drawSelectionRectangle()
-        // }, 200)
+        setTimeout(function () {
+          // showMoveInfo()
+          // drawCues()
+        }, 200)
       }
     },
     playAndPause: function () {
       if (editorConfig.status && !editorConfig.areaSelect) {
         if (this.player.getState() === 'playing') {
           this.player.pause()
-          this.player.seek(this.songManager.getNearestBeatTime())
           // setTimeout(function () {
           //   showMoveInfo()
           //   drawCues()
@@ -132,7 +139,45 @@ export default {
           this.player.play()
         }
       }
+    },
+    startCopySelection: function () {
+      if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
+        copy.start(this.songManager)
+        drawSelection(this.songManager)
+      }
+    },
+    endCopySelection: function () {
+      if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
+        copy.end(this.songManager)
+        copy.addSelectionToClipboard(this.danceChart)
+      }
+    },
+    rightHandCreation: function () {
+      editorConfig.creatingMove = true
+      editorConfig.pressedKey = 'x'
+      editorConfig.beatArray.push(this.songManager.nearestBeat)
+      // createNote('x')
     }
   }
 }
 </script>
+<style scoped>
+  #wrapper {
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+  }
+  #player {
+    top: 0;
+    right: 0;
+    z-index: -1;
+  }
+
+  #canvas {
+    display: flex;
+    flex-wrap: wrap;
+    width: 50%;
+    margin: 0;
+    outline: none;
+  }
+</style>

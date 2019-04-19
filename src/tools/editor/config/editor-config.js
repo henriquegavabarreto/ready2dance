@@ -16,23 +16,7 @@ var editorConfig = {
   creatingMove: false,
   changingMove: false,
   selectingMoves: false,
-  shortCuts: {
-    play: 'p',
-    slower: ',',
-    faster: '.',
-    nextQuarterBeat: 'ArrowDown',
-    previousQuarterBeat: 'ArrowUp',
-    nextBeat: 'ArrowRight',
-    previousBeat: 'ArrowLeft',
-    leftHand: 'z',
-    rightHand: 'x',
-    copy: 'c',
-    paste: 'v'
-  },
-  keyStatus: {
-    zPressed: false,
-    xPressed: false
-  },
+  pressedKey: '',
   beatArray: [],
   selectedCircles: [],
   selectedHand: '',
