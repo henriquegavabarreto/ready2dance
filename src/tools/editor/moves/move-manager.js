@@ -151,6 +151,12 @@ export default class MoveManager {
     return isValid
   }
 
+  addRequiredMoves (danceChart, key) {
+    editorConfig.beatArray.forEach((beat) => {
+      this.addMovesToChart(danceChart, key, beat)
+    })
+  }
+
   updateMoves (danceChart, offsetDifference = 0) { // to use when there are any changes in timing
     let moves = danceChart.moves
     let updatedMoves = []

@@ -13,7 +13,10 @@
         @keyup.p="playAndPause"
         @keydown.c="startCopySelection"
         @keyup.c="endCopySelection"
-        @keydown.x="rightHandCreation"
+        @keydown.x="startRightHandCreation"
+        @keydown.z="startLeftHandCreation"
+        @keyup.x="stopRightHandCreation"
+        @keyup.z="stopLeftHandCreation"
       ></div>
       <div id="player"></div>
     </div>
@@ -27,6 +30,8 @@ import pixiConfig from '../tools/editor/config/pixi-config'
 import setViewAndContainers from '../tools/editor/containers/set-view-and-containers'
 import setInitialGraphics from '../tools/editor/containers/set-initial-graphics'
 import SongManager from '../tools/config/song-manager'
+import MoveManager from '../tools/editor/moves/move-manager'
+import NoteManager from '../tools/editor/notes/note-manager'
 import danceChart from '../tools/editor/data/dance-chart'
 import editorConfig from '../tools/editor/config/editor-config'
 import drawGuideNumbers from '../tools/editor/containers/guideNumbers/draw-guide-numbers'
@@ -34,6 +39,7 @@ import redrawStaff from '../tools/editor/containers/backgroundStaff/redraw-staff
 import updateTimeText from '../tools/editor/animations/update-time-text'
 import updateTimeline from '../tools/editor/animations/update-timeline'
 import drawSelection from '../tools/editor/containers/copyPasteSelection/draw-selection'
+import enableSelection from '../tools/editor/circleSelection/enable-selection'
 import copy from '../tools/editor/copyPaste/copy'
 import * as PIXI from 'pixi.js'
 
@@ -48,7 +54,9 @@ export default {
       player: null,
       editorView: null,
       songManager: null,
-      danceChart: danceChart
+      danceChart: danceChart,
+      noteManager: null,
+      moveManager: null
     }
   },
   created () {
@@ -60,6 +68,8 @@ export default {
     this.player = new YTPlayer('#player', playerConfig)
     this.player.on('paused', () => { this.player.seek(this.songManager.getNearestBeatTime()) })
     this.songManager = new SongManager(this.player, this.danceChart)
+    this.moveManager = new MoveManager(this.songManager)
+    this.noteManager = new NoteManager(this.songManager)
   },
   methods: {
     loadVideo: function () {
@@ -152,11 +162,43 @@ export default {
         copy.addSelectionToClipboard(this.danceChart)
       }
     },
-    rightHandCreation: function () {
-      editorConfig.creatingMove = true
-      editorConfig.pressedKey = 'x'
-      editorConfig.beatArray.push(this.songManager.nearestBeat)
-      // createNote('x')
+    startRightHandCreation: function () {
+      if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
+        editorConfig.creatingMove = true
+        editorConfig.pressedKey = 'x'
+        editorConfig.beatArray.push(this.songManager.nearestBeat)
+        this.noteManager.createNote('x')
+        enableSelection()
+      }
+    },
+    startLeftHandCreation: function () {
+      if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
+        editorConfig.creatingMove = true
+        editorConfig.pressedKey = 'z'
+        editorConfig.beatArray.push(this.songManager.nearestBeat)
+        this.noteManager.createNote('z')
+        enableSelection()
+      }
+    },
+    stopRightHandCreation: function () {
+      if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
+        if (this.moveManager.isValidInsert(this.danceChart)) {
+          this.moveManager.addRequiredMoves(danceChart, 'x')
+          this.player.seek(this.songManager.getBeatTime(editorConfig.beatArray[0]))
+        }
+        editorConfig.beatArray.push(this.songManager.nearestBeat)
+        this.noteManager.createNote('x')
+        editorConfig.creatingMove = false
+        editorConfig.pressedKey = ''
+      }
+    },
+    stopLeftHandCreation: function () {
+      if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
+        editorConfig.beatArray.push(this.songManager.nearestBeat)
+        this.noteManager.createNote('x')
+        editorConfig.creatingMove = false
+        editorConfig.pressedKey = ''
+      }
     }
   }
 }

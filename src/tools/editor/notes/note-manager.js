@@ -7,7 +7,7 @@ export default class NoteManager {
     this.songManager = songManager
   }
 
-  createNote (key, beat = this.songManager.getNearestBeat()) {
+  createNote (key, beat = this.songManager.nearestBeat) {
     let x = 22 // default x to left hand
     if (key === 'x') {
       x = 108
