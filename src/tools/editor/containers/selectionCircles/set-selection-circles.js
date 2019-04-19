@@ -30,8 +30,6 @@ function setSelectionCircles () {
     circle.on('mousedown', (event) => {
       circle.alpha = 1
       editorConfig.selectedCircles.push(circle.name)
-      console.log(editorConfig.selectedCircles)
-      console.log(editorConfig.circleCount)
     })
     selectionCircles.addChild(circle)
   }

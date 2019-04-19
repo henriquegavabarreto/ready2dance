@@ -13,10 +13,16 @@
         @keyup.p="playAndPause"
         @keydown.c="startCopySelection"
         @keyup.c="endCopySelection"
-        @keydown.x="startRightHandCreation"
-        @keydown.z="startLeftHandCreation"
-        @keyup.x="stopRightHandCreation"
-        @keyup.z="stopLeftHandCreation"
+        @keyup.v="pasteMoves"
+        @keydown.x="startCreation"
+        @keydown.z="startCreation"
+        @keyup.x="stopCreation"
+        @keyup.z="stopCreation"
+        @keyup.a="createNode"
+        @keyup.s="createNode"
+        @keyup.q="deleteMove"
+        @keyup.w="deleteMove"
+        @click="dealWithSelection"
       ></div>
       <div id="player"></div>
     </div>
@@ -40,7 +46,9 @@ import updateTimeText from '../tools/editor/animations/update-time-text'
 import updateTimeline from '../tools/editor/animations/update-timeline'
 import drawSelection from '../tools/editor/containers/copyPasteSelection/draw-selection'
 import enableSelection from '../tools/editor/circleSelection/enable-selection'
+import disableSelection from '../tools/editor/circleSelection/disable-selection'
 import copy from '../tools/editor/copyPaste/copy'
+import paste from '../tools/editor/copyPaste/paste'
 import * as PIXI from 'pixi.js'
 
 const YTPlayer = require('yt-player')
@@ -95,6 +103,10 @@ export default {
         this.player.seek(this.songManager.getNearestBeatTime(skippedBeats))
         // createNoteWhenSelected(skippedBeats)
         setTimeout(() => {
+          if (editorConfig.creatingMove) {
+            this.noteManager.createNotes(editorConfig.pressedKey)
+            this.moveManager.addBeatToArray()
+          }
           if (editorConfig.selectingMoves) drawSelection(this.songManager)
           // showMoveInfo()
           // drawCues()
@@ -107,6 +119,10 @@ export default {
         this.player.seek(this.songManager.getNearestBeatTime(skippedBeats))
         // createNoteWhenSelected(skippedBeats)
         setTimeout(() => {
+          if (editorConfig.creatingMove) {
+            this.noteManager.createNotes(editorConfig.pressedKey)
+            this.moveManager.addBeatToArray()
+          }
           if (editorConfig.selectingMoves) drawSelection(this.songManager)
           // showMoveInfo()
           // drawCues()
@@ -119,6 +135,10 @@ export default {
         this.player.seek(this.songManager.getNearestBeatTime(skippedBeats))
         // createNoteWhenSelected(skippedBeats)
         setTimeout(() => {
+          if (editorConfig.creatingMove) {
+            this.noteManager.createNotes(editorConfig.pressedKey, this.songManager.nearestBeat, skippedBeats)
+            this.moveManager.addBeatToArray(this.songManager.nearestBeat, skippedBeats)
+          }
           if (editorConfig.selectingMoves) drawSelection(this.songManager)
           // showMoveInfo()
           // drawCues()
@@ -131,6 +151,10 @@ export default {
         this.player.seek(this.songManager.getNearestBeatTime(skippedBeats))
         // createNoteWhenSelected(skippedBeats)
         setTimeout(() => {
+          if (editorConfig.creatingMove) {
+            this.noteManager.createNotes(editorConfig.pressedKey, this.songManager.nearestBeat, skippedBeats)
+            this.moveManager.addBeatToArray(this.songManager.nearestBeat, skippedBeats)
+          }
           if (editorConfig.selectingMoves) drawSelection(this.songManager)
           // showMoveInfo()
           // drawCues()
@@ -162,39 +186,72 @@ export default {
         copy.addSelectionToClipboard(this.danceChart)
       }
     },
-    startRightHandCreation: function () {
-      if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
+    pasteMoves: function () {
+      paste(this.danceChart, this.songManager, this.moveManager, this.noteManager)
+    },
+    startCreation: function (event) {
+      if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect && editorConfig.pressedKey === '') {
         editorConfig.creatingMove = true
-        editorConfig.pressedKey = 'x'
-        this.noteManager.addBeatToArray(this.songManager.nearestBeat)
-        this.noteManager.createNote('x')
+        editorConfig.pressedKey = event.key
+        this.moveManager.addBeatToArray()
+        this.noteManager.createNotes(event.key)
       }
     },
-    startLeftHandCreation: function () {
-      if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
-        editorConfig.creatingMove = true
-        editorConfig.pressedKey = 'z'
-        this.moveManager.addBeatToArray(this.songManager.nearestBeat)
-        this.noteManager.createNote('z')
-      }
-    },
-    stopRightHandCreation: function () {
-      if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
+    stopCreation: function (event) {
+      if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect && editorConfig.pressedKey === event.key) {
         if (this.moveManager.isValidInsert(this.danceChart)) {
-          this.moveManager.addRequiredMoves(danceChart, 'x')
+          this.moveManager.sortBeatArray()
+          this.moveManager.addRequiredMoves(this.danceChart, event.key)
           this.player.seek(this.songManager.getBeatTime(editorConfig.beatArray[0]))
           this.moveManager.setCircleCount()
           enableSelection()
+        } else {
+          this.noteManager.removeInvalidNotes(this.danceChart)
+          this.moveManager.clearBeatArray()
+          editorConfig.creatingMove = false
+          editorConfig.pressedKey = ''
         }
-        editorConfig.creatingMove = false
-        editorConfig.pressedKey = ''
       }
     },
-    stopLeftHandCreation: function () {
+    createNode: function (event) {
       if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
-        editorConfig.creatingMove = false
-        editorConfig.pressedKey = ''
-        this.moveManager.setCircleCount()
+        let moveType = this.moveManager.getCreatedMoveType(this.danceChart, event.key)
+        if (moveType === 'H') {
+          this.moveManager.setHoldNode(this.danceChart, event.key)
+        } else if (moveType === 'M') {
+          editorConfig.changingMove = true
+          editorConfig.pressedKey = event.key
+          enableSelection()
+        }
+      }
+    },
+    deleteMove: function (event) {
+      if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
+        this.moveManager.deleteMove(this.danceChart, event.key)
+        this.noteManager.redraw(this.danceChart)
+      }
+    },
+    dealWithSelection: function () {
+      if (editorConfig.creatingMove) {
+        if (editorConfig.selectedCircles.length === 1 && editorConfig.circleCount > 1) {
+          this.player.seek(this.songManager.getBeatTime(editorConfig.beatArray[editorConfig.beatArray.length - 1]))
+        } else if (editorConfig.selectedCircles.length === editorConfig.circleCount) {
+          this.moveManager.addHandInfo(this.danceChart)
+          this.noteManager.tintNotes()
+          disableSelection()
+          this.moveManager.clearBeatArray()
+          editorConfig.selectedCircles = []
+          editorConfig.creatingMove = false
+          editorConfig.pressedKey = ''
+        }
+      } else if (editorConfig.changingMove) {
+        if (editorConfig.selectedCircles.length === 1) {
+          this.moveManager.changeMove(this.danceChart, this.songManager.nearestBeat, editorConfig.pressedKey, editorConfig.selectedCircles[0])
+          disableSelection()
+          editorConfig.selectedCircles = []
+          editorConfig.pressedKey = ''
+          editorConfig.changingMove = false
+        }
       }
     }
   }

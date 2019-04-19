@@ -5,7 +5,7 @@ export default class MoveManager {
     this.songManager = songManager
   }
 
-  checkForMoves (danceChart, beat = this.songManager.nearestBeat) {
+  checkForMoves (danceChart, beat = this.songManager.nearestBeat) { // check if there is a move in a beat
     if (danceChart.moves.length === 0) {
       return -1
     } else {
@@ -21,8 +21,8 @@ export default class MoveManager {
     }
   }
 
-  getHandMove (danceChart, beat, hand) {
-    let i = this.checkForMoves(beat)
+  getHandMove (danceChart, beat, hand) { // internal - return hand move of a beat
+    let i = this.checkForMoves(danceChart, beat)
     if (i >= 0) {
       let move = danceChart.moves[i]
       move = move.split(',')
@@ -36,7 +36,7 @@ export default class MoveManager {
     }
   }
 
-  get moveType () {
+  get moveType () { // internal - returns the moveType
     if (editorConfig.beatArray.length === 1) {
       return 'S'
     } else if (editorConfig.beatArray.length > 1 && editorConfig.selectedCircles[0] !== editorConfig.selectedCircles[1]) {
@@ -46,7 +46,7 @@ export default class MoveManager {
     }
   }
 
-  getStartBeat (danceChart, beat, hand) {
+  getStartBeat (danceChart, beat, hand) { // internal - get start beat of a hold or motion
     let handMove = this.getHandMove(danceChart, beat, hand)
     if (handMove[handMove.length - 1] === 'S') {
       return beat
@@ -55,7 +55,7 @@ export default class MoveManager {
     }
   }
 
-  getEndBeat (danceChart, beat, hand) {
+  getEndBeat (danceChart, beat, hand) { // internal - get end beat of a hold or motion
     let handMove = this.getHandMove(danceChart, beat, hand)
     if (handMove[handMove.length - 1] === 'E') {
       return beat
@@ -64,7 +64,7 @@ export default class MoveManager {
     }
   }
 
-  addMoveToChart (danceChart, pressedKey, beat) {
+  addMoveToChart (danceChart, pressedKey, beat) { // call when stop creation to add 'proto-moves' to chart
     let beatOnMove = this.checkForMoves(danceChart, beat)
 
     if (beatOnMove === -1) { // if there is no move on the beat yet
@@ -130,7 +130,7 @@ export default class MoveManager {
     })
   }
 
-  isValidInsert (danceChart) {
+  isValidInsert (danceChart) { // call when creation stops - checks if there are notes in any of the selected positions
     let isValid = false
     for (let i = 0; i < editorConfig.beatArray.length; i++) {
       let moveIndex = this.checkForMoves(danceChart, editorConfig.beatArray[i])
@@ -151,10 +151,56 @@ export default class MoveManager {
     return isValid
   }
 
-  addRequiredMoves (danceChart, key) {
+  addRequiredMoves (danceChart, key) { // adds 'proto-moves' - call when isValidInsert is true
     editorConfig.beatArray.forEach((beat) => {
       this.addMoveToChart(danceChart, key, beat)
     })
+  }
+
+  changeMove (danceChart, beat, key, position) { // call after all selection is done
+    let hand = 'L'
+    if (editorConfig.pressedKey === 's') hand = 'R'
+    let handMove = this.getHandMove(danceChart, this.songManager.nearestBeat, hand)
+    let moveIndex = this.checkForMoves(danceChart)
+    let move = danceChart.moves[moveIndex]
+    move = move.split(',')
+    if (hand === 'L') {
+      if (handMove.length === 2) {
+        move[2] = handMove[0] + position + 'P'
+      } else {
+        move[2] = handMove[0] + position + handMove[2]
+      }
+    } else {
+      if (handMove.length === 2) {
+        move[3] = handMove[0] + position + 'P'
+      } else {
+        move[3] = handMove[0] + position + handMove[2]
+      }
+    }
+    danceChart.moves[moveIndex] = move.join(',')
+  }
+
+  setHoldNode (danceChart, key) { // call when 'a' or 's' keyup
+    let hand = 'L'
+    if (key === 's') hand = 'R'
+    let startBeat = this.getStartBeat(danceChart, this.songManager.nearestBeat, hand)
+    let originalPosition = this.getHandMove(danceChart, startBeat, hand)[1]
+    let moveIndex = this.checkForMoves(danceChart)
+    let move = danceChart.moves[moveIndex]
+    move = move.split(',')
+    if (hand === 'L') {
+      move[2] = 'H' + originalPosition + 'P'
+    } else {
+      move[3] = 'H' + originalPosition + 'P'
+    }
+    danceChart.moves[moveIndex] = move.join(',')
+  }
+
+  getCreatedMoveType (danceChart, key) {
+    let hand = 'L'
+    if (key === 's') hand = 'R'
+    let handMove = this.getHandMove(danceChart, this.songManager.nearestBeat, hand)
+    return handMove[0]
   }
 
   updateMoves (danceChart, offsetDifference = 0) { // to use when there are any changes in timing
@@ -168,23 +214,23 @@ export default class MoveManager {
     danceChart.moves = updatedMoves // update moves on the dance chart
   }
 
-  deleteMove (danceChart) {
-    if (editorConfig.pressedKey === 'q') {
+  deleteMove (danceChart, key) { // call when q or w keyup to delete moves
+    if (key === 'q') {
       let handMove = this.getHandMove(danceChart, this.songManager.nearestBeat, 'L')
       if (handMove !== 'X') {
         this.searchAndDelete(danceChart, this.songManager.nearestBeat, handMove, 'L')
         this.removeNoInfoMoves(danceChart)
       }
-    } else if (event.key === 'w') {
+    } else {
       let handMove = this.getHandMove(danceChart, this.songManager.nearestBeat, 'R')
       if (handMove !== 'X') {
-        this.searchAndDelete(this.songManager.nearestBeat, handMove, 'R')
+        this.searchAndDelete(danceChart, this.songManager.nearestBeat, handMove, 'R')
         this.removeNoInfoMoves(danceChart)
       }
     }
   }
 
-  searchAndDelete (danceChart, beat, handMove, hand) {
+  searchAndDelete (danceChart, beat, handMove, hand) { // internal - search surrounding moves to delete
     if (handMove[0] === 'S') { // if sharp move
       this.removeHandInfo(danceChart, beat, hand)
     } else if (handMove[0] === 'H' || handMove[0] === 'M') {
@@ -196,7 +242,7 @@ export default class MoveManager {
     }
   }
 
-  removeHandInfo (danceChart, beat, hand) {
+  removeHandInfo (danceChart, beat, hand) { // internal - remove hand info when delete button keyup
     if (hand === 'L') { // if left hand
       let moveToChange = danceChart.moves[this.checkForMoves(danceChart, beat)].split(',') // split move
       moveToChange[2] = 'X' // change the move that needs to be changed
@@ -208,19 +254,30 @@ export default class MoveManager {
     }
   }
 
-  removeNoInfoMoves (danceChart) {
+  removeNoInfoMoves (danceChart) { // internal - it is called to remove 'X,X' moves from the chart
     for (let i = danceChart.moves.length - 1; i >= 0; i--) {
       let move = danceChart.moves[i].split(',')
       if (move[2] === 'X' && move[3] === 'X') danceChart.moves.splice(i, 1)
     }
   }
 
-  addBeatToArray (beat = this.songManager.nearestBeat) {
-    if (!editorConfig.beatArray.includes(beat)) editorConfig.beatArray.push(beat)
+  addBeatToArray (beat = this.songManager.nearestBeat, modifier = 1) {
+    if (modifier === 1 || modifier === -1) {
+      if (!editorConfig.beatArray.includes(beat)) editorConfig.beatArray.push(beat)
+    } else if (modifier === 4) {
+      for (let i = 0; i <= 3; i++) { // adds notes in between
+        let beatToAdd = beat - i
+        if (!editorConfig.beatArray.includes(beatToAdd)) editorConfig.beatArray.push(beatToAdd)
+      }
+    } else if (modifier === -4) {
+      for (let i = 0; i <= 3; i++) {
+        let beatToAdd = beat + i
+        if (!editorConfig.beatArray.includes(beatToAdd)) editorConfig.beatArray.push(beatToAdd)
+      }
+    }
   }
 
-  // clears the array
-  clearBeatArray () {
+  clearBeatArray () { // clears the array
     editorConfig.beatArray = []
   }
 

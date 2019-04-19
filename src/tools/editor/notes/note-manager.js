@@ -7,15 +7,28 @@ export default class NoteManager {
     this.songManager = songManager
   }
 
-  createNote (key, beat = this.songManager.nearestBeat) {
+  createNotes (key, beat = this.songManager.nearestBeat, modifier = 1) { // call to create notes
     let x = 22 // default x to left hand
     if (key === 'x') {
       x = 108
     }
-    this.drawNote(x, beat)
+
+    if (modifier === 1 || modifier === -1) {
+      this.drawNote(x, beat)
+    } else if (modifier === 4) {
+      for (let i = 0; i <= 3; i++) { // adds notes in between
+        let beatToAdd = beat - i
+        this.drawNote(x, beatToAdd)
+      }
+    } else if (modifier === -4) {
+      for (let i = 0; i <= 3; i++) {
+        let beatToAdd = beat + i
+        this.drawNote(x, beatToAdd)
+      }
+    }
   }
 
-  drawNote (x, beat) {
+  drawNote (x, beat) { // internal use - actually draws the note in the container
     if (!this.isOccupied(x, beat)) {
       // eslint-disable-next-line
       let note = new PIXI.Sprite.from('https://henriquegavabarreto.github.io/paraparagame/assets/move.png')
@@ -31,7 +44,7 @@ export default class NoteManager {
     }
   }
 
-  isOccupied (x, beat) {
+  isOccupied (x, beat) { // checks for note in a beat
     for (let notes of noteElements.children) {
       if (notes.x === x && notes.y === (56 * beat / 4) + 58) {
         return true
@@ -39,7 +52,7 @@ export default class NoteManager {
     }
   }
 
-  redraw (danceChart) { // use after update chart or after move deletion
+  redraw (danceChart) { // call after update chart or after move deletion
     noteElements.removeChildren() // remove all notes
     let moves = danceChart.moves
     moves.forEach(move => { // insert all elements again
@@ -55,7 +68,7 @@ export default class NoteManager {
     })
   }
 
-  removeInvalidNotes (danceChart) {
+  removeInvalidNotes (danceChart) { // call if a insertion is not valid (see isValidInsert in MoveManager)
     let invalidNotes = []
     editorConfig.beatArray.forEach((beat) => {
       let moveIndex = this.checkForMove(danceChart, beat)
@@ -81,7 +94,7 @@ export default class NoteManager {
     }
   }
 
-  checkForMove (danceChart, beat = this.songManager.nearestBeat) {
+  checkForMove (danceChart, beat = this.songManager.nearestBeat) { // check for move in a beat
     if (danceChart.moves.length === 0) {
       return -1
     } else {
@@ -97,7 +110,7 @@ export default class NoteManager {
     }
   }
 
-  tintNotes (beatToTint, hand, moveType) {
+  tintNotes (beatToTint, hand, moveType) { // tint a specific note or all notes from the beat array (call after the information is added to chart)
     if (!beatToTint && !hand && !moveType) {
       hand = 'L'
       if (editorConfig.pressedKey === 'x') hand = 'R'
@@ -114,7 +127,7 @@ export default class NoteManager {
     }
   }
 
-  tint (moveType, note) {
+  tint (moveType, note) { // internal - actually tints the note
     if (moveType === 'S') {
       note.tint = editorConfig.colors.sharp
     } else if (moveType === 'H') {
@@ -124,7 +137,7 @@ export default class NoteManager {
     }
   }
 
-  get moveType () {
+  get moveType () { // returns moveType
     if (editorConfig.beatArray.length === 1) {
       return 'S'
     } else if (editorConfig.beatArray.length > 1 && editorConfig.selectedCircles[0] !== editorConfig.selectedCircles[1]) {
