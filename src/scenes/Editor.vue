@@ -24,7 +24,9 @@
         @keyup.w="deleteMove"
         @click="dealWithSelection"
       ></div>
-      <div id="player"></div>
+      <div id="player-wrapper">
+        <div id="player"></div>
+      </div>
     </div>
   </div>
 </template>
@@ -267,21 +269,12 @@ export default {
 </script>
 <style scoped>
   #wrapper {
+    background-color: #000;
     display: flex;
     flex-wrap: nowrap;
     flex-direction: row;
   }
-  #player {
-    top: 0;
-    right: 0;
-    z-index: -1;
-  }
-
-  #canvas {
-    display: flex;
-    flex-wrap: wrap;
-    width: 50%;
-    margin: 0;
-    outline: none;
+  #player-wrapper {
+    margin: auto;
   }
 </style>
