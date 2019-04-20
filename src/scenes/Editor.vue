@@ -35,9 +35,11 @@ import playerConfig from '../tools/editor/config/youtube-player'
 import pixiConfig from '../tools/editor/config/pixi-config'
 import setViewAndContainers from '../tools/editor/containers/set-view-and-containers'
 import setInitialGraphics from '../tools/editor/containers/set-initial-graphics'
+import setCueGraphics from '../tools/editor/containers/cueContainer/set-cue-graphics'
 import SongManager from '../tools/config/song-manager'
 import MoveManager from '../tools/editor/moves/move-manager'
 import NoteManager from '../tools/editor/notes/note-manager'
+import CueManager from '../tools/editor/cues/cue-manager'
 import danceChart from '../tools/editor/data/dance-chart'
 import editorConfig from '../tools/editor/config/editor-config'
 import drawGuideNumbers from '../tools/editor/containers/guideNumbers/draw-guide-numbers'
@@ -73,11 +75,13 @@ export default {
   mounted () {
     setViewAndContainers(this.editorView)
     setInitialGraphics()
+    setCueGraphics()
     this.player = new YTPlayer('#player', playerConfig)
     this.player.on('paused', () => { this.player.seek(this.songManager.getNearestBeatTime()) })
     this.songManager = new SongManager(this.player, this.danceChart)
     this.moveManager = new MoveManager(this.songManager)
     this.noteManager = new NoteManager(this.songManager)
+    this.cueManager = new CueManager(this.songManager, this.moveManager)
   },
   methods: {
     loadVideo: function () {
@@ -87,6 +91,7 @@ export default {
       this.editorView.ticker.add(() => {
         updateTimeText(this.player)
         updateTimeline(this.songManager.currentBeat)
+        if (this.player.getState() === 'playing') this.cueManager.drawCues(this.danceChart)
       })
     },
     pauseVideo: function () {
@@ -108,8 +113,8 @@ export default {
             this.moveManager.addBeatToArray()
           }
           if (editorConfig.selectingMoves) drawSelection(this.songManager)
+          this.cueManager.drawCues(this.danceChart)
           // showMoveInfo()
-          // drawCues()
         }, 200)
       }
     },
@@ -125,7 +130,7 @@ export default {
           }
           if (editorConfig.selectingMoves) drawSelection(this.songManager)
           // showMoveInfo()
-          // drawCues()
+          this.cueManager.drawCues(this.danceChart)
         }, 200)
       }
     },
@@ -141,7 +146,7 @@ export default {
           }
           if (editorConfig.selectingMoves) drawSelection(this.songManager)
           // showMoveInfo()
-          // drawCues()
+          this.cueManager.drawCues(this.danceChart)
         }, 200)
       }
     },
@@ -157,7 +162,7 @@ export default {
           }
           if (editorConfig.selectingMoves) drawSelection(this.songManager)
           // showMoveInfo()
-          // drawCues()
+          this.cueManager.drawCues(this.danceChart)
         }, 200)
       }
     },
@@ -165,10 +170,10 @@ export default {
       if (editorConfig.status && !editorConfig.areaSelect) {
         if (this.player.getState() === 'playing') {
           this.player.pause()
-          // setTimeout(function () {
-          //   showMoveInfo()
-          //   drawCues()
-          // }, 200)
+          setTimeout(() => {
+            // showMoveInfo()
+            this.cueManager.drawCues(this.danceChart)
+          }, 200)
         } else {
           this.player.play()
         }
@@ -229,6 +234,7 @@ export default {
       if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
         this.moveManager.deleteMove(this.danceChart, event.key)
         this.noteManager.redraw(this.danceChart)
+        this.cueManager.drawCues(this.danceChart)
       }
     },
     dealWithSelection: function () {
@@ -243,6 +249,7 @@ export default {
           editorConfig.selectedCircles = []
           editorConfig.creatingMove = false
           editorConfig.pressedKey = ''
+          this.cueManager.drawCues(this.danceChart)
         }
       } else if (editorConfig.changingMove) {
         if (editorConfig.selectedCircles.length === 1) {
@@ -251,6 +258,7 @@ export default {
           editorConfig.selectedCircles = []
           editorConfig.pressedKey = ''
           editorConfig.changingMove = false
+          this.cueManager.drawCues(this.danceChart)
         }
       }
     }
