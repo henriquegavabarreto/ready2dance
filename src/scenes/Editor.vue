@@ -1,11 +1,95 @@
 <template>
   <div>
-    <editorheader></editorheader>
+    <!-- <editorheader></editorheader> -->
     <button v-on:click="loadVideo">Load Video</button>
     <button v-on:click="pauseVideo">Pause Video</button>
     <button v-on:click="drawNumbers">Draw Numbers</button>
-    <div id="wrapper">
-      <div id="canvas" tabindex = "0"
+    <v-layout>
+    <v-flex xs6>
+      <v-toolbar color="black" dark tabs>
+        <v-tooltip bottom>
+        <template v-slot:activator="{ on }">
+          <v-btn fab small v-on="on">
+            <v-icon>exit_to_app</v-icon>
+          </v-btn>
+        </template>
+        <span class="body-2">Back to Song Selection</span>
+        </v-tooltip>
+
+          <v-tabs
+            centered
+            color="transparent"
+            icons-and-text
+            height="60"
+            v-model="tabs"
+          >
+            <v-tabs-slider color="yellow"></v-tabs-slider>
+
+            <v-tab>
+              Song Settings
+              <v-icon>audiotrack</v-icon>
+            </v-tab>
+
+            <v-tab>
+              Save/Load
+              <v-icon>video_library</v-icon>
+            </v-tab>
+
+            <v-tab>
+              About
+              <v-icon>info</v-icon>
+            </v-tab>
+
+            <v-tab>
+              Editor
+              <v-icon>info</v-icon>
+            </v-tab>
+          </v-tabs>
+      </v-toolbar>
+
+      <v-tabs-items v-model="tabs">
+        <v-tab-item>
+          <v-card flat>
+            <v-card-text>B</v-card-text>
+          </v-card>
+        </v-tab-item>
+
+        <v-tab-item>
+          <v-card flat>
+            <v-card-text>C</v-card-text>
+          </v-card>
+        </v-tab-item>
+
+        <v-tab-item>
+          <v-card flat>
+            <v-card-text>D</v-card-text>
+          </v-card>
+        </v-tab-item>
+
+        <v-tab-item>
+          <v-card flat>
+            <div id="canvas" tabindex="0"
+            @keydown.arrow-down="moveToNextQuarterBeat"
+            @keydown.arrow-up="moveToPreviousQuarterBeat"
+            @keydown.arrow-right="moveToNextBeat"
+            @keydown.arrow-left="moveToPreviousBeat"
+            @keyup.p="playAndPause"
+            @keydown.c="startCopySelection"
+            @keyup.c="endCopySelection"
+            @keyup.v="pasteMoves"
+            @keydown.x="startCreation"
+            @keydown.z="startCreation"
+            @keyup.x="stopCreation"
+            @keyup.z="stopCreation"
+            @keyup.a="createNode"
+            @keyup.s="createNode"
+            @keyup.q="deleteMove"
+            @keyup.w="deleteMove"
+            @click="dealWithSelection"></div>
+          </v-card>
+        </v-tab-item>
+      </v-tabs-items>
+      <!-- <div id="canvas" tabindex = "0"
         @keydown.arrow-down="moveToNextQuarterBeat"
         @keydown.arrow-up="moveToPreviousQuarterBeat"
         @keydown.arrow-right="moveToNextBeat"
@@ -23,16 +107,17 @@
         @keyup.q="deleteMove"
         @keyup.w="deleteMove"
         @click="dealWithSelection"
-      ></div>
-      <div id="player-wrapper">
-        <div id="player"></div>
-      </div>
-    </div>
+      ></div> -->
+    </v-flex>
+    <v-flex xs6>
+      <v-container align-center justify-center id="player"/>
+    </v-flex>
+  </v-layout>
   </div>
 </template>
 
 <script>
-import Editorheader from '../components/Editorheader'
+// import Editorheader from '../components/Editorheader'
 import playerConfig from '../tools/editor/config/youtube-player'
 import pixiConfig from '../tools/editor/config/pixi-config'
 import setViewAndContainers from '../tools/editor/containers/set-view-and-containers'
@@ -58,11 +143,12 @@ import * as PIXI from 'pixi.js'
 const YTPlayer = require('yt-player')
 
 export default {
-  components: {
-    'editorheader': Editorheader
-  },
+  // components: {
+  //   'editorheader': Editorheader
+  // },
   data () {
     return {
+      tabs: null,
       player: null,
       editorView: null,
       songManager: null,
@@ -267,14 +353,3 @@ export default {
   }
 }
 </script>
-<style scoped>
-  #wrapper {
-    background-color: #000;
-    display: flex;
-    flex-wrap: nowrap;
-    flex-direction: row;
-  }
-  #player-wrapper {
-    margin: auto;
-  }
-</style>

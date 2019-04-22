@@ -1,5 +1,5 @@
 var editorConfig = {
-  width: 640,
+  width: 720,
   height: 720,
   colors: {
     sharp: 0xff0659,
