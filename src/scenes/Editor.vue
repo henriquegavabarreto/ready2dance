@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <v-container fluid class="ma-0 pa-0">
     <!-- <editorheader></editorheader> -->
     <button v-on:click="loadVideo">Load Video</button>
     <button v-on:click="pauseVideo">Pause Video</button>
@@ -26,13 +26,13 @@
             <v-tabs-slider color="yellow"></v-tabs-slider>
 
             <v-tab>
-              Song Settings
-              <v-icon>audiotrack</v-icon>
+              Save/Load
+              <v-icon>video_library</v-icon>
             </v-tab>
 
             <v-tab>
-              Save/Load
-              <v-icon>video_library</v-icon>
+              Song Settings
+              <v-icon>audiotrack</v-icon>
             </v-tab>
 
             <v-tab>
@@ -49,20 +49,97 @@
 
       <v-tabs-items v-model="tabs">
         <v-tab-item>
+          <v-flex>
+            LOAD VIDEO
+            <v-text-field
+              label="Video ID"
+              outline
+            ></v-text-field>
+          </v-flex>
           <v-card flat>
-            <v-card-text>B</v-card-text>
+            <v-card-text>SAVE CHART AND LOAD CHART</v-card-text>
           </v-card>
+        </v-tab-item>
+
+        <v-tab-item dark>
+          <v-container mt-5 ml-5>
+            <v-layout row wrap justify-center>
+              <v-flex xs6 justify-start>
+                <v-layout row wrap justify-space-between>
+                  <v-flex xs12>
+                    <v-card-title primary-title>
+                      Timing
+                    </v-card-title>
+                  </v-flex>
+                  <v-flex xs8>
+                    <v-text-field box label="Video Starting Point" prepend-inner-icon="movie"></v-text-field>
+                  </v-flex>
+                  <v-flex xs4>
+                    <v-tooltip nudge-top="130" right>
+                      <template v-slot:activator="{ on }">
+                        <v-btn color="primary" fab dark small v-on="on">
+                          <v-icon>schedule</v-icon>
+                        </v-btn>
+                      </template>
+                      <span class="body-2">Get Current Time</span>
+                    </v-tooltip>
+                  </v-flex>
+                  <v-flex xs8>
+                    <v-text-field box label="Video Ending Point" prepend-inner-icon="movie"></v-text-field>
+                  </v-flex>
+                  <v-flex xs4>
+                    <v-tooltip nudge-top="130" right>
+                      <template v-slot:activator="{ on }">
+                        <v-btn color="primary" fab dark small v-on="on">
+                          <v-icon>schedule</v-icon>
+                        </v-btn>
+                      </template>
+                      <span class="body-2">Get Current Time</span>
+                    </v-tooltip>
+                  </v-flex>
+                  <v-flex xs8>
+                    <v-text-field box label="Song Offset" prepend-inner-icon="audiotrack"></v-text-field>
+                  </v-flex>
+                  <v-flex xs4>
+                    <v-tooltip nudge-top="130" right>
+                      <template v-slot:activator="{ on }">
+                        <v-btn color="primary" fab dark small v-on="on">
+                          <v-icon>schedule</v-icon>
+                        </v-btn>
+                      </template>
+                      <span class="body-2">Get Current Time</span>
+                    </v-tooltip>
+                  </v-flex>
+                  <v-flex xs8>
+                    <v-text-field box label="Song BPM" prepend-inner-icon="audiotrack"></v-text-field>
+                  </v-flex>
+                </v-layout>
+              </v-flex>
+              <v-flex xs6 justify-end>
+                <v-layout row wrap>
+                  <v-flex xs12>
+                    <v-card-title text-xs-center primary-title>
+                      Song
+                    </v-card-title>
+                  </v-flex>
+                  <v-flex xs8>
+                    <v-text-field box label="Title" prepend-inner-icon="audiotrack"></v-text-field>
+                  </v-flex>
+                  <v-flex xs8>
+                    <v-text-field box label="Artist" prepend-inner-icon="audiotrack"></v-text-field>
+                  </v-flex>
+                </v-layout>
+              </v-flex>
+              <v-flex xs4>
+                <v-btn color="primary" dark>APPLY</v-btn>
+              </v-flex>
+            </v-layout>
+          </v-container>
         </v-tab-item>
 
         <v-tab-item>
           <v-card flat>
-            <v-card-text>C</v-card-text>
-          </v-card>
-        </v-tab-item>
-
-        <v-tab-item>
-          <v-card flat>
-            <v-card-text>D</v-card-text>
+            <v-card-text>HOW TO USE THIS EDITOR</v-card-text>
           </v-card>
         </v-tab-item>
 
@@ -89,31 +166,12 @@
           </v-card>
         </v-tab-item>
       </v-tabs-items>
-      <!-- <div id="canvas" tabindex = "0"
-        @keydown.arrow-down="moveToNextQuarterBeat"
-        @keydown.arrow-up="moveToPreviousQuarterBeat"
-        @keydown.arrow-right="moveToNextBeat"
-        @keydown.arrow-left="moveToPreviousBeat"
-        @keyup.p="playAndPause"
-        @keydown.c="startCopySelection"
-        @keyup.c="endCopySelection"
-        @keyup.v="pasteMoves"
-        @keydown.x="startCreation"
-        @keydown.z="startCreation"
-        @keyup.x="stopCreation"
-        @keyup.z="stopCreation"
-        @keyup.a="createNode"
-        @keyup.s="createNode"
-        @keyup.q="deleteMove"
-        @keyup.w="deleteMove"
-        @click="dealWithSelection"
-      ></div> -->
     </v-flex>
     <v-flex xs6>
       <v-container align-center justify-center id="player"/>
     </v-flex>
   </v-layout>
-  </div>
+  </v-container>
 </template>
 
 <script>
