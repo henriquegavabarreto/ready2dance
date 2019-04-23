@@ -65,70 +65,74 @@
           <v-container mt-5 ml-5>
             <v-layout row wrap justify-center>
               <v-flex xs6 justify-start>
-                <v-layout row wrap justify-space-between>
-                  <v-flex xs12>
-                    <v-card-title primary-title>
-                      Timing
-                    </v-card-title>
-                  </v-flex>
-                  <v-flex xs8>
-                    <v-text-field box label="Video Starting Point" prepend-inner-icon="movie"></v-text-field>
-                  </v-flex>
-                  <v-flex xs4>
-                    <v-tooltip nudge-top="130" right>
-                      <template v-slot:activator="{ on }">
-                        <v-btn color="primary" fab dark small v-on="on">
-                          <v-icon>schedule</v-icon>
-                        </v-btn>
-                      </template>
-                      <span class="body-2">Get Current Time</span>
-                    </v-tooltip>
-                  </v-flex>
-                  <v-flex xs8>
-                    <v-text-field box label="Video Ending Point" prepend-inner-icon="movie"></v-text-field>
-                  </v-flex>
-                  <v-flex xs4>
-                    <v-tooltip nudge-top="130" right>
-                      <template v-slot:activator="{ on }">
-                        <v-btn color="primary" fab dark small v-on="on">
-                          <v-icon>schedule</v-icon>
-                        </v-btn>
-                      </template>
-                      <span class="body-2">Get Current Time</span>
-                    </v-tooltip>
-                  </v-flex>
-                  <v-flex xs8>
-                    <v-text-field box label="Song Offset" prepend-inner-icon="audiotrack"></v-text-field>
-                  </v-flex>
-                  <v-flex xs4>
-                    <v-tooltip nudge-top="130" right>
-                      <template v-slot:activator="{ on }">
-                        <v-btn color="primary" fab dark small v-on="on">
-                          <v-icon>schedule</v-icon>
-                        </v-btn>
-                      </template>
-                      <span class="body-2">Get Current Time</span>
-                    </v-tooltip>
-                  </v-flex>
-                  <v-flex xs8>
-                    <v-text-field box label="Song BPM" prepend-inner-icon="audiotrack"></v-text-field>
-                  </v-flex>
-                </v-layout>
+                <v-form ref="timing">
+                  <v-layout row wrap justify-space-between>
+                    <v-flex xs12>
+                      <v-card-title primary-title>
+                        Timing
+                      </v-card-title>
+                    </v-flex>
+                    <v-flex xs8>
+                      <v-text-field box label="Video Starting Point" prepend-inner-icon="movie" :placeholder="settings.videoStart" v-model="settings.videoStart" :rules="timingRules"></v-text-field>
+                    </v-flex>
+                    <v-flex xs4>
+                      <v-tooltip nudge-top="130" right>
+                        <template v-slot:activator="{ on }">
+                          <v-btn color="primary" fab dark small v-on="on" @click="settings.videoStart = player.getCurrentTime()">
+                            <v-icon>schedule</v-icon>
+                          </v-btn>
+                        </template>
+                        <span class="body-2">Get Current Time</span>
+                      </v-tooltip>
+                    </v-flex>
+                    <v-flex xs8>
+                      <v-text-field box label="Video Ending Point" prepend-inner-icon="movie" :placeholder="settings.videoEnd" v-model="settings.videoEnd" :rules="timingRules"></v-text-field>
+                    </v-flex>
+                    <v-flex xs4>
+                      <v-tooltip nudge-top="130" right>
+                        <template v-slot:activator="{ on }">
+                          <v-btn color="primary" fab dark small v-on="on" @click="settings.videoEnd = player.getCurrentTime()">
+                            <v-icon>schedule</v-icon>
+                          </v-btn>
+                        </template>
+                        <span class="body-2">Get Current Time</span>
+                      </v-tooltip>
+                    </v-flex>
+                    <v-flex xs8>
+                      <v-text-field box label="Song Offset" prepend-inner-icon="audiotrack" :placeholder="settings.offset" v-model="settings.offset" :rules="timingRules"></v-text-field>
+                    </v-flex>
+                    <v-flex xs4>
+                      <v-tooltip nudge-top="130" right>
+                        <template v-slot:activator="{ on }">
+                          <v-btn color="primary" fab dark small v-on="on" @click="settings.offset = player.getCurrentTime()">
+                            <v-icon>schedule</v-icon>
+                          </v-btn>
+                        </template>
+                        <span class="body-2">Get Current Time</span>
+                      </v-tooltip>
+                    </v-flex>
+                    <v-flex xs8>
+                      <v-text-field box label="Song BPM" prepend-inner-icon="audiotrack" :placeholder="settings.bpm" v-model="settings.bpm" :rules="timingRules"></v-text-field>
+                    </v-flex>
+                  </v-layout>
+                </v-form>
               </v-flex>
               <v-flex xs6 justify-end>
-                <v-layout row wrap>
-                  <v-flex xs12>
-                    <v-card-title text-xs-center primary-title>
-                      Song
-                    </v-card-title>
-                  </v-flex>
-                  <v-flex xs8>
-                    <v-text-field box label="Title" prepend-inner-icon="audiotrack"></v-text-field>
-                  </v-flex>
-                  <v-flex xs8>
-                    <v-text-field box label="Artist" prepend-inner-icon="audiotrack"></v-text-field>
-                  </v-flex>
-                </v-layout>
+                <v-form ref="songInfo">
+                  <v-layout row wrap>
+                    <v-flex xs12>
+                      <v-card-title text-xs-center primary-title>
+                        Song
+                      </v-card-title>
+                    </v-flex>
+                    <v-flex xs8>
+                      <v-text-field label="Title" prepend-inner-icon="audiotrack" :placeholder="settings.title" v-model="settings.title" :rules="songInfoRules"></v-text-field>
+                    </v-flex>
+                    <v-flex xs8>
+                      <v-text-field box label="Artist" prepend-inner-icon="audiotrack" :placeholder="settings.artist" v-model="settings.artist" :rules="songInfoRules"></v-text-field>
+                    </v-flex>
+                  </v-layout>
+                </v-form>
               </v-flex>
               <v-flex xs4>
                 <v-btn color="primary" dark>APPLY</v-btn>
@@ -201,9 +205,6 @@ import * as PIXI from 'pixi.js'
 const YTPlayer = require('yt-player')
 
 export default {
-  // components: {
-  //   'editorheader': Editorheader
-  // },
   data () {
     return {
       tabs: null,
@@ -212,7 +213,14 @@ export default {
       songManager: null,
       danceChart: danceChart,
       noteManager: null,
-      moveManager: null
+      moveManager: null,
+      settings: { offset: '0', videoStart: '0', videoEnd: '0', bpm: '150', title: '', artist: '' },
+      timingRules: [
+        v => /\d*(\.)?\d+$/g.test(v) || 'input must be a valid number'
+      ],
+      songInfoRules: [
+        v => !!v || 'This field is required'
+      ]
     }
   },
   created () {
