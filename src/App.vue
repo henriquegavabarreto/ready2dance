@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div data-app=true>
     <editor></editor>
   </div>
 </template>

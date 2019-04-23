@@ -2,7 +2,6 @@
   <v-container fluid class="ma-0 pa-0">
     <!-- <editorheader></editorheader> -->
     <button v-on:click="loadVideo">Load Video</button>
-    <button v-on:click="pauseVideo">Pause Video</button>
     <button v-on:click="drawNumbers">Draw Numbers</button>
     <v-layout>
     <v-flex xs6>
@@ -61,15 +60,15 @@
           </v-card>
         </v-tab-item>
 
-        <v-tab-item dark>
+        <v-tab-item>
           <v-container mt-5 ml-5>
-            <v-layout row wrap justify-center>
+            <v-layout row wrap justify-center background-color="blue">
               <v-flex xs6 justify-start>
                 <v-form ref="timing">
                   <v-layout row wrap justify-space-between>
                     <v-flex xs12>
                       <v-card-title primary-title>
-                        Timing
+                        <h2>Timing</h2>
                       </v-card-title>
                     </v-flex>
                     <v-flex xs8>
@@ -78,7 +77,7 @@
                     <v-flex xs4>
                       <v-tooltip nudge-top="130" right>
                         <template v-slot:activator="{ on }">
-                          <v-btn color="primary" fab dark small v-on="on" @click="settings.videoStart = player.getCurrentTime()">
+                          <v-btn color="primary" fab dark small v-on="on" @click="settings.videoStart = player.getCurrentTime().toString()">
                             <v-icon>schedule</v-icon>
                           </v-btn>
                         </template>
@@ -91,7 +90,7 @@
                     <v-flex xs4>
                       <v-tooltip nudge-top="130" right>
                         <template v-slot:activator="{ on }">
-                          <v-btn color="primary" fab dark small v-on="on" @click="settings.videoEnd = player.getCurrentTime()">
+                          <v-btn color="primary" fab dark small v-on="on" @click="settings.videoEnd = player.getCurrentTime().toString()">
                             <v-icon>schedule</v-icon>
                           </v-btn>
                         </template>
@@ -104,7 +103,7 @@
                     <v-flex xs4>
                       <v-tooltip nudge-top="130" right>
                         <template v-slot:activator="{ on }">
-                          <v-btn color="primary" fab dark small v-on="on" @click="settings.offset = player.getCurrentTime()">
+                          <v-btn color="primary" fab dark small v-on="on" @click="settings.offset = player.getCurrentTime().toString()">
                             <v-icon>schedule</v-icon>
                           </v-btn>
                         </template>
@@ -122,11 +121,11 @@
                   <v-layout row wrap>
                     <v-flex xs12>
                       <v-card-title text-xs-center primary-title>
-                        Song
+                        <h2>Song</h2>
                       </v-card-title>
                     </v-flex>
                     <v-flex xs8>
-                      <v-text-field label="Title" prepend-inner-icon="audiotrack" :placeholder="settings.title" v-model="settings.title" :rules="songInfoRules"></v-text-field>
+                      <v-text-field box label="Title" prepend-inner-icon="audiotrack" :placeholder="settings.title" v-model="settings.title" :rules="songInfoRules" error--text="red"></v-text-field>
                     </v-flex>
                     <v-flex xs8>
                       <v-text-field box label="Artist" prepend-inner-icon="audiotrack" :placeholder="settings.artist" v-model="settings.artist" :rules="songInfoRules"></v-text-field>
@@ -135,7 +134,7 @@
                 </v-form>
               </v-flex>
               <v-flex xs4>
-                <v-btn color="primary" dark>APPLY</v-btn>
+                <v-btn dark @click="saveInfo">APPLY</v-btn>
               </v-flex>
             </v-layout>
           </v-container>
@@ -216,10 +215,10 @@ export default {
       moveManager: null,
       settings: { offset: '0', videoStart: '0', videoEnd: '0', bpm: '150', title: '', artist: '' },
       timingRules: [
-        v => /\d*(\.)?\d+$/g.test(v) || 'input must be a valid number'
+        v => !!/\d*(\.)?\d+$/g.test(v) || 'input must be a valid number.'
       ],
       songInfoRules: [
-        v => !!v || 'This field is required'
+        v => !!v || 'Required.'
       ]
     }
   },
@@ -241,26 +240,20 @@ export default {
     loadVideo: function () {
       this.player.load('YOtKiiUrIvk')
       // expected behaviours after the video is loaded
-      editorConfig.status = true
       this.editorView.ticker.add(() => {
         updateTimeText(this.player)
         updateTimeline(this.songManager.currentBeat)
         if (this.player.getState() === 'playing') this.cueManager.drawCues(this.danceChart)
       })
     },
-    pauseVideo: function () {
-      this.player.pause()
-      console.log(this.songManager.nearestBeat)
-    },
     drawNumbers: function () {
       drawGuideNumbers(this.player, this.danceChart, this.songManager)
       redrawStaff(this.player, this.danceChart, this.songManager)
     },
     moveToNextQuarterBeat: function () {
-      if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
+      if (this.player.getState() === 'paused' && !editorConfig.areaSelect) {
         let skippedBeats = 1
         this.player.seek(this.songManager.getNearestBeatTime(skippedBeats))
-        // createNoteWhenSelected(skippedBeats)
         setTimeout(() => {
           if (editorConfig.creatingMove) {
             this.noteManager.createNotes(editorConfig.pressedKey)
@@ -273,10 +266,9 @@ export default {
       }
     },
     moveToPreviousQuarterBeat: function () {
-      if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
+      if (this.player.getState() === 'paused' && !editorConfig.areaSelect) {
         let skippedBeats = -1
         this.player.seek(this.songManager.getNearestBeatTime(skippedBeats))
-        // createNoteWhenSelected(skippedBeats)
         setTimeout(() => {
           if (editorConfig.creatingMove) {
             this.noteManager.createNotes(editorConfig.pressedKey)
@@ -289,10 +281,9 @@ export default {
       }
     },
     moveToNextBeat: function () {
-      if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
+      if (this.player.getState() === 'paused' && !editorConfig.areaSelect) {
         let skippedBeats = 4
         this.player.seek(this.songManager.getNearestBeatTime(skippedBeats))
-        // createNoteWhenSelected(skippedBeats)
         setTimeout(() => {
           if (editorConfig.creatingMove) {
             this.noteManager.createNotes(editorConfig.pressedKey, this.songManager.nearestBeat, skippedBeats)
@@ -305,10 +296,9 @@ export default {
       }
     },
     moveToPreviousBeat: function () {
-      if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
+      if (this.player.getState() === 'paused' && !editorConfig.areaSelect) {
         let skippedBeats = -4
         this.player.seek(this.songManager.getNearestBeatTime(skippedBeats))
-        // createNoteWhenSelected(skippedBeats)
         setTimeout(() => {
           if (editorConfig.creatingMove) {
             this.noteManager.createNotes(editorConfig.pressedKey, this.songManager.nearestBeat, skippedBeats)
@@ -321,7 +311,7 @@ export default {
       }
     },
     playAndPause: function () {
-      if (editorConfig.status && !editorConfig.areaSelect) {
+      if (!editorConfig.areaSelect) {
         if (this.player.getState() === 'playing') {
           this.player.pause()
           setTimeout(() => {
@@ -334,13 +324,13 @@ export default {
       }
     },
     startCopySelection: function () {
-      if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
+      if (this.player.getState() === 'paused' && !editorConfig.areaSelect) {
         copy.start(this.songManager)
         drawSelection(this.songManager)
       }
     },
     endCopySelection: function () {
-      if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
+      if (this.player.getState() === 'paused' && !editorConfig.areaSelect) {
         copy.end(this.songManager)
         copy.addSelectionToClipboard(this.danceChart)
       }
@@ -349,7 +339,7 @@ export default {
       paste(this.danceChart, this.songManager, this.moveManager, this.noteManager)
     },
     startCreation: function (event) {
-      if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect && editorConfig.pressedKey === '') {
+      if (this.player.getState() === 'paused' && !editorConfig.areaSelect && editorConfig.pressedKey === '') {
         editorConfig.creatingMove = true
         editorConfig.pressedKey = event.key
         this.moveManager.addBeatToArray()
@@ -357,7 +347,7 @@ export default {
       }
     },
     stopCreation: function (event) {
-      if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect && editorConfig.pressedKey === event.key) {
+      if (this.player.getState() === 'paused' && !editorConfig.areaSelect && editorConfig.pressedKey === event.key) {
         if (this.moveManager.isValidInsert(this.danceChart)) {
           this.moveManager.sortBeatArray()
           this.moveManager.addRequiredMoves(this.danceChart, event.key)
@@ -373,7 +363,7 @@ export default {
       }
     },
     createNode: function (event) {
-      if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
+      if (this.player.getState() === 'paused' && !editorConfig.areaSelect) {
         let moveType = this.moveManager.getCreatedMoveType(this.danceChart, event.key)
         if (moveType === 'H') {
           this.moveManager.setHoldNode(this.danceChart, event.key)
@@ -385,7 +375,7 @@ export default {
       }
     },
     deleteMove: function (event) {
-      if (editorConfig.status && this.player.getState() === 'paused' && !editorConfig.areaSelect) {
+      if (this.player.getState() === 'paused' && !editorConfig.areaSelect) {
         this.moveManager.deleteMove(this.danceChart, event.key)
         this.noteManager.redraw(this.danceChart)
         this.cueManager.drawCues(this.danceChart)
@@ -414,6 +404,19 @@ export default {
           editorConfig.changingMove = false
           this.cueManager.drawCues(this.danceChart)
         }
+      }
+    },
+    saveInfo: function () {
+      if (this.$refs.timing.validate()) {
+        this.danceChart.offset = parseInt(this.settings.offset)
+        this.danceChart.videoStart = parseInt(this.settings.videoStart)
+        this.danceChart.videoEnd = parseInt(this.settings.videoEnd)
+        this.danceChart.bpm = parseInt(this.settings.bpm)
+        this.songManager.update(this.danceChart)
+        this.moveManager.update(this.songManager)
+        this.noteManager.update(this.songManager)
+        this.cueManager.update(this.songManager, this.moveManager)
+        this.drawNumbers()
       }
     }
   }

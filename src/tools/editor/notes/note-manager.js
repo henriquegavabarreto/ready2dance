@@ -146,4 +146,8 @@ export default class NoteManager {
       return 'H'
     }
   }
+
+  update (songManager) {
+    this.songManager = songManager
+  }
 }
