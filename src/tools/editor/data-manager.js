@@ -36,5 +36,35 @@ export default {
       moves: danceChart.moves.join(' '),
       updatedAt: new Date().getTime()
     })
+  },
+  updateChartAndSettings: function (danceChart, settings, loadedChart) {
+    danceChart.offset = loadedChart.offset
+    danceChart.artist = loadedChart.artist
+    danceChart.title = loadedChart.title
+    danceChart.moves = loadedChart.moves.split(' ')
+    danceChart.videoEnd = loadedChart.videoEnd
+    danceChart.videoStart = loadedChart.videoStart
+    danceChart.videoId = loadedChart.videoId
+    danceChart.bpm = loadedChart.bpm
+    settings.offset = danceChart.offset.toString()
+    settings.videoStart = danceChart.videoStart.toString()
+    settings.videoEnd = danceChart.videoEnd.toString()
+    settings.bpm = danceChart.bpm.toString()
+    settings.title = danceChart.title
+    settings.artist = danceChart.artist
+  },
+  updateDanceChart: function (danceChart, settings) {
+    danceChart.offset = parseFloat(settings.offset)
+    danceChart.videoStart = parseFloat(settings.videoStart)
+    danceChart.videoEnd = parseFloat(settings.videoEnd)
+    danceChart.bpm = parseFloat(settings.bpm)
+    danceChart.title = settings.title
+    danceChart.artist = settings.artist
+  },
+  updateManagers: function (danceChart, songManager, moveManager, noteManager, cueManager) {
+    songManager.update(danceChart)
+    moveManager.update(songManager)
+    noteManager.update(songManager)
+    cueManager.update(songManager, moveManager)
   }
 }

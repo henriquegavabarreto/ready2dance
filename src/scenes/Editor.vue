@@ -71,7 +71,7 @@
                 <v-card-title primary-title>
                   <h2>Load Chart</h2>
                 </v-card-title>
-                <v-list two-line style="max-height: 200px" class="scroll-y">
+                <v-list two-line style="max-height: 200px; max-width: 200px" class="scroll-y blue lighten-5">
 
                   <v-list-tile
                     v-for="(chart, id) in charts"
@@ -87,7 +87,7 @@
                   </v-list-tile>
 
                 </v-list>
-                <v-btn dark>Load</v-btn>
+                <v-btn dark @click="loadChart">Load</v-btn>
               </v-flex>
             </v-layout>
             <v-layout column wrap>
@@ -408,16 +408,8 @@ export default {
     saveInfo: function () {
       if (this.$refs.timing.validate()) {
         this.moveManager.updateMoves(this.danceChart, parseFloat(this.settings.bpm), danceChart.offset - parseFloat(this.settings.offset))
-        this.danceChart.offset = parseFloat(this.settings.offset)
-        this.danceChart.videoStart = parseFloat(this.settings.videoStart)
-        this.danceChart.videoEnd = parseFloat(this.settings.videoEnd)
-        this.danceChart.bpm = parseFloat(this.settings.bpm)
-        this.danceChart.title = this.settings.title
-        this.danceChart.artist = this.settings.artist
-        this.songManager.update(this.danceChart)
-        this.moveManager.update(this.songManager)
-        this.noteManager.update(this.songManager)
-        this.cueManager.update(this.songManager, this.moveManager)
+        dataManager.updateDanceChart(this.danceChart, this.settings)
+        dataManager.updateManagers(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.cueManager)
         this.noteManager.redraw(this.danceChart)
         drawGuideNumbers(this.player, this.danceChart, this.songManager)
         redrawStaff(this.player, this.danceChart, this.songManager)
@@ -425,10 +417,15 @@ export default {
     },
     saveToFirebase: function () {
       dataManager.sortDanceChart(this.danceChart)
-      dataManager.saveNewChart(this.danceChart, this.player, this.ref)
-      // this.ref.once('value').then((data) => {
-      //   let charts = data.val()
-      // })
+      this.ref.once('value').then((data) => {
+        let charts = data.val()
+        let id = dataManager.checkVideoId(this.player, charts)
+        if (id === -1) {
+          dataManager.saveNewChart(this.danceChart, this.player, this.ref)
+        } else {
+          console.log('duplicate')
+        }
+      })
     },
     loadVideoById: function () {
       this.player.load(this.danceChart.videoId)
@@ -440,6 +437,18 @@ export default {
     },
     selectChart: function (value) {
       this.selectedChart = value
+    },
+    loadChart: function () {
+      this.ref.once('value').then((data) => {
+        let charts = data.val()
+        let loadedChart = charts[this.selectedChart]
+        dataManager.updateChartAndSettings(this.danceChart, this.settings, loadedChart)
+        dataManager.updateManagers(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.cueManager)
+        this.noteManager.redraw(this.danceChart)
+        drawGuideNumbers(this.player, this.danceChart, this.songManager)
+        redrawStaff(this.player, this.danceChart, this.songManager)
+        this.player.load(this.danceChart.videoId)
+      })
     }
   }
 }
