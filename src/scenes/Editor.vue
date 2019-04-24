@@ -98,8 +98,22 @@
                 <v-btn dark @click="saveToFirebase">Save Chart</v-btn>
                 <v-alert class="yellow black--text" :value="duplicateChart" style="max-height: 70px">
                   There is already a dance chart for this video. Do you want to overwrite it?
-                  <v-btn dark small @click="duplicateChart = !duplicateChart">cancel</v-btn><v-btn dark small>overwrite</v-btn>
+                  <v-btn dark small @click="duplicateChart = !duplicateChart">cancel</v-btn><v-btn dark small @click="overwriteChart">overwrite</v-btn>
                 </v-alert>
+                <v-snackbar
+                  v-model="saved"
+                  class="green"
+                  :timeout="3000"
+                >
+                  {{ text }}
+                  <v-btn
+                    dark
+                    flat
+                    @click="saved = false"
+                  >
+                  Close
+                  </v-btn>
+                </v-snackbar>
               </v-flex>
             </v-layout>
           </v-container>
@@ -267,6 +281,7 @@ export default {
       moveManager: null,
       selectingArea: false,
       duplicateChart: false,
+      saved: false,
       charts: null,
       selectedChart: null,
       settings: { offset: '0', videoStart: '0', videoEnd: '0', bpm: '150', title: '', artist: '' },
@@ -427,15 +442,13 @@ export default {
     },
     saveToFirebase: function () {
       dataManager.sortDanceChart(this.danceChart)
-      this.ref.once('value').then((data) => {
-        let charts = data.val()
-        let id = dataManager.checkVideoId(this.player, charts)
-        if (id === -1) {
-          dataManager.saveNewChart(this.danceChart, this.player, this.ref)
-        } else {
-          this.duplicateChart = true
-        }
-      })
+      let id = dataManager.checkVideoId(this.player, this.charts)
+      if (id === -1) {
+        dataManager.saveNewChart(this.danceChart, this.player, this.ref)
+        this.saved = true
+      } else {
+        this.duplicateChart = true
+      }
     },
     loadVideoById: function () {
       this.player.load(this.danceChart.videoId, true)
@@ -448,20 +461,22 @@ export default {
       this.selectedChart = value
     },
     loadChart: function () {
-      this.ref.once('value').then((data) => {
-        let charts = data.val()
-        let loadedChart = charts[this.selectedChart]
-        dataManager.updateChartAndSettings(this.danceChart, this.settings, loadedChart)
-        dataManager.updateManagers(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.cueManager)
-        this.noteManager.redraw(this.danceChart)
+      let loadedChart = this.charts[this.selectedChart]
+      dataManager.updateChartAndSettings(this.danceChart, this.settings, loadedChart)
+      dataManager.updateManagers(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.cueManager)
+      this.noteManager.redraw(this.danceChart)
+      drawGuideNumbers(this.player, this.danceChart, this.songManager)
+      redrawStaff(this.player, this.danceChart, this.songManager)
+      this.player.load(this.danceChart.videoId, true)
+      setTimeout(() => {
         drawGuideNumbers(this.player, this.danceChart, this.songManager)
         redrawStaff(this.player, this.danceChart, this.songManager)
-        this.player.load(this.danceChart.videoId, true)
-        setTimeout(() => {
-          drawGuideNumbers(this.player, this.danceChart, this.songManager)
-          redrawStaff(this.player, this.danceChart, this.songManager)
-        }, 3000)
-      }).catch(err => console.log(err))
+      }, 3000)
+    },
+    overwriteChart: function () {
+      dataManager.overwriteChart(this.player, this.charts, this.danceChart, this.ref)
+      this.duplicateChart = false
+      this.saved = true
     }
   }
 }

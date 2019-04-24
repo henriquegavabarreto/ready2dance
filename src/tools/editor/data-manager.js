@@ -26,7 +26,8 @@ export default {
       createdAt: new Date().getTime()
     })
   },
-  overwriteChart: function (chartId, danceChart, ref) {
+  overwriteChart: function (player, charts, danceChart, ref) {
+    let chartId = this.checkVideoId(player, charts)
     ref.child(`${chartId}`).update({ title: danceChart.title,
       artist: danceChart.artist,
       offset: danceChart.offset,
