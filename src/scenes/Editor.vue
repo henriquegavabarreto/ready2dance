@@ -1,7 +1,6 @@
 <template>
   <v-container fluid class="ma-0 pa-0">
     <!-- <editorheader></editorheader> -->
-    <button v-on:click="loadVideo">Load Video</button>
     <button v-on:click="drawNumbers">Draw Numbers</button>
     <v-layout>
     <v-flex xs6>
@@ -56,12 +55,12 @@
                 </v-card-title>
               </v-flex>
               <v-flex xs8>
-                <v-text-field box label="Video ID" prepend-inner-icon="movie"></v-text-field>
+                <v-text-field box label="Video ID" prepend-inner-icon="movie" v-model="danceChart.videoId"></v-text-field>
               </v-flex>
               <v-flex xs4>
                 <v-tooltip right>
                   <template v-slot:activator="{ on }">
-                    <v-btn color="primary" fab dark small v-on="on" @click="testFirebase">
+                    <v-btn color="primary" fab dark small v-on="on" @click="loadVideoById">
                       <v-icon>forward</v-icon>
                     </v-btn>
                   </template>
@@ -87,7 +86,7 @@
                 <v-card-title primary-title>
                   <h2>Save Chart</h2>
                 </v-card-title>
-                <v-btn dark>Save Chart</v-btn>
+                <v-btn dark @click="saveToFirebase">Save Chart</v-btn>
               </v-flex>
             </v-layout>
           </v-container>
@@ -238,12 +237,14 @@ import paste from '../tools/editor/copyPaste/paste'
 import moveToBeat from '../tools/editor/move-to-beat'
 import * as PIXI from 'pixi.js'
 import firebase from '../tools/config/firebase'
+import dataManager from '../tools/editor/data-manager'
 
 const YTPlayer = require('yt-player')
 
 export default {
   data () {
     return {
+      ref: firebase.database.ref('danceCharts'),
       tabs: null,
       player: null,
       editorView: null,
@@ -271,15 +272,6 @@ export default {
     this.cueManager = new CueManager(this.songManager, this.moveManager)
   },
   methods: {
-    loadVideo: function () {
-      this.player.load('YOtKiiUrIvk')
-      // expected behaviours after the video is loaded
-      this.editorView.ticker.add(() => {
-        updateTimeText(this.player)
-        updateTimeline(this.songManager.currentBeat)
-        if (this.player.getState() === 'playing') this.cueManager.drawCues(this.danceChart)
-      })
-    },
     drawNumbers: function () {
       drawGuideNumbers(this.player, this.danceChart, this.songManager)
       redrawStaff(this.player, this.danceChart, this.songManager)
@@ -398,23 +390,34 @@ export default {
     },
     saveInfo: function () {
       if (this.$refs.timing.validate()) {
-        this.danceChart.offset = parseInt(this.settings.offset)
-        this.danceChart.videoStart = parseInt(this.settings.videoStart)
-        this.danceChart.videoEnd = parseInt(this.settings.videoEnd)
-        this.danceChart.bpm = parseInt(this.settings.bpm)
+        this.moveManager.updateMoves(this.danceChart, parseFloat(this.settings.bpm), danceChart.offset - parseFloat(this.settings.offset))
+        this.danceChart.offset = parseFloat(this.settings.offset)
+        this.danceChart.videoStart = parseFloat(this.settings.videoStart)
+        this.danceChart.videoEnd = parseFloat(this.settings.videoEnd)
+        this.danceChart.bpm = parseFloat(this.settings.bpm)
         this.danceChart.title = this.settings.title
         this.danceChart.artist = this.settings.artist
         this.songManager.update(this.danceChart)
         this.moveManager.update(this.songManager)
         this.noteManager.update(this.songManager)
         this.cueManager.update(this.songManager, this.moveManager)
+        this.noteManager.redraw(this.danceChart)
         this.drawNumbers()
       }
     },
-    testFirebase: function () {
-      var ref = firebase.database.ref('danceCharts')
-      ref.once('value').then(function (data) {
-        console.log(data.val())
+    saveToFirebase: function () {
+      dataManager.sortDanceChart(this.danceChart)
+      dataManager.saveNewChart(this.danceChart, this.player, this.ref)
+      // this.ref.once('value').then((data) => {
+      //   let charts = data.val()
+      // })
+    },
+    loadVideoById: function () {
+      this.player.load(this.danceChart.videoId)
+      this.editorView.ticker.add(() => {
+        updateTimeText(this.player)
+        updateTimeline(this.songManager.currentBeat)
+        if (this.player.getState() === 'playing') this.cueManager.drawCues(this.danceChart)
       })
     }
   }

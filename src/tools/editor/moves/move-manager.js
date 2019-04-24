@@ -203,12 +203,12 @@ export default class MoveManager {
     return handMove[0]
   }
 
-  updateMoves (danceChart, offsetDifference = 0) { // to use when there are any changes in timing
+  updateMoves (danceChart, bpm, offsetDifference) { // to use when there are any changes in timing
     let moves = danceChart.moves
     let updatedMoves = []
     moves.forEach(move => { // insert all elements again based on the bpm and offset changes based on the dance chart
       move = move.split(',')
-      move[0] = parseFloat(move[0]) + Math.round((offsetDifference / (60 / danceChart.bpm)) * 4) // change each move beat so they stay in the same time according to the song
+      move[0] = parseFloat(move[0]) + Math.round((offsetDifference / (60 / bpm)) * 4) // change each move beat so they stay in the same time according to the song
       updatedMoves.push(move.join(','))
     })
     danceChart.moves = updatedMoves // update moves on the dance chart

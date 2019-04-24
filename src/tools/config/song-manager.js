@@ -29,7 +29,7 @@ export default class SongManager {
   }
 
   getNearestBeatTime (t = 0) {
-    let nearestBeatTime = (((this.nearestBeat + t) / 4) * this.tempo + this.danceChart.offset)
+    let nearestBeatTime = (((this.nearestBeat + t) / 4) * this.tempo) + this.danceChart.offset
     return nearestBeatTime
   }
 
