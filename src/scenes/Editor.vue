@@ -41,31 +41,64 @@
 
             <v-tab>
               Editor
-              <v-icon>info</v-icon>
+              <v-icon>edit</v-icon>
             </v-tab>
           </v-tabs>
       </v-toolbar>
 
       <v-tabs-items v-model="tabs">
         <v-tab-item>
-          <v-flex>
-            LOAD VIDEO
-            <v-text-field
-              label="Video ID"
-              outline
-            ></v-text-field>
-          </v-flex>
-          <v-card flat>
-            <v-card-text>SAVE CHART AND LOAD CHART</v-card-text>
-          </v-card>
+          <v-container mt-5 ml-5>
+            <v-layout row wrap justify-center>
+              <v-flex xs12>
+                <v-card-title primary-title>
+                  <h2>Load Video</h2>
+                </v-card-title>
+              </v-flex>
+              <v-flex xs8>
+                <v-text-field box label="Video ID" prepend-inner-icon="movie"></v-text-field>
+              </v-flex>
+              <v-flex xs4>
+                <v-tooltip right>
+                  <template v-slot:activator="{ on }">
+                    <v-btn color="primary" fab dark small v-on="on" @click="testFirebase">
+                      <v-icon>forward</v-icon>
+                    </v-btn>
+                  </template>
+                  <span class="body-2">Load Video</span>
+                </v-tooltip>
+              </v-flex>
+            </v-layout>
+            <v-layout column wrap>
+              <v-flex xs12>
+                <v-card-title primary-title>
+                  <h2>Load Chart</h2>
+                </v-card-title>
+                <ul>
+                  <li>A</li>
+                  <li>B</li>
+                  <li>C</li>
+                </ul>
+                <v-btn dark>Load Chart</v-btn>
+              </v-flex>
+            </v-layout>
+            <v-layout column wrap>
+              <v-flex xs12>
+                <v-card-title primary-title>
+                  <h2>Save Chart</h2>
+                </v-card-title>
+                <v-btn dark>Save Chart</v-btn>
+              </v-flex>
+            </v-layout>
+          </v-container>
         </v-tab-item>
 
         <v-tab-item>
-          <v-container mt-5 ml-5>
-            <v-layout row wrap justify-center background-color="blue">
+          <v-container pt-5 pl-5>
+            <v-layout row wrap justify-space-between>
               <v-flex xs6 justify-start>
                 <v-form ref="timing">
-                  <v-layout row wrap justify-space-between>
+                  <v-layout row wrap pl-2>
                     <v-flex xs12>
                       <v-card-title primary-title>
                         <h2>Timing</h2>
@@ -116,26 +149,29 @@
                   </v-layout>
                 </v-form>
               </v-flex>
-              <v-flex xs6 justify-end>
+              <v-flex xs6>
                 <v-form ref="songInfo">
-                  <v-layout row wrap>
+                  <v-layout row wrap pl-5>
                     <v-flex xs12>
                       <v-card-title text-xs-center primary-title>
                         <h2>Song</h2>
                       </v-card-title>
                     </v-flex>
-                    <v-flex xs8>
+                    <v-flex xs10>
                       <v-text-field box label="Title" prepend-inner-icon="audiotrack" :placeholder="settings.title" v-model="settings.title" :rules="songInfoRules" error--text="red"></v-text-field>
                     </v-flex>
-                    <v-flex xs8>
+                    <v-flex xs10>
                       <v-text-field box label="Artist" prepend-inner-icon="audiotrack" :placeholder="settings.artist" v-model="settings.artist" :rules="songInfoRules"></v-text-field>
                     </v-flex>
                   </v-layout>
                 </v-form>
               </v-flex>
-              <v-flex xs4>
-                <v-btn dark @click="saveInfo">APPLY</v-btn>
-              </v-flex>
+              <v-layout row wrap>
+                <v-flex xs12>
+                  <v-btn dark block @click="saveInfo">APPLY</v-btn>
+                </v-flex>
+              </v-layout>
+
             </v-layout>
           </v-container>
         </v-tab-item>
@@ -199,7 +235,9 @@ import enableSelection from '../tools/editor/circleSelection/enable-selection'
 import disableSelection from '../tools/editor/circleSelection/disable-selection'
 import copy from '../tools/editor/copyPaste/copy'
 import paste from '../tools/editor/copyPaste/paste'
+import moveToBeat from '../tools/editor/move-to-beat'
 import * as PIXI from 'pixi.js'
+import firebase from '../tools/config/firebase'
 
 const YTPlayer = require('yt-player')
 
@@ -214,12 +252,8 @@ export default {
       noteManager: null,
       moveManager: null,
       settings: { offset: '0', videoStart: '0', videoEnd: '0', bpm: '150', title: '', artist: '' },
-      timingRules: [
-        v => !!/\d*(\.)?\d+$/g.test(v) || 'input must be a valid number.'
-      ],
-      songInfoRules: [
-        v => !!v || 'Required.'
-      ]
+      timingRules: [ v => !!/\d*(\.)?\d+$/g.test(v) || 'input must be a valid number.' ],
+      songInfoRules: [ v => !!v || 'Required.' ]
     }
   },
   created () {
@@ -251,64 +285,20 @@ export default {
       redrawStaff(this.player, this.danceChart, this.songManager)
     },
     moveToNextQuarterBeat: function () {
-      if (this.player.getState() === 'paused' && !editorConfig.areaSelect) {
-        let skippedBeats = 1
-        this.player.seek(this.songManager.getNearestBeatTime(skippedBeats))
-        setTimeout(() => {
-          if (editorConfig.creatingMove) {
-            this.noteManager.createNotes(editorConfig.pressedKey)
-            this.moveManager.addBeatToArray()
-          }
-          if (editorConfig.selectingMoves) drawSelection(this.songManager)
-          this.cueManager.drawCues(this.danceChart)
-          // showMoveInfo()
-        }, 200)
-      }
+      // eslint-disable-next-line
+      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, 1)
     },
     moveToPreviousQuarterBeat: function () {
-      if (this.player.getState() === 'paused' && !editorConfig.areaSelect) {
-        let skippedBeats = -1
-        this.player.seek(this.songManager.getNearestBeatTime(skippedBeats))
-        setTimeout(() => {
-          if (editorConfig.creatingMove) {
-            this.noteManager.createNotes(editorConfig.pressedKey)
-            this.moveManager.addBeatToArray()
-          }
-          if (editorConfig.selectingMoves) drawSelection(this.songManager)
-          // showMoveInfo()
-          this.cueManager.drawCues(this.danceChart)
-        }, 200)
-      }
+      // eslint-disable-next-line
+      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, -1)
     },
     moveToNextBeat: function () {
-      if (this.player.getState() === 'paused' && !editorConfig.areaSelect) {
-        let skippedBeats = 4
-        this.player.seek(this.songManager.getNearestBeatTime(skippedBeats))
-        setTimeout(() => {
-          if (editorConfig.creatingMove) {
-            this.noteManager.createNotes(editorConfig.pressedKey, this.songManager.nearestBeat, skippedBeats)
-            this.moveManager.addBeatToArray(this.songManager.nearestBeat, skippedBeats)
-          }
-          if (editorConfig.selectingMoves) drawSelection(this.songManager)
-          // showMoveInfo()
-          this.cueManager.drawCues(this.danceChart)
-        }, 200)
-      }
+      // eslint-disable-next-line
+      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, 4)
     },
     moveToPreviousBeat: function () {
-      if (this.player.getState() === 'paused' && !editorConfig.areaSelect) {
-        let skippedBeats = -4
-        this.player.seek(this.songManager.getNearestBeatTime(skippedBeats))
-        setTimeout(() => {
-          if (editorConfig.creatingMove) {
-            this.noteManager.createNotes(editorConfig.pressedKey, this.songManager.nearestBeat, skippedBeats)
-            this.moveManager.addBeatToArray(this.songManager.nearestBeat, skippedBeats)
-          }
-          if (editorConfig.selectingMoves) drawSelection(this.songManager)
-          // showMoveInfo()
-          this.cueManager.drawCues(this.danceChart)
-        }, 200)
-      }
+      // eslint-disable-next-line
+      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, -4)
     },
     playAndPause: function () {
       if (!editorConfig.areaSelect) {
@@ -412,12 +402,20 @@ export default {
         this.danceChart.videoStart = parseInt(this.settings.videoStart)
         this.danceChart.videoEnd = parseInt(this.settings.videoEnd)
         this.danceChart.bpm = parseInt(this.settings.bpm)
+        this.danceChart.title = this.settings.title
+        this.danceChart.artist = this.settings.artist
         this.songManager.update(this.danceChart)
         this.moveManager.update(this.songManager)
         this.noteManager.update(this.songManager)
         this.cueManager.update(this.songManager, this.moveManager)
         this.drawNumbers()
       }
+    },
+    testFirebase: function () {
+      var ref = firebase.database.ref('danceCharts')
+      ref.once('value').then(function (data) {
+        console.log(data.val())
+      })
     }
   }
 }

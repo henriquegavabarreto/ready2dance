@@ -36,7 +36,7 @@ function setVideoText () {
 function setTimeText () {
   let videoText = fixedGraphics.getChildByName('videoText')
 
-  var timeText = new PIXI.Text('0', {
+  var timeText = new PIXI.Text('', {
     fontSize: 18,
     fontFamily: 'Arial',
     fill: '#1ec503',
