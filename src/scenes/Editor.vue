@@ -2,7 +2,7 @@
   <v-container fluid class="ma-0 pa-0">
     <v-layout>
     <v-flex xs6>
-      <v-toolbar color="black" dark tabs>
+      <v-toolbar dark tabs>
         <v-tooltip bottom>
         <template v-slot:activator="{ on }">
           <v-btn fab small v-on="on">
@@ -45,10 +45,10 @@
 
       <v-tabs-items v-model="tabs">
         <v-tab-item>
-          <v-container mt-5 ml-5>
+          <v-container mt-2 ml-2>
             <v-layout row wrap justify-center>
               <v-flex xs12>
-                <v-card-title primary-title>
+                <v-card-title>
                   <h2>Load Video</h2>
                 </v-card-title>
               </v-flex>
@@ -58,7 +58,7 @@
               <v-flex xs4>
                 <v-tooltip right>
                   <template v-slot:activator="{ on }">
-                    <v-btn color="primary" fab dark small v-on="on" @click="loadVideoById">
+                    <v-btn fab dark small v-on="on" @click="loadVideoById">
                       <v-icon>forward</v-icon>
                     </v-btn>
                   </template>
@@ -76,7 +76,7 @@
                   <v-list-tile
                     v-for="(chart, id) in charts"
                     :key="id"
-                    :class="selectedChart === id ? 'blue' : ''"
+                    :class="selectedChart === id ? 'blue lighten' : ''"
                     @click="selectChart(id)"
                   >
 
@@ -96,6 +96,10 @@
                   <h2>Save Chart</h2>
                 </v-card-title>
                 <v-btn dark @click="saveToFirebase">Save Chart</v-btn>
+                <v-alert class="yellow black--text" :value="duplicateChart" style="max-height: 70px">
+                  There is already a dance chart for this video. Do you want to overwrite it?
+                  <v-btn dark small @click="duplicateChart = !duplicateChart">cancel</v-btn><v-btn dark small>overwrite</v-btn>
+                </v-alert>
               </v-flex>
             </v-layout>
           </v-container>
@@ -262,6 +266,7 @@ export default {
       noteManager: null,
       moveManager: null,
       selectingArea: false,
+      duplicateChart: false,
       charts: null,
       selectedChart: null,
       settings: { offset: '0', videoStart: '0', videoEnd: '0', bpm: '150', title: '', artist: '' },
@@ -287,6 +292,11 @@ export default {
     this.moveManager = new MoveManager(this.songManager)
     this.noteManager = new NoteManager(this.songManager)
     this.cueManager = new CueManager(this.songManager, this.moveManager)
+    this.editorView.ticker.add(() => {
+      updateTimeText(this.player)
+      updateTimeline(this.songManager.currentBeat)
+      if (this.player.getState() === 'playing') this.cueManager.drawCues(this.danceChart)
+    })
   },
   methods: {
     moveToNextQuarterBeat: function () {
@@ -423,17 +433,16 @@ export default {
         if (id === -1) {
           dataManager.saveNewChart(this.danceChart, this.player, this.ref)
         } else {
-          console.log('duplicate')
+          this.duplicateChart = true
         }
       })
     },
     loadVideoById: function () {
-      this.player.load(this.danceChart.videoId)
-      this.editorView.ticker.add(() => {
-        updateTimeText(this.player)
-        updateTimeline(this.songManager.currentBeat)
-        if (this.player.getState() === 'playing') this.cueManager.drawCues(this.danceChart)
-      })
+      this.player.load(this.danceChart.videoId, true)
+      setTimeout(() => {
+        drawGuideNumbers(this.player, this.danceChart, this.songManager)
+        redrawStaff(this.player, this.danceChart, this.songManager)
+      }, 3000)
     },
     selectChart: function (value) {
       this.selectedChart = value
@@ -447,8 +456,12 @@ export default {
         this.noteManager.redraw(this.danceChart)
         drawGuideNumbers(this.player, this.danceChart, this.songManager)
         redrawStaff(this.player, this.danceChart, this.songManager)
-        this.player.load(this.danceChart.videoId)
-      })
+        this.player.load(this.danceChart.videoId, true)
+        setTimeout(() => {
+          drawGuideNumbers(this.player, this.danceChart, this.songManager)
+          redrawStaff(this.player, this.danceChart, this.songManager)
+        }, 3000)
+      }).catch(err => console.log(err))
     }
   }
 }
