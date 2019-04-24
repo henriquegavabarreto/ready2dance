@@ -1,7 +1,5 @@
 <template>
   <v-container fluid class="ma-0 pa-0">
-    <!-- <editorheader></editorheader> -->
-    <button v-on:click="drawNumbers">Draw Numbers</button>
     <v-layout>
     <v-flex xs6>
       <v-toolbar color="black" dark tabs>
@@ -73,12 +71,23 @@
                 <v-card-title primary-title>
                   <h2>Load Chart</h2>
                 </v-card-title>
-                <ul>
-                  <li>A</li>
-                  <li>B</li>
-                  <li>C</li>
-                </ul>
-                <v-btn dark>Load Chart</v-btn>
+                <v-list two-line style="max-height: 200px" class="scroll-y">
+
+                  <v-list-tile
+                    v-for="(chart, id) in charts"
+                    :key="id"
+                    :class="selectedChart === id ? 'blue' : ''"
+                    @click="selectChart(id)"
+                  >
+
+                    <v-list-tile-content>
+                      <v-list-tile-title>{{chart.title}}</v-list-tile-title>
+                      <v-list-tile-sub-title>{{chart.artist}}</v-list-tile-sub-title>
+                    </v-list-tile-content>
+                  </v-list-tile>
+
+                </v-list>
+                <v-btn dark>Load</v-btn>
               </v-flex>
             </v-layout>
             <v-layout column wrap>
@@ -167,7 +176,7 @@
               </v-flex>
               <v-layout row wrap>
                 <v-flex xs12>
-                  <v-btn dark block @click="saveInfo">APPLY</v-btn>
+                  <v-btn dark block @click="saveInfo" :disabled="selectingArea">APPLY</v-btn>
                 </v-flex>
               </v-layout>
 
@@ -252,6 +261,9 @@ export default {
       danceChart: danceChart,
       noteManager: null,
       moveManager: null,
+      selectingArea: false,
+      charts: null,
+      selectedChart: null,
       settings: { offset: '0', videoStart: '0', videoEnd: '0', bpm: '150', title: '', artist: '' },
       timingRules: [ v => !!/\d*(\.)?\d+$/g.test(v) || 'input must be a valid number.' ],
       songInfoRules: [ v => !!v || 'Required.' ]
@@ -259,6 +271,11 @@ export default {
   },
   created () {
     this.editorView = new PIXI.Application(pixiConfig)
+    this.ref.on('value', (data) => {
+      this.charts = data.val()
+    }, (err) => {
+      console.log(err)
+    })
   },
   mounted () {
     setViewAndContainers(this.editorView)
@@ -272,10 +289,6 @@ export default {
     this.cueManager = new CueManager(this.songManager, this.moveManager)
   },
   methods: {
-    drawNumbers: function () {
-      drawGuideNumbers(this.player, this.danceChart, this.songManager)
-      redrawStaff(this.player, this.danceChart, this.songManager)
-    },
     moveToNextQuarterBeat: function () {
       // eslint-disable-next-line
       moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, 1)
@@ -293,7 +306,7 @@ export default {
       moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, -4)
     },
     playAndPause: function () {
-      if (!editorConfig.areaSelect) {
+      if (!this.selectingArea) {
         if (this.player.getState() === 'playing') {
           this.player.pause()
           setTimeout(() => {
@@ -306,13 +319,13 @@ export default {
       }
     },
     startCopySelection: function () {
-      if (this.player.getState() === 'paused' && !editorConfig.areaSelect) {
+      if (this.player.getState() === 'paused' && !this.selectingArea) {
         copy.start(this.songManager)
         drawSelection(this.songManager)
       }
     },
     endCopySelection: function () {
-      if (this.player.getState() === 'paused' && !editorConfig.areaSelect) {
+      if (this.player.getState() === 'paused' && !this.selectingArea) {
         copy.end(this.songManager)
         copy.addSelectionToClipboard(this.danceChart)
       }
@@ -321,7 +334,7 @@ export default {
       paste(this.danceChart, this.songManager, this.moveManager, this.noteManager)
     },
     startCreation: function (event) {
-      if (this.player.getState() === 'paused' && !editorConfig.areaSelect && editorConfig.pressedKey === '') {
+      if (this.player.getState() === 'paused' && !this.selectingArea && editorConfig.pressedKey === '') {
         editorConfig.creatingMove = true
         editorConfig.pressedKey = event.key
         this.moveManager.addBeatToArray()
@@ -329,12 +342,13 @@ export default {
       }
     },
     stopCreation: function (event) {
-      if (this.player.getState() === 'paused' && !editorConfig.areaSelect && editorConfig.pressedKey === event.key) {
+      if (this.player.getState() === 'paused' && !this.selectingArea && editorConfig.pressedKey === event.key) {
         if (this.moveManager.isValidInsert(this.danceChart)) {
           this.moveManager.sortBeatArray()
           this.moveManager.addRequiredMoves(this.danceChart, event.key)
           this.player.seek(this.songManager.getBeatTime(editorConfig.beatArray[0]))
           this.moveManager.setCircleCount()
+          this.selectingArea = true
           enableSelection()
         } else {
           this.noteManager.removeInvalidNotes(this.danceChart)
@@ -345,19 +359,20 @@ export default {
       }
     },
     createNode: function (event) {
-      if (this.player.getState() === 'paused' && !editorConfig.areaSelect) {
+      if (this.player.getState() === 'paused' && !this.selectingArea) {
         let moveType = this.moveManager.getCreatedMoveType(this.danceChart, event.key)
         if (moveType === 'H') {
           this.moveManager.setHoldNode(this.danceChart, event.key)
         } else if (moveType === 'M') {
           editorConfig.changingMove = true
           editorConfig.pressedKey = event.key
+          this.selectingArea = true
           enableSelection()
         }
       }
     },
     deleteMove: function (event) {
-      if (this.player.getState() === 'paused' && !editorConfig.areaSelect) {
+      if (this.player.getState() === 'paused' && !this.selectingArea) {
         this.moveManager.deleteMove(this.danceChart, event.key)
         this.noteManager.redraw(this.danceChart)
         this.cueManager.drawCues(this.danceChart)
@@ -370,6 +385,7 @@ export default {
         } else if (editorConfig.selectedCircles.length === editorConfig.circleCount) {
           this.moveManager.addHandInfo(this.danceChart)
           this.noteManager.tintNotes()
+          this.selectingArea = false
           disableSelection()
           this.moveManager.clearBeatArray()
           editorConfig.selectedCircles = []
@@ -380,6 +396,7 @@ export default {
       } else if (editorConfig.changingMove) {
         if (editorConfig.selectedCircles.length === 1) {
           this.moveManager.changeMove(this.danceChart, this.songManager.nearestBeat, editorConfig.pressedKey, editorConfig.selectedCircles[0])
+          this.selectingArea = false
           disableSelection()
           editorConfig.selectedCircles = []
           editorConfig.pressedKey = ''
@@ -402,7 +419,8 @@ export default {
         this.noteManager.update(this.songManager)
         this.cueManager.update(this.songManager, this.moveManager)
         this.noteManager.redraw(this.danceChart)
-        this.drawNumbers()
+        drawGuideNumbers(this.player, this.danceChart, this.songManager)
+        redrawStaff(this.player, this.danceChart, this.songManager)
       }
     },
     saveToFirebase: function () {
@@ -419,6 +437,9 @@ export default {
         updateTimeline(this.songManager.currentBeat)
         if (this.player.getState() === 'playing') this.cueManager.drawCues(this.danceChart)
       })
+    },
+    selectChart: function (value) {
+      this.selectedChart = value
     }
   }
 }

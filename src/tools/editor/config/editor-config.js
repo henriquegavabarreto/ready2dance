@@ -11,7 +11,6 @@ var editorConfig = {
     lineWidth: 10
   },
   advanceSpawn: 16,
-  areaSelect: false,
   creatingMove: false,
   changingMove: false,
   selectingMoves: false,
