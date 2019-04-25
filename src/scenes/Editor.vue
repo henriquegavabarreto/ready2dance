@@ -46,32 +46,34 @@
       <v-tabs-items v-model="tabs">
         <v-tab-item>
           <v-container mt-2 ml-2>
-            <v-layout row wrap justify-center>
-              <v-flex xs12>
-                <v-card-title>
-                  <h2>Load Video</h2>
-                </v-card-title>
-              </v-flex>
-              <v-flex xs8>
-                <v-text-field box label="Video ID" prepend-inner-icon="movie" v-model="danceChart.videoId"></v-text-field>
-              </v-flex>
-              <v-flex xs4>
-                <v-tooltip right>
-                  <template v-slot:activator="{ on }">
-                    <v-btn fab dark small v-on="on" @click="loadVideoById">
-                      <v-icon>forward</v-icon>
-                    </v-btn>
-                  </template>
-                  <span class="body-2">Load Video</span>
-                </v-tooltip>
-              </v-flex>
+            <v-layout row wrap>
+              <v-form ref="videoId">
+                <v-flex xs12>
+                  <v-card-title>
+                    <h2>Load Video</h2>
+                  </v-card-title>
+                </v-flex>
+                <v-flex xs8>
+                  <v-text-field box label="Video ID" prepend-inner-icon="movie" v-model="danceChart.videoId" :rules="songIdRules"></v-text-field>
+                </v-flex>
+                <v-flex xs4>
+                  <v-tooltip right>
+                    <template v-slot:activator="{ on }">
+                      <v-btn fab dark small v-on="on" @click="loadVideoById">
+                        <v-icon>forward</v-icon>
+                      </v-btn>
+                    </template>
+                    <span class="body-2">Load Video</span>
+                  </v-tooltip>
+                </v-flex>
+              </v-form>
             </v-layout>
             <v-layout column wrap>
               <v-flex xs12>
                 <v-card-title primary-title>
                   <h2>Load Chart</h2>
                 </v-card-title>
-                <v-list two-line style="max-height: 200px; max-width: 200px" class="scroll-y blue lighten-5">
+                <v-list two-line style="max-height: 200px; max-width: 300px" class="scroll-y blue lighten-5">
 
                   <v-list-tile
                     v-for="(chart, id) in charts"
@@ -102,14 +104,30 @@
                 </v-alert>
                 <v-snackbar
                   v-model="saved"
-                  class="green"
+                  left
+                  color="green"
                   :timeout="3000"
                 >
-                  {{ text }}
+                <v-icon dark>done_outline</v-icon>
+                  SAVED
                   <v-btn
-                    dark
                     flat
                     @click="saved = false"
+                  >
+                  Close
+                  </v-btn>
+                </v-snackbar>
+                <v-snackbar
+                  v-model="missingInfo"
+                  left
+                  warning
+                  :timeout="3000"
+                >
+                <v-icon dark left>warning</v-icon>
+                  Can't save if any information is missing. Check all fields.
+                  <v-btn
+                    flat
+                    @click="missingInfo = false"
                   >
                   Close
                   </v-btn>
@@ -240,7 +258,6 @@
 </template>
 
 <script>
-// import Editorheader from '../components/Editorheader'
 import playerConfig from '../tools/editor/config/youtube-player'
 import pixiConfig from '../tools/editor/config/pixi-config'
 import setViewAndContainers from '../tools/editor/containers/set-view-and-containers'
@@ -282,11 +299,13 @@ export default {
       selectingArea: false,
       duplicateChart: false,
       saved: false,
+      missingInfo: false,
       charts: null,
       selectedChart: null,
       settings: { offset: '0', videoStart: '0', videoEnd: '0', bpm: '150', title: '', artist: '' },
       timingRules: [ v => !!/\d*(\.)?\d+$/g.test(v) || 'input must be a valid number.' ],
-      songInfoRules: [ v => !!v || 'Required.' ]
+      songInfoRules: [ v => !!v || 'Required.' ],
+      songIdRules: [ v => v.length === 11 || 'Video IDs have 11 characters.' ]
     }
   },
   created () {
@@ -441,21 +460,27 @@ export default {
       }
     },
     saveToFirebase: function () {
-      dataManager.sortDanceChart(this.danceChart)
-      let id = dataManager.checkVideoId(this.player, this.charts)
-      if (id === -1) {
-        dataManager.saveNewChart(this.danceChart, this.player, this.ref)
-        this.saved = true
+      if (this.$refs.videoId.validate() && this.$refs.timing.validate() && this.$refs.songInfo.validate()) {
+        dataManager.sortDanceChart(this.danceChart)
+        let id = dataManager.checkVideoId(this.player, this.charts)
+        if (id === -1) {
+          dataManager.saveNewChart(this.danceChart, this.player, this.ref)
+          this.saved = true
+        } else {
+          this.duplicateChart = true
+        }
       } else {
-        this.duplicateChart = true
+        this.missingInfo = true
       }
     },
     loadVideoById: function () {
-      this.player.load(this.danceChart.videoId, true)
-      setTimeout(() => {
-        drawGuideNumbers(this.player, this.danceChart, this.songManager)
-        redrawStaff(this.player, this.danceChart, this.songManager)
-      }, 3000)
+      if (this.$refs.videoId.validate()) {
+        this.player.load(this.danceChart.videoId, true)
+        setTimeout(() => {
+          drawGuideNumbers(this.player, this.danceChart, this.songManager)
+          redrawStaff(this.player, this.danceChart, this.songManager)
+        }, 3000)
+      }
     },
     selectChart: function (value) {
       this.selectedChart = value
@@ -474,9 +499,13 @@ export default {
       }, 3000)
     },
     overwriteChart: function () {
-      dataManager.overwriteChart(this.player, this.charts, this.danceChart, this.ref)
-      this.duplicateChart = false
-      this.saved = true
+      if (this.$refs.videoId.validate() && this.$refs.timing.validate() && this.$refs.songInfo.validate()) {
+        dataManager.overwriteChart(this.player, this.charts, this.danceChart, this.ref)
+        this.duplicateChart = false
+        this.saved = true
+      } else {
+        this.missingInfo = true
+      }
     }
   }
 }
