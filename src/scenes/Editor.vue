@@ -271,8 +271,7 @@ import danceChart from '../tools/editor/data/dance-chart'
 import editorConfig from '../tools/editor/config/editor-config'
 import drawGuideNumbers from '../tools/editor/containers/guideNumbers/draw-guide-numbers'
 import redrawStaff from '../tools/editor/containers/backgroundStaff/redraw-staff'
-import updateTimeText from '../tools/editor/animations/update-time-text'
-import updateTimeline from '../tools/editor/animations/update-timeline'
+import animationManager from '../tools/editor/animations/animation-manager'
 import drawSelection from '../tools/editor/containers/copyPasteSelection/draw-selection'
 import enableSelection from '../tools/editor/circleSelection/enable-selection'
 import disableSelection from '../tools/editor/circleSelection/disable-selection'
@@ -321,33 +320,36 @@ export default {
     setInitialGraphics()
     setCueGraphics()
     this.player = new YTPlayer('#player', playerConfig)
-    this.player.on('paused', () => { this.player.seek(this.songManager.getNearestBeatTime()) })
     this.songManager = new SongManager(this.player, this.danceChart)
     this.moveManager = new MoveManager(this.songManager)
     this.noteManager = new NoteManager(this.songManager)
     this.cueManager = new CueManager(this.songManager, this.moveManager)
     this.editorView.ticker.add(() => {
-      updateTimeText(this.player)
-      updateTimeline(this.songManager.currentBeat)
-      if (this.player.getState() === 'playing') this.cueManager.drawCues(this.danceChart)
+      animationManager.animate(this.player, this.songManager, this.cueManager, this.danceChart)
     })
+    this.player.on('paused', () => {
+      this.player.seek(this.songManager.getNearestBeatTime())
+      this.editorView.ticker.stop()
+    })
+    this.player.on('playing', () => { this.editorView.ticker.start() })
+    this.editorView.ticker.stop()
   },
   methods: {
     moveToNextQuarterBeat: function () {
       // eslint-disable-next-line
-      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, 1)
+      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, 1, this.editorView.ticker)
     },
     moveToPreviousQuarterBeat: function () {
       // eslint-disable-next-line
-      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, -1)
+      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, -1, this.editorView.ticker)
     },
     moveToNextBeat: function () {
       // eslint-disable-next-line
-      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, 4)
+      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, 4, this.editorView.ticker)
     },
     moveToPreviousBeat: function () {
       // eslint-disable-next-line
-      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, -4)
+      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, -4, this.editorView.ticker)
     },
     playAndPause: function () {
       if (!this.selectingArea) {
