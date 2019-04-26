@@ -1,7 +1,7 @@
 export default {
   sortDanceChart: function (danceChart) {
     danceChart.moves.sort(function (a, b) {
-      return a.split(',')[0] - b.split(',')[0]
+      return a[0] - b[0]
     })
   },
   checkVideoId: function (player, data) {

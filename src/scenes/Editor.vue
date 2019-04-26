@@ -457,7 +457,7 @@ export default {
           editorConfig.changingMove = false
         }
       }
-      console.log(this.danceChart.moves)
+      dataManager.sortDanceChart(this.danceChart)
       setTimeout(() => (animationManager.animate(this.player, this.songManager, this.cueManager, this.danceChart)), 200)
     },
     saveInfo: function () {
@@ -472,7 +472,6 @@ export default {
     },
     saveToFirebase: function () {
       if (this.$refs.videoId.validate() && this.$refs.timing.validate() && this.$refs.songInfo.validate()) {
-        dataManager.sortDanceChart(this.danceChart)
         let id = dataManager.checkVideoId(this.player, this.charts)
         if (id === -1) {
           dataManager.saveNewChart(this.danceChart, this.player, this.ref)

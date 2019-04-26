@@ -13,7 +13,7 @@ function moveToBeat (player, songManager, moveManager, noteManager, cueManager, 
       }
       if (editorConfig.selectingMoves) drawSelection(songManager)
       animationManager.animate(player, songManager, cueManager, danceChart)
-    }, 150)
+    }, 200)
   }
 }
 
