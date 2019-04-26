@@ -10,7 +10,7 @@ export default class CueManager {
   }
 
   drawCue (handMove, size) {
-    if (handMove[0] === 'S') {
+    if (handMove[0] === 'S' && handMove.length > 1) {
       this.graphics.lineStyle(editorConfig.cue.lineWidth, editorConfig.colors.sharp, 1)
       this.graphics.drawCircle(grid[handMove[1]].x, grid[handMove[1]].y, size)
     } else if (handMove[0] === 'H' && handMove[2] === 'S') {

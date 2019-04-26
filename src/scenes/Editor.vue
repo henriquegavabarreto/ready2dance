@@ -255,7 +255,7 @@
         </v-tabs-items>
       </v-flex>
       <v-flex xs12 md6>
-        <v-container align-center justify-center id="player"/>
+        <v-container id="player"/>
       </v-flex>
     </v-layout>
   </v-container>
@@ -299,6 +299,7 @@ export default {
       danceChart: danceChart,
       noteManager: null,
       moveManager: null,
+      gameTicker: null,
       selectingArea: false,
       duplicateChart: false,
       saved: false,
@@ -313,6 +314,8 @@ export default {
   },
   created () {
     this.editorView = new PIXI.Application(pixiConfig)
+    this.gameTicker = new PIXI.ticker.Ticker()
+    this.gameTicker.stop()
     this.ref.on('value', (data) => {
       this.charts = data.val()
     }, (err) => {
@@ -328,42 +331,41 @@ export default {
     this.moveManager = new MoveManager(this.songManager)
     this.noteManager = new NoteManager(this.songManager)
     this.cueManager = new CueManager(this.songManager, this.moveManager)
-    this.editorView.ticker.add(() => {
+
+    this.gameTicker.add((deltaTime) => {
       animationManager.animate(this.player, this.songManager, this.cueManager, this.danceChart)
     })
+
     this.player.on('paused', () => {
+      this.gameTicker.stop()
       this.player.seek(this.songManager.getNearestBeatTime())
-      this.editorView.ticker.stop()
     })
-    this.player.on('playing', () => { this.editorView.ticker.start() })
-    this.editorView.ticker.stop()
-    setTimeout(() => { this.editorView.ticker.update() }, 2000)
+
+    this.player.on('playing', () => {
+      this.gameTicker.start()
+    })
   },
   methods: {
     moveToNextQuarterBeat: function () {
       // eslint-disable-next-line
-      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, 1, this.editorView.ticker)
+      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, 1)
     },
     moveToPreviousQuarterBeat: function () {
       // eslint-disable-next-line
-      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, -1, this.editorView.ticker)
+      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, -1)
     },
     moveToNextBeat: function () {
       // eslint-disable-next-line
-      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, 4, this.editorView.ticker)
+      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, 4)
     },
     moveToPreviousBeat: function () {
       // eslint-disable-next-line
-      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, -4, this.editorView.ticker)
+      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, -4)
     },
     playAndPause: function () {
       if (!this.selectingArea) {
         if (this.player.getState() === 'playing') {
           this.player.pause()
-          setTimeout(() => {
-            // showMoveInfo()
-            this.cueManager.drawCues(this.danceChart)
-          }, 200)
         } else {
           this.player.play()
         }
@@ -408,6 +410,7 @@ export default {
           editorConfig.pressedKey = ''
         }
       }
+      setTimeout(() => (animationManager.animate(this.player, this.songManager, this.cueManager, this.danceChart)), 200)
     },
     createNode: function (event) {
       if (this.player.getState() === 'paused' && !this.selectingArea) {
@@ -426,7 +429,7 @@ export default {
       if (this.player.getState() === 'paused' && !this.selectingArea) {
         this.moveManager.deleteMove(this.danceChart, event.key)
         this.noteManager.redraw(this.danceChart)
-        this.cueManager.drawCues(this.danceChart)
+        animationManager.animate(this.player, this.songManager, this.cueManager, this.danceChart)
       }
     },
     dealWithSelection: function () {
@@ -442,7 +445,6 @@ export default {
           editorConfig.selectedCircles = []
           editorConfig.creatingMove = false
           editorConfig.pressedKey = ''
-          this.cueManager.drawCues(this.danceChart)
         }
       } else if (editorConfig.changingMove) {
         if (editorConfig.selectedCircles.length === 1) {
@@ -452,9 +454,9 @@ export default {
           editorConfig.selectedCircles = []
           editorConfig.pressedKey = ''
           editorConfig.changingMove = false
-          this.cueManager.drawCues(this.danceChart)
         }
       }
+      setTimeout(() => (animationManager.animate(this.player, this.songManager, this.cueManager, this.danceChart)), 200)
     },
     saveInfo: function () {
       if (this.$refs.timing.validate()) {
