@@ -457,6 +457,7 @@ export default {
           editorConfig.changingMove = false
         }
       }
+      console.log(this.danceChart.moves)
       setTimeout(() => (animationManager.animate(this.player, this.songManager, this.cueManager, this.danceChart)), 200)
     },
     saveInfo: function () {

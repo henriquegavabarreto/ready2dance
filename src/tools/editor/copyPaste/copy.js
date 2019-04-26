@@ -16,9 +16,7 @@ var copy = {
   },
   addSelectionToClipboard: function (danceChart) {
     danceChart.moves.forEach((move) => {
-      let splitMove = move.split(',')
-      let beat = parseInt(splitMove[0])
-      if (beat >= editorConfig.copySelection[0] && beat <= editorConfig.copySelection[1]) editorConfig.clipboard.push(move)
+      if (move[0] >= editorConfig.copySelection[0] && move[0] <= editorConfig.copySelection[1]) editorConfig.clipboard.push(move)
     })
   }
 }

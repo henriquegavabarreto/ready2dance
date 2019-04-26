@@ -29,17 +29,14 @@ export default class CueManager {
     let movesToDraw = []
     let holdsToDraw = []
     danceChart.moves.forEach((move) => {
-      move = move.split(',')
-      let beat = parseInt(move[0])
-      if (beat >= this.songManager.currentQuarterBeat && beat <= this.songManager.currentQuarterBeat + editorConfig.advanceSpawn) movesToDraw.push(move)
-      if (beat === this.songManager.nearestBeat && (move[2][0] === 'H' || move[3][0] === 'H')) holdsToDraw.push(move)
+      if (move[0] >= this.songManager.currentQuarterBeat && move[0] <= this.songManager.currentQuarterBeat + editorConfig.advanceSpawn) movesToDraw.push(move)
+      if (move[0] === this.songManager.nearestBeat && (move[2][0] === 'H' || move[3][0] === 'H')) holdsToDraw.push(move)
     })
     if (movesToDraw.length > 0) {
       movesToDraw.forEach((move) => {
-        let beat = parseInt(move[0])
         let leftHand = move[2]
         let rightHand = move[3]
-        let proportion = (editorConfig.advanceSpawn - (beat - this.songManager.currentQuarterBeat)) / editorConfig.advanceSpawn
+        let proportion = (editorConfig.advanceSpawn - (move[0] - this.songManager.currentQuarterBeat)) / editorConfig.advanceSpawn
         let size = editorConfig.cue.size * proportion
         if (rightHand !== 'X') this.drawCue(rightHand, size)
         if (leftHand !== 'X') this.drawCue(leftHand, size)
@@ -47,9 +44,8 @@ export default class CueManager {
     }
     if (holdsToDraw.length > 0) {
       holdsToDraw.forEach((move) => {
-        let beat = parseInt(move[0])
-        if (move[2][0] === 'H') this.drawHoldCues(danceChart, beat, 'L')
-        if (move[3][0] === 'H') this.drawHoldCues(danceChart, beat, 'R')
+        if (move[2][0] === 'H') this.drawHoldCues(danceChart, move[0], 'L')
+        if (move[3][0] === 'H') this.drawHoldCues(danceChart, move[0], 'R')
       })
     }
   }
