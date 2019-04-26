@@ -54,9 +54,7 @@ export default class NoteManager {
 
   redraw (danceChart) { // call after update chart or after move deletion
     noteElements.removeChildren() // remove all notes
-    let moves = danceChart.moves
-    moves.forEach(move => { // insert all elements again
-      move = move.split(',')
+    danceChart.moves.forEach(move => { // insert all elements again
       if (move[2] !== 'X') {
         this.drawNote(22, move[0])
         this.tintNotes(move[0], 'L', move[2][0])
@@ -71,13 +69,11 @@ export default class NoteManager {
   removeInvalidNotes (danceChart) { // call if a insertion is not valid (see isValidInsert in MoveManager)
     let invalidNotes = []
     editorConfig.beatArray.forEach((beat) => {
-      let moveIndex = this.checkForMove(danceChart, beat)
-      if (moveIndex !== -1) { // if there are moves
-        let move = danceChart.moves[moveIndex]
-        move = move.split(',')
-        if (editorConfig.pressedKey === 'z' && move[2] === 'X') {
+      let i = this.checkForMove(danceChart, beat)
+      if (i !== -1) { // if there are moves
+        if (editorConfig.pressedKey === 'z' && danceChart.moves[i][2] === 'X') {
           invalidNotes.push(beat)
-        } else if (editorConfig.pressedKey === 'x' && move[3] === 'X') {
+        } else if (editorConfig.pressedKey === 'x' && danceChart.moves[i][3] === 'X') {
           invalidNotes.push(beat)
         }
       } else { // if no moves
@@ -99,9 +95,7 @@ export default class NoteManager {
       return -1
     } else {
       for (let i = 0; i < danceChart.moves.length; i++) {
-        let move = danceChart.moves[i]
-        move = move.split(',')
-        if (parseInt(move[0]) === beat) {
+        if (danceChart.moves[i][0] === beat) {
           return i
         } else if (i === danceChart.moves.length - 1) {
           return -1

@@ -11,8 +11,7 @@ export default class MoveManager {
     } else {
       for (let i = 0; i < danceChart.moves.length; i++) {
         let move = danceChart.moves[i]
-        move = move.split(',')
-        if (parseInt(move[0]) === beat) {
+        if (move[0] === beat) {
           return i
         } else if (i === danceChart.moves.length - 1) {
           return -1
@@ -24,12 +23,10 @@ export default class MoveManager {
   getHandMove (danceChart, beat, hand) { // internal - return hand move of a beat
     let i = this.checkForMoves(danceChart, beat)
     if (i >= 0) {
-      let move = danceChart.moves[i]
-      move = move.split(',')
       if (hand === 'L') {
-        return move[2]
+        return danceChart.moves[i][2]
       } else {
-        return move[3]
+        return danceChart.moves[i][3]
       }
     } else {
       return 'X'
@@ -65,24 +62,19 @@ export default class MoveManager {
   }
 
   addMoveToChart (danceChart, pressedKey, beat) { // call when stop creation to add 'proto-moves' to chart
-    let beatOnMove = this.checkForMoves(danceChart, beat)
+    let i = this.checkForMoves(danceChart, beat)
 
-    if (beatOnMove === -1) { // if there is no move on the beat yet
+    if (i === -1) { // if there is no move on the beat yet
       if (editorConfig.pressedKey === 'x') { // S for selected and X for no data
-        danceChart.moves.push(`${beat},1,X,S`)
+        danceChart.moves.push([beat, 1, 'X', 'S'])
       } else if (editorConfig.pressedKey === 'z') {
-        danceChart.moves.push(`${beat},1,S,X`)
+        danceChart.moves.push([beat, 1, 'S', 'X'])
       }
     } else { // if there is a move on this beat
-      let moves = danceChart.moves[beatOnMove].split(',')
-      if (editorConfig.pressedKey === 'x' && moves[3] === 'X') { // select right hand
-        moves[3] = 'S'
-        moves = moves.join(',')
-        danceChart.moves[beatOnMove] = moves
-      } else if (editorConfig.pressedKey === 'z' && moves[2] === 'X') { // select left hand
-        moves[2] = 'S'
-        moves = moves.join(',')
-        danceChart.moves[beatOnMove] = moves
+      if (editorConfig.pressedKey === 'x' && danceChart.moves[i][3] === 'X') { // select right hand
+        danceChart.moves[i][3] = 'S'
+      } else if (editorConfig.pressedKey === 'z' && danceChart.moves[i][2] === 'X') { // select left hand
+        danceChart.moves[i][2] = 'S'
       }
     }
   }
@@ -90,40 +82,31 @@ export default class MoveManager {
   addHandInfo (danceChart) {
     let moveType = this.moveType
     editorConfig.beatArray.forEach((beat, index) => {
-      let moveIndex = this.checkForMoves(danceChart, beat)
-      let move = danceChart.moves[moveIndex].split(',')
+      let i = this.checkForMoves(danceChart, beat)
       if (moveType === 'S') {
-        if (move[2] !== 'X' && move[2].length === 1) {
-          move[2] = moveType + editorConfig.selectedCircles[0]
-          danceChart.moves[moveIndex] = move.join(',')
-        } else if (move[3] !== 'X' && move[3].length === 1) {
-          move[3] = moveType + editorConfig.selectedCircles[0]
-          danceChart.moves[moveIndex] = move.join(',')
+        if (danceChart.moves[i][2] !== 'X' && danceChart.moves[i][2].length === 1) {
+          danceChart.moves[i][2] = moveType + editorConfig.selectedCircles[0]
+        } else if (danceChart.moves[i][3] !== 'X' && danceChart.moves[i][3].length === 1) {
+          danceChart.moves[i][3] = moveType + editorConfig.selectedCircles[0]
         }
       } else {
         if (index === 0) {
-          if (move[2] !== 'X' && move[2].length === 1) {
-            move[2] = moveType + editorConfig.selectedCircles[0] + 'S'
-            danceChart.moves[moveIndex] = move.join(',')
-          } else if (move[3] !== 'X' && move[3].length === 1) {
-            move[3] = moveType + editorConfig.selectedCircles[0] + 'S'
-            danceChart.moves[moveIndex] = move.join(',')
+          if (danceChart.moves[i][2] !== 'X' && danceChart.moves[i][2].length === 1) {
+            danceChart.moves[i][2] = moveType + editorConfig.selectedCircles[0] + 'S'
+          } else if (danceChart.moves[i][3] !== 'X' && danceChart.moves[i][3].length === 1) {
+            danceChart.moves[i][3] = moveType + editorConfig.selectedCircles[0] + 'S'
           }
         } else if (index > 0 && index < editorConfig.beatArray.length - 1) {
-          if (move[2] !== 'X' && move[2].length === 1) {
-            move[2] = moveType + 'P'
-            danceChart.moves[moveIndex] = move.join(',')
-          } else if (move[3] !== 'X' && move[3].length === 1) {
-            move[3] = moveType + 'P'
-            danceChart.moves[moveIndex] = move.join(',')
+          if (danceChart.moves[i][2] !== 'X' && danceChart.moves[i][2].length === 1) {
+            danceChart.moves[i][2] = moveType + 'P'
+          } else if (danceChart.moves[i][3] !== 'X' && danceChart.moves[i][3].length === 1) {
+            danceChart.moves[i][3] = moveType + 'P'
           }
         } else if (index === editorConfig.beatArray.length - 1) {
-          if (move[2] !== 'X' && move[2].length === 1) {
-            move[2] = moveType + editorConfig.selectedCircles[1] + 'E'
-            danceChart.moves[moveIndex] = move.join(',')
-          } else if (move[3] !== 'X' && move[3].length === 1) {
-            move[3] = moveType + editorConfig.selectedCircles[1] + 'E'
-            danceChart.moves[moveIndex] = move.join(',')
+          if (danceChart.moves[i][2] !== 'X' && danceChart.moves[i][2].length === 1) {
+            danceChart.moves[i][2] = moveType + editorConfig.selectedCircles[1] + 'E'
+          } else if (danceChart.moves[i][3] !== 'X' && danceChart.moves[i][3].length === 1) {
+            danceChart.moves[i][3] = moveType + editorConfig.selectedCircles[1] + 'E'
           }
         }
       }
@@ -135,11 +118,9 @@ export default class MoveManager {
     for (let i = 0; i < editorConfig.beatArray.length; i++) {
       let moveIndex = this.checkForMoves(danceChart, editorConfig.beatArray[i])
       if (moveIndex !== -1) { // if there are moves
-        let move = danceChart.moves[moveIndex]
-        move = move.split(',')
-        if (editorConfig.pressedKey === 'z' && move[2] !== 'X') { // for left hand
+        if (editorConfig.pressedKey === 'z' && danceChart.moves[moveIndex][2] !== 'X') { // for left hand
           return false
-        } else if (editorConfig.pressedKey === 'x' && move[3] !== 'X') { // for right hand
+        } else if (editorConfig.pressedKey === 'x' && danceChart.moves[moveIndex][3] !== 'X') { // for right hand
           return false
         } else {
           isValid = true
@@ -161,23 +142,20 @@ export default class MoveManager {
     let hand = 'L'
     if (editorConfig.pressedKey === 's') hand = 'R'
     let handMove = this.getHandMove(danceChart, this.songManager.nearestBeat, hand)
-    let moveIndex = this.checkForMoves(danceChart)
-    let move = danceChart.moves[moveIndex]
-    move = move.split(',')
+    let i = this.checkForMoves(danceChart)
     if (hand === 'L') {
       if (handMove.length === 2) {
-        move[2] = handMove[0] + position + 'P'
+        danceChart.moves[i][2] = handMove[0] + position + 'P'
       } else {
-        move[2] = handMove[0] + position + handMove[2]
+        danceChart.moves[i][2] = handMove[0] + position + handMove[2]
       }
     } else {
       if (handMove.length === 2) {
-        move[3] = handMove[0] + position + 'P'
+        danceChart.moves[i][3] = handMove[0] + position + 'P'
       } else {
-        move[3] = handMove[0] + position + handMove[2]
+        danceChart.moves[i][3] = handMove[0] + position + handMove[2]
       }
     }
-    danceChart.moves[moveIndex] = move.join(',')
   }
 
   setHoldNode (danceChart, key) { // call when 'a' or 's' keyup
@@ -185,15 +163,12 @@ export default class MoveManager {
     if (key === 's') hand = 'R'
     let startBeat = this.getStartBeat(danceChart, this.songManager.nearestBeat, hand)
     let originalPosition = this.getHandMove(danceChart, startBeat, hand)[1]
-    let moveIndex = this.checkForMoves(danceChart)
-    let move = danceChart.moves[moveIndex]
-    move = move.split(',')
+    let i = this.checkForMoves(danceChart)
     if (hand === 'L') {
-      move[2] = 'H' + originalPosition + 'P'
+      danceChart.moves[i][2] = 'H' + originalPosition + 'P'
     } else {
-      move[3] = 'H' + originalPosition + 'P'
+      danceChart.moves[i][3] = 'H' + originalPosition + 'P'
     }
-    danceChart.moves[moveIndex] = move.join(',')
   }
 
   getCreatedMoveType (danceChart, key) {
@@ -204,12 +179,10 @@ export default class MoveManager {
   }
 
   updateMoves (danceChart, bpm, offsetDifference) { // to use when there are any changes in timing
-    let moves = danceChart.moves
     let updatedMoves = []
-    moves.forEach(move => { // insert all elements again based on the bpm and offset changes based on the dance chart
-      move = move.split(',')
-      move[0] = parseInt(move[0]) + Math.round((offsetDifference / (60 / bpm)) * 4) // change each move beat so they stay in the same time according to the song
-      updatedMoves.push(move.join(','))
+    danceChart.moves.forEach(move => { // insert all elements again based on the bpm and offset changes based on the dance chart
+      move[0] = move[0] + Math.round((offsetDifference / (60 / bpm)) * 4) // change each move beat so they stay in the same time according to the song
+      updatedMoves.push(move)
     })
     danceChart.moves = updatedMoves // update moves on the dance chart
   }
@@ -244,20 +217,15 @@ export default class MoveManager {
 
   removeHandInfo (danceChart, beat, hand) { // internal - remove hand info when delete button keyup
     if (hand === 'L') { // if left hand
-      let moveToChange = danceChart.moves[this.checkForMoves(danceChart, beat)].split(',') // split move
-      moveToChange[2] = 'X' // change the move that needs to be changed
-      danceChart.moves[this.checkForMoves(danceChart, beat)] = moveToChange.join(',') // change it in the danceChart
+      danceChart.moves[this.checkForMoves(danceChart, beat)][2] = 'X' // change the move that needs to be changed
     } else {
-      let moveToChange = danceChart.moves[this.checkForMoves(danceChart, beat)].split(',') // split move
-      moveToChange[3] = 'X' // change the move that needs to be changed
-      danceChart.moves[this.checkForMoves(danceChart, beat)] = moveToChange.join(',') // change it in the danceChart
+      danceChart.moves[this.checkForMoves(danceChart, beat)][3] = 'X' // change the move that needs to be changed
     }
   }
 
   removeNoInfoMoves (danceChart) { // internal - it is called to remove 'X,X' moves from the chart
     for (let i = danceChart.moves.length - 1; i >= 0; i--) {
-      let move = danceChart.moves[i].split(',')
-      if (move[2] === 'X' && move[3] === 'X') danceChart.moves.splice(i, 1)
+      if (danceChart.moves[i][2] === 'X' && danceChart.moves[i][3] === 'X') danceChart.moves.splice(i, 1)
     }
   }
 

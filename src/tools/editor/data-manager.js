@@ -42,7 +42,7 @@ export default {
     danceChart.offset = parseFloat(loadedChart.offset)
     danceChart.artist = loadedChart.artist
     danceChart.title = loadedChart.title
-    danceChart.moves = loadedChart.moves.split(' ')
+    danceChart.moves = this.parseChart(loadedChart.moves)
     danceChart.videoEnd = parseFloat(loadedChart.videoEnd)
     danceChart.videoStart = parseFloat(loadedChart.videoStart)
     danceChart.videoId = loadedChart.videoId
@@ -67,5 +67,16 @@ export default {
     moveManager.update(songManager)
     noteManager.update(songManager)
     cueManager.update(songManager, moveManager)
+  },
+  parseChart: function (moves) {
+    let newChart = []
+    moves = moves.split(' ')
+    moves.forEach((move) => {
+      move = move.split(',')
+      move[0] = parseInt(move[0])
+      move[1] = parseInt(move[1])
+      newChart.push(move)
+    })
+    return newChart
   }
 }
