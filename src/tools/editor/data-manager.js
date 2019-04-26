@@ -39,14 +39,14 @@ export default {
     })
   },
   updateChartAndSettings: function (danceChart, settings, loadedChart) {
-    danceChart.offset = loadedChart.offset
+    danceChart.offset = parseFloat(loadedChart.offset)
     danceChart.artist = loadedChart.artist
     danceChart.title = loadedChart.title
     danceChart.moves = loadedChart.moves.split(' ')
-    danceChart.videoEnd = loadedChart.videoEnd
-    danceChart.videoStart = loadedChart.videoStart
+    danceChart.videoEnd = parseFloat(loadedChart.videoEnd)
+    danceChart.videoStart = parseFloat(loadedChart.videoStart)
     danceChart.videoId = loadedChart.videoId
-    danceChart.bpm = loadedChart.bpm
+    danceChart.bpm = parseInt(loadedChart.bpm)
     settings.offset = danceChart.offset.toString()
     settings.videoStart = danceChart.videoStart.toString()
     settings.videoEnd = danceChart.videoEnd.toString()
@@ -58,7 +58,7 @@ export default {
     danceChart.offset = parseFloat(settings.offset)
     danceChart.videoStart = parseFloat(settings.videoStart)
     danceChart.videoEnd = parseFloat(settings.videoEnd)
-    danceChart.bpm = parseFloat(settings.bpm)
+    danceChart.bpm = parseInt(settings.bpm)
     danceChart.title = settings.title
     danceChart.artist = settings.artist
   },

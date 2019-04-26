@@ -335,6 +335,7 @@ export default {
     this.gameTicker.add((deltaTime) => {
       animationManager.animate(this.player, this.songManager, this.cueManager, this.danceChart)
     })
+    this.gameTicker.stop()
 
     this.player.on('paused', () => {
       this.gameTicker.stop()
@@ -460,7 +461,7 @@ export default {
     },
     saveInfo: function () {
       if (this.$refs.timing.validate()) {
-        this.moveManager.updateMoves(this.danceChart, parseFloat(this.settings.bpm), danceChart.offset - parseFloat(this.settings.offset))
+        this.moveManager.updateMoves(this.danceChart, parseInt(this.settings.bpm), danceChart.offset - parseFloat(this.settings.offset))
         dataManager.updateDanceChart(this.danceChart, this.settings)
         dataManager.updateManagers(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.cueManager)
         this.noteManager.redraw(this.danceChart)
