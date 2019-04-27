@@ -270,7 +270,8 @@
         </v-tabs-items>
       </v-flex>
       <v-flex xs12 md6>
-        <v-container id="player"/>
+        <div id="player">
+        </div>
       </v-flex>
     </v-layout>
   </v-container>
@@ -282,6 +283,7 @@ import pixiConfig from '../tools/editor/config/pixi-config'
 import setViewAndContainers from '../tools/editor/containers/set-view-and-containers'
 import setInitialGraphics from '../tools/editor/containers/set-initial-graphics'
 import setCueGraphics from '../tools/editor/containers/cueContainer/set-cue-graphics'
+import destroyContainers from '../tools/editor/containers/destroy-containers'
 import SongManager from '../tools/config/song-manager'
 import MoveManager from '../tools/editor/moves/move-manager'
 import NoteManager from '../tools/editor/notes/note-manager'
@@ -556,6 +558,11 @@ export default {
       }
     },
     goToSongSelection: function () {
+      this.player.stop()
+      this.player.destroy()
+      this.gameTicker.remove()
+      destroyContainers()
+      this.editorView.destroy(true)
       this.$store.commit('goToSongSelection')
     }
   },

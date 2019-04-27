@@ -25,6 +25,7 @@ export default {
     getUserMedia({ video: true, audio: false }, (err, stream) => {
       if (err) {
         console.log(err)
+        this.$store.commit('goToSongSelection')
       } else {
         this.stream = document.getElementById('videoStream')
         this.stream.width = 600
