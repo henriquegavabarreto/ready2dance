@@ -23,6 +23,7 @@ export default {
   },
   created () {
     this.$store.dispatch('updateSongs')
+    this.$store.dispatch('loadNet')
   }
 }
 </script>
