@@ -20,6 +20,7 @@
 <script>
 import getUserMedia from 'getusermedia'
 import playerConfig from '../tools/game/config/youtube-player'
+import SongManager from '../tools/config/song-manager'
 
 const YTPlayer = require('yt-player')
 
@@ -27,6 +28,7 @@ export default {
   data () {
     return {
       player: null,
+      songManager: null,
       stream: null,
       streaming: false,
       poseNetOptions: {
@@ -39,6 +41,7 @@ export default {
   },
   mounted () {
     this.player = new YTPlayer('#player', playerConfig)
+    this.songManager = new SongManager(this.player, this.$store.state.selectedChart)
     this.player.load(this.$store.state.selectedChart.videoId, false)
     getUserMedia({ video: true, audio: false }, (err, stream) => {
       if (err) {
@@ -59,6 +62,7 @@ export default {
       this.$store.state.net.estimateSinglePose(this.stream, this.poseNetOptions.scale, this.poseNetOptions.flipHorizontal, this.poseNetOptions.output).then((data) => {
         console.log(data)
         this.pose = data
+        console.log(this.songManager.nearestBeat)
       })
     }
   }
