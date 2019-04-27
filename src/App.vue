@@ -1,19 +1,18 @@
 <template>
   <div data-app=true>
-    <editor></editor>
-    <!-- <song-selection></song-selection> -->
+    <component :is="$store.state.currentScene"></component>
   </div>
 </template>
 
 <script>
 import Editor from './scenes/Editor'
-// import SongSelection from './scenes/SongSelection'
+import SongSelection from './scenes/SongSelection'
 
 export default {
   name: 'App',
   components: {
-    'editor': Editor
-    // 'song-selection': SongSelection
+    'editor': Editor,
+    'song-selection': SongSelection
   },
   data () {
     return {

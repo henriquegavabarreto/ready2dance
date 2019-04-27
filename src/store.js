@@ -7,11 +7,18 @@ Vue.use(firebase)
 
 export default new Vuex.Store({
   state: {
-    songs: null
+    songs: null,
+    currentScene: 'song-selection'
   },
   mutations: {
     updateSongs: (state, data) => {
       state.songs = data
+    },
+    goToEditor: state => {
+      state.currentScene = 'editor'
+    },
+    goToSongSelection: state => {
+      state.currentScene = 'song-selection'
     }
   },
   actions: {

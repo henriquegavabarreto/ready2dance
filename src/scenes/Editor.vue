@@ -5,7 +5,7 @@
         <v-toolbar dark flat tabs width="720">
           <v-tooltip bottom>
           <template v-slot:activator="{ on }">
-            <v-btn fab small v-on="on">
+            <v-btn fab small v-on="on" @click="goToSongSelection">
               <v-icon>exit_to_app</v-icon>
             </v-btn>
           </template>
@@ -313,6 +313,7 @@ export default {
       danceChart: danceChart,
       noteManager: null,
       moveManager: null,
+      dataManager: dataManager,
       gameTicker: null,
       selectingArea: false,
       duplicateChart: false,
@@ -467,14 +468,14 @@ export default {
           editorConfig.changingMove = false
         }
       }
-      dataManager.sortDanceChart(this.danceChart)
+      this.dataManager.sortDanceChart(this.danceChart)
       setTimeout(() => (animationManager.animate(this.player, this.songManager, this.cueManager, this.danceChart)), 200)
     },
     saveInfo: function () {
       if (this.$refs.timing.validate()) {
         this.moveManager.updateMoves(this.danceChart, parseInt(this.settings.bpm), danceChart.offset - parseFloat(this.settings.offset))
-        dataManager.updateDanceChart(this.danceChart, this.settings)
-        dataManager.updateManagers(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.cueManager)
+        this.dataManager.updateDanceChart(this.danceChart, this.settings)
+        this.dataManager.updateManagers(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.cueManager)
         this.noteManager.redraw(this.danceChart)
         drawGuideNumbers(this.player, this.danceChart, this.songManager)
         redrawStaff(this.player, this.danceChart, this.songManager)
@@ -482,8 +483,8 @@ export default {
     },
     saveToFirebase: function () {
       if (this.$refs.videoId.validate() && this.$refs.timing.validate() && this.$refs.songInfo.validate()) {
-        if (!dataManager.checkForVideoId(this.$store.state.songs, this.danceChart)) {
-          dataManager.saveNewChart(this.danceChart, this.player)
+        if (!this.dataManager.checkForVideoId(this.$store.state.songs, this.danceChart)) {
+          this.dataManager.saveNewChart(this.danceChart, this.player)
           this.saved = true
         } else {
           this.duplicateChart = true
@@ -494,7 +495,7 @@ export default {
     },
     loadVideoById: function () {
       if (this.$refs.videoId.validate()) {
-        let info = dataManager.searchSongByVideoId(this.$store.state.songs, this.danceChart.videoId)
+        let info = this.dataManager.searchSongByVideoId(this.$store.state.songs, this.danceChart.videoId)
         if (info !== null) {
           this.existingChart = true
           this.loadChart(info.songId, info.chartId)
@@ -533,8 +534,8 @@ export default {
               this.danceChart.chartId = chartId
             }
           })
-          dataManager.updateChartAndSettings(this.danceChart, this.settings, loadedChart)
-          dataManager.updateManagers(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.cueManager)
+          this.dataManager.updateChartAndSettings(this.danceChart, this.settings, loadedChart)
+          this.dataManager.updateManagers(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.cueManager)
           this.noteManager.redraw(this.danceChart)
           drawGuideNumbers(this.player, this.danceChart, this.songManager)
           redrawStaff(this.player, this.danceChart, this.songManager)
@@ -548,12 +549,15 @@ export default {
     },
     overwriteChart: function () {
       if (this.$refs.videoId.validate() && this.$refs.timing.validate() && this.$refs.songInfo.validate()) {
-        dataManager.overwriteChart(this.danceChart)
+        this.dataManager.overwriteChart(this.danceChart)
         this.duplicateChart = false
         this.saved = true
       } else {
         this.missingInfo = true
       }
+    },
+    goToSongSelection: function () {
+      this.$store.commit('goToSongSelection')
     }
   },
   computed: {

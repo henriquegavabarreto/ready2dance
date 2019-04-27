@@ -13,13 +13,13 @@
         class="mx-3"
         flat
       ></v-text-field>
-      <v-btn>EDITOR</v-btn>
+      <v-btn @click="goToEditor">EDITOR</v-btn>
       <v-btn>LOGOUT</v-btn>
     </v-toolbar>
     <v-container>
       <v-layout row wrap>
         <v-flex xs6 class="blue">
-          {{ allCharts }}
+          {{ songs }}
         </v-flex>
         <v-flex xs6 class="red">
           BBBBBBBB
@@ -43,10 +43,13 @@ export default {
   mounted () {
   },
   methods: {
+    goToEditor: function () {
+      this.$store.commit('goToEditor')
+    }
   },
   computed: {
-    allCharts: function () {
-      return this.$store.state.charts
+    songs: function () {
+      return this.$store.state.songs
     }
   }
 }
