@@ -19,7 +19,19 @@
     <v-container>
       <v-layout row wrap>
         <v-flex xs6 class="blue">
-          {{ songs }}
+          <v-list dense two-line style="max-height: 200px; max-width: 300px" class="scroll-y blue lighten-5">
+            <v-list-tile
+              v-for="song in songs"
+              :key="song.chartId"
+              :class="selectedSong === song.chartId ? 'blue lighten' : ''"
+              @click="selectSong(song.chartId)"
+            >
+              <v-list-tile-content>
+                <v-list-tile-title>{{song.title}}</v-list-tile-title>
+                <v-list-tile-sub-title>{{song.artist}}</v-list-tile-sub-title>
+              </v-list-tile-content>
+            </v-list-tile>
+          </v-list>
         </v-flex>
         <v-flex xs6 class="red">
           BBBBBBBB
@@ -45,11 +57,17 @@ export default {
   methods: {
     goToEditor: function () {
       this.$store.commit('goToEditor')
+    },
+    selectSong: function (value) {
+      this.$store.commit('selectSong', value)
     }
   },
   computed: {
     songs: function () {
       return this.$store.state.songs
+    },
+    selectedSong: function () {
+      return this.$store.state.selectedSong
     }
   }
 }

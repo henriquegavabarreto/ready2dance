@@ -77,8 +77,8 @@
                         <v-list-tile
                           v-for="song in songs"
                           :key="song.chartId"
-                          :class="selectedChart === song.chartId ? 'blue lighten' : ''"
-                          @click="selectChart(song.chartId)"
+                          :class="selectedSong === song.chartId ? 'blue lighten' : ''"
+                          @click="selectSong(song.chartId)"
                         >
                           <v-list-tile-content>
                             <v-list-tile-title>{{song.title}}</v-list-tile-title>
@@ -88,7 +88,7 @@
                       </v-list>
                     </v-card-text>
                     <v-card-actions>
-                      <v-btn dark @click="loadChart(dataManager.getSongId($store.state.songs, selectedChart), selectedChart)">Load</v-btn>
+                      <v-btn dark @click="loadChart(dataManager.getSongId($store.state.songs, selectedSong), selectedSong)">Load</v-btn>
                     </v-card-actions>
                   </v-card>
                 </v-flex>
@@ -320,7 +320,6 @@ export default {
       saved: false,
       missingInfo: false,
       charts: null,
-      selectedChart: null,
       existingChart: false,
       settings: { offset: '0', videoStart: '0', videoEnd: '0', bpm: '150', title: '', artist: '' },
       timingRules: [ v => !!/\d*(\.)?\d+$/g.test(v) || 'input must be a valid number.' ],
@@ -508,8 +507,8 @@ export default {
         }
       }
     },
-    selectChart: function (value) {
-      this.selectedChart = value
+    selectSong: function (value) {
+      this.$store.commit('selectSong', value)
     },
     loadChart: function (songId, chartId) {
       if (chartId !== '') {
@@ -563,6 +562,9 @@ export default {
   computed: {
     songs: function () {
       return this.$store.state.songs
+    },
+    selectedSong: function () {
+      return this.$store.state.selectedSong
     }
   }
 }
