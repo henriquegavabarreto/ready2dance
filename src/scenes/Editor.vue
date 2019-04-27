@@ -75,20 +75,20 @@
                     <v-card-text>
                       <v-list dense two-line style="max-height: 200px; max-width: 300px" class="scroll-y blue lighten-5">
                         <v-list-tile
-                          v-for="(chart, id) in charts"
-                          :key="id"
-                          :class="selectedChart === id ? 'blue lighten' : ''"
-                          @click="selectChart(id)"
+                          v-for="song in songs"
+                          :key="song.chartId"
+                          :class="selectedChart === song.chartId ? 'blue lighten' : ''"
+                          @click="selectChart(song.chartId)"
                         >
                           <v-list-tile-content>
-                            <v-list-tile-title>{{chart.title}}</v-list-tile-title>
-                            <v-list-tile-sub-title>{{chart.artist}}</v-list-tile-sub-title>
+                            <v-list-tile-title>{{song.title}}</v-list-tile-title>
+                            <v-list-tile-sub-title>{{song.artist}}</v-list-tile-sub-title>
                           </v-list-tile-content>
                         </v-list-tile>
                       </v-list>
                     </v-card-text>
                     <v-card-actions>
-                      <v-btn dark @click="loadChart">Load</v-btn>
+                      <v-btn dark @click="loadChart(dataManager.getSongId($store.state.songs, selectedChart), selectedChart)">Load</v-btn>
                     </v-card-actions>
                   </v-card>
                 </v-flex>
@@ -131,6 +131,21 @@
                       <v-btn
                         flat
                         @click="missingInfo = false"
+                      >
+                      Close
+                      </v-btn>
+                    </v-snackbar>
+                    <v-snackbar
+                      v-model="existingChart"
+                      left
+                      warning
+                      :timeout="3000"
+                    >
+                    <v-icon dark left>warning</v-icon>
+                      There's a chart for this video already. It will be loaded.
+                      <v-btn
+                        flat
+                        @click="existingChart = false"
                       >
                       Close
                       </v-btn>
@@ -291,7 +306,6 @@ const YTPlayer = require('yt-player')
 export default {
   data () {
     return {
-      ref: firebase.database.ref('danceCharts'),
       tabs: null,
       player: null,
       editorView: null,
@@ -306,6 +320,7 @@ export default {
       missingInfo: false,
       charts: null,
       selectedChart: null,
+      existingChart: false,
       settings: { offset: '0', videoStart: '0', videoEnd: '0', bpm: '150', title: '', artist: '' },
       timingRules: [ v => !!/\d*(\.)?\d+$/g.test(v) || 'input must be a valid number.' ],
       songInfoRules: [ v => !!v || 'Required.' ],
@@ -316,11 +331,6 @@ export default {
     this.editorView = new PIXI.Application(pixiConfig)
     this.gameTicker = new PIXI.ticker.Ticker()
     this.gameTicker.stop()
-    this.ref.on('value', (data) => {
-      this.charts = data.val()
-    }, (err) => {
-      console.log(err)
-    })
   },
   mounted () {
     setViewAndContainers(this.editorView)
@@ -472,9 +482,8 @@ export default {
     },
     saveToFirebase: function () {
       if (this.$refs.videoId.validate() && this.$refs.timing.validate() && this.$refs.songInfo.validate()) {
-        let id = dataManager.checkVideoId(this.player, this.charts)
-        if (id === -1) {
-          dataManager.saveNewChart(this.danceChart, this.player, this.ref)
+        if (!dataManager.checkForVideoId(this.$store.state.songs, this.danceChart)) {
+          dataManager.saveNewChart(this.danceChart, this.player)
           this.saved = true
         } else {
           this.duplicateChart = true
@@ -485,37 +494,71 @@ export default {
     },
     loadVideoById: function () {
       if (this.$refs.videoId.validate()) {
-        this.player.load(this.danceChart.videoId, true)
-        setTimeout(() => {
-          drawGuideNumbers(this.player, this.danceChart, this.songManager)
-          redrawStaff(this.player, this.danceChart, this.songManager)
-        }, 4000)
+        let info = dataManager.searchSongByVideoId(this.$store.state.songs, this.danceChart.videoId)
+        if (info !== null) {
+          this.existingChart = true
+          this.loadChart(info.songId, info.chartId)
+        } else {
+          this.player.load(this.danceChart.videoId, true)
+          setTimeout(() => {
+            drawGuideNumbers(this.player, this.danceChart, this.songManager)
+            redrawStaff(this.player, this.danceChart, this.songManager)
+          }, 4000)
+        }
       }
     },
     selectChart: function (value) {
       this.selectedChart = value
     },
-    loadChart: function () {
-      let loadedChart = this.charts[this.selectedChart]
-      dataManager.updateChartAndSettings(this.danceChart, this.settings, loadedChart)
-      dataManager.updateManagers(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.cueManager)
-      this.noteManager.redraw(this.danceChart)
-      drawGuideNumbers(this.player, this.danceChart, this.songManager)
-      redrawStaff(this.player, this.danceChart, this.songManager)
-      this.player.load(this.danceChart.videoId, true)
-      setTimeout(() => {
-        drawGuideNumbers(this.player, this.danceChart, this.songManager)
-        redrawStaff(this.player, this.danceChart, this.songManager)
-      }, 3000)
+    loadChart: function (songId, chartId) {
+      if (chartId !== '') {
+        let p1 = firebase.database.ref(`charts/${chartId}`).once('value')
+        let p2 = firebase.database.ref(`songs/${songId}`).once('value')
+
+        Promise.all([p1, p2]).then((values) => {
+          let loadedChart = {}
+          values.forEach((value, i) => {
+            value = value.val()
+            if (value.hasOwnProperty('bpm')) {
+              loadedChart.offset = value.offset
+              loadedChart.moves = value.moves
+              loadedChart.videoEnd = value.videoEnd
+              loadedChart.videoStart = value.videoStart
+              loadedChart.videoId = value.videoId
+              loadedChart.bpm = value.bpm
+            } else {
+              loadedChart.title = value.title
+              loadedChart.artist = value.artist
+              this.danceChart.songId = songId
+              this.danceChart.chartId = chartId
+            }
+          })
+          dataManager.updateChartAndSettings(this.danceChart, this.settings, loadedChart)
+          dataManager.updateManagers(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.cueManager)
+          this.noteManager.redraw(this.danceChart)
+          drawGuideNumbers(this.player, this.danceChart, this.songManager)
+          redrawStaff(this.player, this.danceChart, this.songManager)
+          this.player.load(this.danceChart.videoId, true)
+          setTimeout(() => {
+            drawGuideNumbers(this.player, this.danceChart, this.songManager)
+            redrawStaff(this.player, this.danceChart, this.songManager)
+          }, 3000)
+        }).catch(err => console.log(err))
+      }
     },
     overwriteChart: function () {
       if (this.$refs.videoId.validate() && this.$refs.timing.validate() && this.$refs.songInfo.validate()) {
-        dataManager.overwriteChart(this.player, this.charts, this.danceChart, this.ref)
+        dataManager.overwriteChart(this.danceChart)
         this.duplicateChart = false
         this.saved = true
       } else {
         this.missingInfo = true
       }
+    }
+  },
+  computed: {
+    songs: function () {
+      return this.$store.state.songs
     }
   }
 }

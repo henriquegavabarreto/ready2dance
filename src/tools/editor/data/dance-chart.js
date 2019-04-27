@@ -6,7 +6,9 @@ var danceChart = {
   videoId: '',
   videoStart: 0,
   videoEnd: 0,
-  moves: []
+  moves: [],
+  chartId: '',
+  songId: ''
 }
 
 export default danceChart
