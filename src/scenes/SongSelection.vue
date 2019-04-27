@@ -34,7 +34,7 @@
           </v-list>
         </v-flex>
         <v-flex xs6 class="red">
-          BBBBBBBB
+          <v-btn @click="goToGame">play</v-btn>
         </v-flex>
       </v-layout>
 
@@ -60,6 +60,12 @@ export default {
     },
     selectSong: function (value) {
       this.$store.commit('selectSong', value)
+      this.$store.dispatch('changeSelectedChart', this.selectedSong)
+    },
+    goToGame: function () {
+      if (this.selectedSong !== null) {
+        this.$store.commit('goToGame')
+      }
     }
   },
   computed: {

@@ -7,12 +7,14 @@
 <script>
 import Editor from './scenes/Editor'
 import SongSelection from './scenes/SongSelection'
+import Game from './scenes/Game'
 
 export default {
   name: 'App',
   components: {
     'editor': Editor,
-    'song-selection': SongSelection
+    'song-selection': SongSelection,
+    'game': Game
   },
   data () {
     return {
