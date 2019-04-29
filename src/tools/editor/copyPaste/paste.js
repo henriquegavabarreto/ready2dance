@@ -9,13 +9,11 @@ function paste (danceChart, songManager, moveManager, noteManager) {
       addMoves = false
       break
     }
-    move[0] = newBeat
-    movesToAdd.push(move)
+    let newMove = [newBeat, move[1], move[2], move[3]]
+    movesToAdd.push(newMove)
   }
   if (addMoves) {
-    for (let move of movesToAdd) {
-      danceChart.moves.push(move)
-    }
+    danceChart.moves = danceChart.moves.concat(movesToAdd)
     noteManager.redraw(danceChart)
   }
 }

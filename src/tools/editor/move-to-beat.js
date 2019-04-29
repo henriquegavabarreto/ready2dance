@@ -5,7 +5,6 @@ import animationManager from './animations/animation-manager'
 function moveToBeat (player, songManager, moveManager, noteManager, cueManager, danceChart, skippedBeats) {
   if (player.getState() === 'paused' && !editorConfig.areaSelect) {
     player.seek(songManager.getNearestBeatTime(skippedBeats))
-    animationManager.animate(player, songManager, cueManager, danceChart)
     setTimeout(() => {
       if (editorConfig.creatingMove) {
         noteManager.createNotes(editorConfig.pressedKey, songManager.nearestBeat, skippedBeats)

@@ -347,16 +347,18 @@ export default {
     this.gameTicker.add((deltaTime) => {
       animationManager.animate(this.player, this.songManager, this.cueManager, this.danceChart)
     })
-    this.gameTicker.stop()
 
-    this.player.on('paused', () => {
-      this.gameTicker.stop()
-      this.player.seek(this.songManager.getNearestBeatTime())
-    })
+    this.gameTicker.start()
+    // this.gameTicker.stop()
 
-    this.player.on('playing', () => {
-      this.gameTicker.start()
-    })
+    // this.player.on('paused', () => {
+    //   this.gameTicker.stop()
+    //   this.player.seek(this.songManager.getNearestBeatTime())
+    // })
+
+    // this.player.on('playing', () => {
+    //   this.gameTicker.start()
+    // })
   },
   methods: {
     moveToNextQuarterBeat: function () {
