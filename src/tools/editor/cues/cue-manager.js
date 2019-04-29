@@ -48,6 +48,11 @@ export default class CueManager {
         if (move[3][0] === 'H') this.drawHoldCues(danceChart, move[0], 'R')
       })
     }
+    if (movesToDraw.length === 0 && holdsToDraw.length === 0) {
+      this.graphics.visible = false
+    } else {
+      this.graphics.visible = true
+    }
   }
 
   drawHoldCues (danceChart, beat, hand) {
@@ -58,6 +63,7 @@ export default class CueManager {
     let position = this.moveManager.getHandMove(danceChart, startBeat, hand)[1]
     let radius = (2 * Math.PI * proportion) + (2 * Math.PI / duration)
     if (radius > 0 && radius <= 2 * Math.PI) {
+      this.graphics.moveTo(grid[position].x + editorConfig.cue.size, grid[position].y)
       this.graphics.lineStyle(editorConfig.cue.lineWidth, editorConfig.colors.hold, 1)
       this.graphics.arc(grid[position].x, grid[position].y, editorConfig.cue.size, 0, radius)
     }
