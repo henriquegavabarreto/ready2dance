@@ -1,6 +1,5 @@
 import drawSelection from './containers/copyPasteSelection/draw-selection'
 import editorConfig from './config/editor-config'
-import animationManager from './animations/animation-manager'
 
 function moveToBeat (player, songManager, moveManager, noteManager, cueManager, danceChart, skippedBeats) {
   if (player.getState() === 'paused' && !editorConfig.areaSelect) {
@@ -11,7 +10,6 @@ function moveToBeat (player, songManager, moveManager, noteManager, cueManager, 
         moveManager.addBeatToArray(songManager.nearestBeat, skippedBeats)
       }
       if (editorConfig.selectingMoves) drawSelection(songManager)
-      animationManager.animate(player, songManager, cueManager, danceChart)
     }, 200)
   }
 }

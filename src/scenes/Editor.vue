@@ -316,7 +316,9 @@ export default {
       noteManager: null,
       moveManager: null,
       dataManager: dataManager,
-      gameTicker: null,
+      editorTicker: null,
+      currentVideoTime: 0,
+      sharedTicker: PIXI.ticker.shared,
       selectingArea: false,
       duplicateChart: false,
       saved: false,
@@ -329,12 +331,14 @@ export default {
       songIdRules: [ v => v.length === 11 || 'Video IDs have 11 characters.' ]
     }
   },
-  created () {
+  created () { // creates pixi app, a ticker for the game graphics and stops the shared ticker, that will be started only when necessary (dealing with selection)
     this.editorView = new PIXI.Application(pixiConfig)
-    this.gameTicker = new PIXI.ticker.Ticker()
-    this.gameTicker.stop()
+    this.editorTicker = new PIXI.ticker.Ticker()
+    this.sharedTicker.autoStart = false
+    this.sharedTicker.stop()
+    this.editorTicker.stop()
   },
-  mounted () {
+  mounted () { // set containers, graphics, player and managers. Starts the ticker
     setViewAndContainers(this.editorView)
     setInitialGraphics()
     setCueGraphics()
@@ -344,21 +348,16 @@ export default {
     this.noteManager = new NoteManager(this.songManager)
     this.cueManager = new CueManager(this.songManager, this.moveManager)
 
-    this.gameTicker.add((deltaTime) => {
-      animationManager.animate(this.player, this.songManager, this.cueManager, this.danceChart)
+    this.editorTicker.add(() => {
+      if (this.currentVideoTime !== this.player.getCurrentTime()) animationManager.animate(this.player, this.songManager, this.cueManager, this.danceChart)
+      this.currentVideoTime = this.player.getCurrentTime()
     })
 
-    this.gameTicker.start()
-    // this.gameTicker.stop()
+    this.editorTicker.start()
 
-    // this.player.on('paused', () => {
-    //   this.gameTicker.stop()
-    //   this.player.seek(this.songManager.getNearestBeatTime())
-    // })
-
-    // this.player.on('playing', () => {
-    //   this.gameTicker.start()
-    // })
+    this.player.on('paused', () => {
+      this.player.seek(this.songManager.getNearestBeatTime())
+    })
   },
   methods: {
     moveToNextQuarterBeat: function () {
@@ -377,7 +376,7 @@ export default {
       // eslint-disable-next-line
       moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, -4)
     },
-    playAndPause: function () {
+    playAndPause: function () { // shortcut for play and pause when canvas is selected
       if (!this.selectingArea) {
         if (this.player.getState() === 'playing') {
           this.player.pause()
@@ -386,22 +385,22 @@ export default {
         }
       }
     },
-    startCopySelection: function () {
+    startCopySelection: function () { // starts copy selection
       if (this.player.getState() === 'paused' && !this.selectingArea) {
         copy.start(this.songManager)
         drawSelection(this.songManager)
       }
     },
-    endCopySelection: function () {
+    endCopySelection: function () { // gets all moves between first and last note on the selection
       if (this.player.getState() === 'paused' && !this.selectingArea) {
         copy.end(this.songManager)
         copy.addSelectionToClipboard(this.danceChart)
       }
     },
-    pasteMoves: function () {
+    pasteMoves: function () { // paste all selection. Starts on nearestBeat
       paste(this.danceChart, this.songManager, this.moveManager, this.noteManager)
     },
-    startCreation: function (event) {
+    startCreation: function (event) { // starts move/note creation process
       if (this.player.getState() === 'paused' && !this.selectingArea && editorConfig.pressedKey === '') {
         editorConfig.creatingMove = true
         editorConfig.pressedKey = event.key
@@ -409,25 +408,25 @@ export default {
         this.noteManager.createNotes(event.key)
       }
     },
-    stopCreation: function (event) {
+    stopCreation: function (event) { // Happens before dealWithSelection
       if (this.player.getState() === 'paused' && !this.selectingArea && editorConfig.pressedKey === event.key) {
-        if (this.moveManager.isValidInsert(this.danceChart)) {
+        if (this.moveManager.isValidInsert(this.danceChart)) { // if there are no notes on top of each other, proceed to next phase
           this.moveManager.sortBeatArray()
           this.moveManager.addRequiredMoves(this.danceChart, event.key)
           this.player.seek(this.songManager.getBeatTime(editorConfig.beatArray[0]))
           this.moveManager.setCircleCount()
           this.selectingArea = true
           enableSelection()
-        } else {
+          this.sharedTicker.start()
+        } else { // if there are notes overlapping, delete all invalid notes
           this.noteManager.removeInvalidNotes(this.danceChart)
           this.moveManager.clearBeatArray()
           editorConfig.creatingMove = false
           editorConfig.pressedKey = ''
         }
       }
-      setTimeout(() => (animationManager.animate(this.player, this.songManager, this.cueManager, this.danceChart)), 200)
     },
-    createNode: function (event) {
+    createNode: function (event) { // creates a node for Hold or Motion notes
       if (this.player.getState() === 'paused' && !this.selectingArea) {
         let moveType = this.moveManager.getCreatedMoveType(this.danceChart, event.key)
         if (moveType === 'H') {
@@ -437,18 +436,18 @@ export default {
           editorConfig.pressedKey = event.key
           this.selectingArea = true
           enableSelection()
+          this.sharedTicker.start()
         }
       }
     },
-    deleteMove: function (event) {
+    deleteMove: function (event) { // deletes a move and redraws notes
       if (this.player.getState() === 'paused' && !this.selectingArea) {
         this.moveManager.deleteMove(this.danceChart, event.key)
         this.noteManager.redraw(this.danceChart)
-        animationManager.animate(this.player, this.songManager, this.cueManager, this.danceChart)
       }
     },
-    dealWithSelection: function () {
-      if (editorConfig.creatingMove) {
+    dealWithSelection: function () { // What happens after selection occurs. this event is triggered every time the user clicks the canvas
+      if (editorConfig.creatingMove) { // on creating mode
         if (editorConfig.selectedCircles.length === 1 && editorConfig.circleCount > 1) {
           this.player.seek(this.songManager.getBeatTime(editorConfig.beatArray[editorConfig.beatArray.length - 1]))
         } else if (editorConfig.selectedCircles.length === editorConfig.circleCount) {
@@ -460,8 +459,9 @@ export default {
           editorConfig.selectedCircles = []
           editorConfig.creatingMove = false
           editorConfig.pressedKey = ''
+          this.sharedTicker.stop()
         }
-      } else if (editorConfig.changingMove) {
+      } else if (editorConfig.changingMove) { // on changing move mode
         if (editorConfig.selectedCircles.length === 1) {
           this.moveManager.changeMove(this.danceChart, this.songManager.nearestBeat, editorConfig.pressedKey, editorConfig.selectedCircles[0])
           this.selectingArea = false
@@ -469,12 +469,12 @@ export default {
           editorConfig.selectedCircles = []
           editorConfig.pressedKey = ''
           editorConfig.changingMove = false
+          this.sharedTicker.stop()
         }
       }
       this.dataManager.sortDanceChart(this.danceChart)
-      setTimeout(() => (animationManager.animate(this.player, this.songManager, this.cueManager, this.danceChart)), 200)
     },
-    saveInfo: function () {
+    saveInfo: function () { // this saves the input from the options tab to the danceChart
       if (this.$refs.timing.validate()) {
         this.moveManager.updateMoves(this.danceChart, parseInt(this.settings.bpm), danceChart.offset - parseFloat(this.settings.offset))
         this.dataManager.updateDanceChart(this.danceChart, this.settings)
@@ -484,7 +484,7 @@ export default {
         redrawStaff(this.player, this.danceChart, this.songManager)
       }
     },
-    saveToFirebase: function () {
+    saveToFirebase: function () { // saves chart to firebase if all information is correct and videoId is unique
       if (this.$refs.videoId.validate() && this.$refs.timing.validate() && this.$refs.songInfo.validate()) {
         if (!this.dataManager.checkForVideoId(this.$store.state.songs, this.danceChart)) {
           this.dataManager.saveNewChart(this.danceChart, this.player)
@@ -496,7 +496,7 @@ export default {
         this.missingInfo = true
       }
     },
-    loadVideoById: function () {
+    loadVideoById: function () { // loads a video according to the input. If the video already has a chart, it will be loaded
       if (this.$refs.videoId.validate()) {
         let info = this.dataManager.searchSongByVideoId(this.$store.state.songs, this.danceChart.videoId)
         if (info !== null) {
@@ -511,10 +511,10 @@ export default {
         }
       }
     },
-    selectSong: function (value) {
+    selectSong: function (value) { // selects a song value from the store, loaded when the website is created
       this.$store.commit('selectSong', value)
     },
-    loadChart: function (songId, chartId) {
+    loadChart: function (songId, chartId) { // pulls chart info from the database and applies to the danceChart and settings tab
       if (chartId !== '') {
         let p1 = firebase.database.ref(`charts/${chartId}`).once('value')
         let p2 = firebase.database.ref(`songs/${songId}`).once('value')
@@ -523,14 +523,14 @@ export default {
           let loadedChart = {}
           values.forEach((value, i) => {
             value = value.val()
-            if (value.hasOwnProperty('bpm')) {
+            if (value.hasOwnProperty('bpm')) { // from chart node in the database
               loadedChart.offset = value.offset
               loadedChart.moves = value.moves
               loadedChart.videoEnd = value.videoEnd
               loadedChart.videoStart = value.videoStart
               loadedChart.videoId = value.videoId
               loadedChart.bpm = value.bpm
-            } else {
+            } else { // from song node in the database
               loadedChart.title = value.title
               loadedChart.artist = value.artist
               this.danceChart.songId = songId
@@ -550,7 +550,7 @@ export default {
         }).catch(err => console.log(err))
       }
     },
-    overwriteChart: function () {
+    overwriteChart: function () { // updates a danceChart with existing video Id in the database
       if (this.$refs.videoId.validate() && this.$refs.timing.validate() && this.$refs.songInfo.validate()) {
         this.dataManager.overwriteChart(this.danceChart)
         this.duplicateChart = false
@@ -559,20 +559,21 @@ export default {
         this.missingInfo = true
       }
     },
-    goToSongSelection: function () {
+    goToSongSelection: function () { // goes back to song selection Scene
+      // TODO : proper way to destroy all created pixi objects
       this.player.stop()
       this.player.destroy()
-      this.gameTicker.remove()
+      this.editorTicker.remove()
       destroyContainers()
       this.editorView.destroy(true)
       this.$store.commit('goToSongSelection')
     }
   },
-  computed: {
+  computed: { // All songs from database
     songs: function () {
       return this.$store.state.songs
     },
-    selectedSong: function () {
+    selectedSong: function () { // changes the selected song from the list
       return this.$store.state.selectedSong
     }
   }
