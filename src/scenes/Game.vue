@@ -1,17 +1,20 @@
 <template>
-  <v-container px-1>
-    <video id="videoStream" style="width: 600px; height: 600px; display: none;">
-    </video>
-    <v-layout row wrap justify-center>
-      <v-flex xs6 id="canvas">
-      </v-flex>
-      <v-flex xs6 id="player">
-      </v-flex>
-    </v-layout>
+  <div>
+    <v-container>
+      <video id="videoStream" style="width: 600px; height: 600px;">
+      </video>
+      <v-layout row wrap justify-center>
+        <v-flex xs6 id="canvas">
+        </v-flex>
+        <v-flex xs6 id="player">
+        </v-flex>
+      </v-layout>
+    </v-container>
     <v-footer>
-      <v-btn @click="estimatePose">Estimate</v-btn>
+      <h1>HIT: {{hit}}</h1>
+      <h1>MISS: {{miss}}</h1>
     </v-footer>
-  </v-container>
+  </div>
 </template>
 
 <script>
@@ -44,7 +47,11 @@ export default {
         scale: 0.5,
         output: 16,
         flipHorizontal: false
-      }
+      },
+      hit: 0,
+      miss: 0,
+      rightHit: false,
+      leftHit: false
     }
   },
   created () {
@@ -63,12 +70,31 @@ export default {
     this.songManager = new SongManager(this.player, this.$store.state.selectedChart)
     this.cueManager = new CueManager(this.$store.state.selectedChart, this.songManager, this.leftGraphics, this.rightGraphics)
     this.app.ticker.add(() => {
-      if (this.moves[this.moveIndex][0] === this.songManager.nearestBeat && this.songManager.nearestBeat !== this.previousBeat) {
+      if (this.moves[this.moveIndex][0] + 1 <= this.songManager.currentQuarterBeat) {
         if ((this.moves[this.moveIndex][2][0] === 'H' && this.moves[this.moveIndex][2].length === 2) && (this.moves[this.moveIndex][3][0] === 'H' && this.moves[this.moveIndex][3].length === 2)) {
-          console.log('No Check')
-          this.moveIndex++
+          // console.log('No Check')
         } else {
-          console.log('check')
+          if (this.moves[this.moveIndex][2] !== 'X' || this.moves[this.moveIndex][3] !== 'X') {
+            if (this.rightHit) {
+              this.hit++
+            } else {
+              this.miss++
+            }
+            if (this.leftHit) {
+              this.hit++
+            } else {
+              this.miss++
+            }
+          }
+          this.rightHit = false
+          this.leftHit = false
+        }
+        this.moveIndex++
+      }
+      if (this.moves[this.moveIndex][0] <= this.songManager.currentQuarterBeat) {
+        if ((this.moves[this.moveIndex][2][0] === 'H' && this.moves[this.moveIndex][2].length === 2) && (this.moves[this.moveIndex][3][0] === 'H' && this.moves[this.moveIndex][3].length === 2)) {
+          // console.log('No Check')
+        } else {
           this.estimatePose(this.moves[this.moveIndex][2], this.moves[this.moveIndex][3])
         }
         this.previousBeat = this.songManager.nearestBeat
@@ -77,11 +103,13 @@ export default {
     document.getElementById('canvas').appendChild(this.app.view)
     setCircles(this.circleContainer)
     this.player.load(this.$store.state.selectedChart.videoId, false)
-    getUserMedia({ video: true, audio: false }, (err, stream) => {
+    console.log(getUserMedia())
+    getUserMedia({ video: { width: 600, height: 600 }, audio: false }, (err, stream) => {
       if (err) {
         console.log(err)
         this.$store.commit('goToSongSelection')
       } else {
+        console.log(stream)
         this.stream = document.getElementById('videoStream')
         this.stream.width = 600
         this.stream.height = 600
@@ -94,28 +122,33 @@ export default {
   },
   methods: {
     estimatePose: function (leftHand, rightHand) {
-      console.log(leftHand, rightHand)
-      console.log(this.moveIndex, this.moves.length)
+      let rightHandDetected = false
+      let leftHandDetected = false
+
       this.$store.state.net.estimateSinglePose(this.stream, this.poseNetOptions.scale, this.poseNetOptions.flipHorizontal, this.poseNetOptions.output).then((data) => {
+        console.log(data, rightHand, leftHand)
         if (leftHand !== 'X') {
           if (leftHand[0] === 'S') {
-            console.log(detectionManager.detect('L', leftHand[1], data))
+            leftHandDetected = detectionManager.detect('L', leftHand[1], data)
           } else if (leftHand[0] === 'H' && leftHand.length > 2) {
-            console.log(detectionManager.detect('L', leftHand[1], data))
+            leftHandDetected = detectionManager.detect('L', leftHand[1], data)
           } else if (leftHand[0] === 'M' && leftHand.length > 2) {
-            console.log(detectionManager.detect('L', leftHand[1], data))
+            leftHandDetected = detectionManager.detect('L', leftHand[1], data)
           }
+          if (rightHandDetected) this.rightHit = true
         }
+
         if (rightHand !== 'X') {
           if (rightHand[0] === 'S') {
-            console.log(detectionManager.detect('R', rightHand[1], data))
+            rightHandDetected = detectionManager.detect('R', rightHand[1], data)
           } else if (rightHand[0] === 'H' && rightHand.length > 2) {
-            console.log(detectionManager.detect('R', rightHand[1], data))
+            rightHandDetected = detectionManager.detect('R', rightHand[1], data)
           } else if (rightHand[0] === 'M' && rightHand.length > 2) {
-            console.log(detectionManager.detect('R', rightHand[1], data))
+            rightHandDetected = detectionManager.detect('R', rightHand[1], data)
           }
+
+          if (leftHandDetected) this.leftHit = true
         }
-        this.moveIndex += 1
       })
     }
   },
