@@ -3,12 +3,12 @@
     <v-toolbar
       color="primary"
       dark
-      tabs
     >
       <v-text-field
         prepend-icon="search"
-        append-icon="mic"
         label="Search"
+        v-model="search"
+        placeholder="Search by Song Title or Artist"
         solo-inverted
         class="mx-3"
         flat
@@ -17,23 +17,41 @@
       <v-btn>LOGOUT</v-btn>
     </v-toolbar>
     <v-container>
-      <v-layout row wrap>
-        <v-flex xs6 class="blue">
-          <v-list dense two-line style="max-height: 200px; max-width: 300px" class="scroll-y blue lighten-5">
-            <v-list-tile
-              v-for="song in songs"
-              :key="song.chartId"
-              :class="selectedSong === song.chartId ? 'blue lighten' : ''"
-              @click="selectSong(song.chartId)"
-            >
-              <v-list-tile-content>
-                <v-list-tile-title>{{song.title}}</v-list-tile-title>
-                <v-list-tile-sub-title>{{song.artist}}</v-list-tile-sub-title>
-              </v-list-tile-content>
-            </v-list-tile>
-          </v-list>
+      <v-layout row wrap justify-space-around>
+        <v-flex xs5 class="blue">
+          <v-card>
+            <v-container fluid grid-list-lg>
+              <v-layout row wrap>
+                <v-flex
+                xs12
+                v-for="song in filteredSongs"
+                :key="song.chartId"
+                @click="selectSong(song.chartId)">
+                  <v-card
+                    style="border-radius: 15px;"
+                    hover
+                    :class="selectedSong === song.chartId ? 'blue lighten' : ''">
+                    <v-card-title primary-title>
+                      <div>
+                        <h3 class="headline mb-0">{{song.title}}</h3>
+                        <div>{{song.artist}}</div>
+                      </div>
+                    </v-card-title>
+                  </v-card>
+                </v-flex>
+              </v-layout>
+            </v-container>
+          </v-card>
         </v-flex>
-        <v-flex xs6 class="red">
+        <v-flex xs5 class="red">
+          <v-card>
+            <v-card-title primary-title>
+              <div>
+                <h3 class="headline mb-0">{{currentSelection.title}} {{filteredSongs.title}}</h3>
+                <div>{{currentSelection.artist}}</div>
+              </div>
+            </v-card-title>
+          </v-card>
           <v-btn @click="goToGame">play</v-btn>
         </v-flex>
       </v-layout>
@@ -47,12 +65,8 @@
 export default {
   data () {
     return {
-      //
+      search: ''
     }
-  },
-  created () {
-  },
-  mounted () {
   },
   methods: {
     goToEditor: function () {
@@ -69,11 +83,45 @@ export default {
     }
   },
   computed: {
+    currentSelection: function () {
+      let value = {}
+      if (this.selectedSong === null) {
+        value = {
+          title: '',
+          artist: ''
+        }
+      } else {
+        for (let song in this.songs) {
+          if (this.songs[song].chartId === this.selectedSong) {
+            value = {
+              title: this.songs[song].title,
+              artist: this.songs[song].artist
+            }
+            break
+          }
+        }
+      }
+      return value
+    },
     songs: function () {
       return this.$store.state.songs
     },
     selectedSong: function () {
       return this.$store.state.selectedSong
+    },
+    filteredSongs: function () {
+      let songArray = []
+      let filteredSongs = []
+      for (let song in this.songs) {
+        songArray.push(this.songs[song])
+      }
+
+      songArray.filter((songs) => {
+        if (songs.title.toLowerCase().includes(this.search.toLowerCase()) || songs.artist.toLowerCase().includes(this.search.toLowerCase())) {
+          filteredSongs.push(songs)
+        }
+      })
+      return filteredSongs
     }
   }
 }
