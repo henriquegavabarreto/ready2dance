@@ -3,7 +3,7 @@ import { selectionCircles } from '../../config/containers'
 import grid from '../../config/grid.js'
 import editorConfig from '../../config/editor-config'
 
-function setSelectionCircles () {
+function setSelectionCircles (app) {
   var circleConfig = {
     size: editorConfig.cue.size,
     lineWidth: editorConfig.cue.lineWidth,
@@ -11,11 +11,19 @@ function setSelectionCircles () {
     gridAlpha: 0.4
   }
 
+  let draw = new PIXI.Graphics()
+  draw.lineStyle(circleConfig.lineWidth, circleConfig.gridColor, circleConfig.gridAlpha)
+  draw.drawCircle(0, 0, circleConfig.size)
+
+  let textureCircle = app.renderer.generateTexture(draw)
+
   for (let i = 1; i < grid.length; i++) {
-    let circle = new PIXI.Graphics()
-    circle.lineStyle(circleConfig.lineWidth, circleConfig.gridColor, circleConfig.gridAlpha)
-    circle.drawCircle(grid[i].x, grid[i].y, circleConfig.size)
-    circle.cacheAsBitmap = true
+    let circle = new PIXI.Sprite(textureCircle)
+    console.log(grid[i].x)
+    circle.x = grid[i].x
+    circle.y = grid[i].y
+    console.log(circle.x)
+    console.log(circle.y)
     circle.name = `${i}`
     circle.buttonMode = true
 

@@ -340,7 +340,7 @@ export default {
   },
   mounted () { // set containers, graphics, player and managers. Starts the ticker
     setViewAndContainers(this.editorView)
-    setInitialGraphics()
+    setInitialGraphics(this.editorView)
     setCueGraphics()
     this.player = new YTPlayer('#player', playerConfig)
     this.songManager = new SongManager(this.player, this.danceChart)
