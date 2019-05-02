@@ -30,6 +30,7 @@ export default {
     return null
   },
   saveNewChart: function (danceChart, player) {
+    this.sortDanceChart(danceChart)
     firebase.database.ref('charts').push({
       offset: danceChart.offset,
       bpm: danceChart.bpm,
@@ -51,6 +52,7 @@ export default {
     }).catch(err => console.log(err))
   },
   overwriteChart: function (danceChart) {
+    this.sortDanceChart(danceChart)
     firebase.database.ref('charts').child(`${danceChart.chartId}`).update({
       offset: danceChart.offset,
       bpm: danceChart.bpm,

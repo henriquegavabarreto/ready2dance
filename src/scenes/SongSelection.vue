@@ -16,10 +16,20 @@
       <v-btn @click="goToEditor">EDITOR</v-btn>
       <v-btn>LOGOUT</v-btn>
     </v-toolbar>
-    <v-container>
-      <v-layout row wrap justify-space-around>
+    <v-container mx-0>
+      <v-layout row wrap justify-space-between>
         <v-flex xs5 class="blue">
           <v-card>
+            <v-card-title>
+              <v-icon
+                large
+                left
+                color="black"
+              >
+                queue_music
+              </v-icon>
+              <span class="display-1">Select a Song</span>
+            </v-card-title>
             <v-container fluid grid-list-lg>
               <v-layout row wrap>
                 <v-flex
@@ -43,16 +53,16 @@
             </v-container>
           </v-card>
         </v-flex>
-        <v-flex xs5 class="red">
+        <v-flex xs6 v-if="selectedSong">
           <v-card>
             <v-card-title primary-title>
-              <div>
+              <div class="mr-5">
                 <h3 class="headline mb-0">{{currentSelection.title}} {{filteredSongs.title}}</h3>
                 <div>{{currentSelection.artist}}</div>
               </div>
+              <v-btn class="ml-5" @click="goToGame"><v-icon>play_arrow</v-icon></v-btn>
             </v-card-title>
           </v-card>
-          <v-btn @click="goToGame">play</v-btn>
         </v-flex>
       </v-layout>
 
