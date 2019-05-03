@@ -349,32 +349,40 @@ export default {
     this.cueManager = new CueManager(this.songManager, this.moveManager)
 
     this.editorTicker.add(() => {
-      if (this.currentVideoTime !== this.player.getCurrentTime()) animationManager.animate(this.player, this.songManager, this.cueManager, this.danceChart)
-      this.currentVideoTime = this.player.getCurrentTime()
+      animationManager.animate(this.songManager, this.cueManager, this.danceChart)
     })
 
-    this.editorTicker.start()
+    this.editorTicker.stop()
 
     this.player.on('paused', () => {
       this.player.seek(this.songManager.getNearestBeatTime())
+      this.editorTicker.stop()
+    })
+
+    this.player.on('playing', () => {
+      this.editorTicker.start()
     })
   },
   methods: {
     moveToNextQuarterBeat: function () {
       // eslint-disable-next-line
       moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, 1)
+      setTimeout(() => { animationManager.animate(this.songManager, this.cueManager, this.danceChart) }, 200)
     },
     moveToPreviousQuarterBeat: function () {
       // eslint-disable-next-line
       moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, -1)
+      setTimeout(() => { animationManager.animate(this.songManager, this.cueManager, this.danceChart) }, 200)
     },
     moveToNextBeat: function () {
       // eslint-disable-next-line
       moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, 4)
+      setTimeout(() => { animationManager.animate(this.songManager, this.cueManager, this.danceChart) }, 200)
     },
     moveToPreviousBeat: function () {
       // eslint-disable-next-line
       moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, -4)
+      setTimeout(() => { animationManager.animate(this.songManager, this.cueManager, this.danceChart) }, 200)
     },
     playAndPause: function () { // shortcut for play and pause when canvas is selected
       if (!this.selectingArea) {

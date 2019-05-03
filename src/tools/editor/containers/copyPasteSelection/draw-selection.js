@@ -3,8 +3,13 @@ import { copyPasteSelection } from '../../config/containers'
 import editorConfig from '../../config/editor-config'
 
 function drawSelection (songManager) {
-  if (copyPasteSelection.children.length > 0) copyPasteSelection.removeChildren()
-  let selection = new PIXI.Graphics()
+  let selection
+  if (copyPasteSelection.children.length > 0) {
+    selection = copyPasteSelection.getChildAt(0)
+    selection.clear()
+  } else {
+    selection = new PIXI.Graphics()
+  }
   selection.beginFill(0x0077FF, 0.4)
   selection.lineStyle(2, 0x0077FF, 1)
   let x = 20

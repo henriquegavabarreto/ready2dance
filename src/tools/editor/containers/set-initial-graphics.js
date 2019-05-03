@@ -1,10 +1,10 @@
-import setFixedGraphics from './fixedGraphics/set-fixed-graphics'
+import setGuideLine from './fixedGraphics/set-guide-line'
 import setBackgroundStaff from './backgroundStaff/set-background-staff'
 import setSelectionCircles from './selectionCircles/set-selection-circles'
 
 function setInitialGraphics (app) {
   setBackgroundStaff()
-  setFixedGraphics()
+  setGuideLine()
   setSelectionCircles(app)
 }
 
