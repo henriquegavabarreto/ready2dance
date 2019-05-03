@@ -19,11 +19,8 @@ function setSelectionCircles (app) {
 
   for (let i = 1; i < grid.length; i++) {
     let circle = new PIXI.Sprite(textureCircle)
-    console.log(grid[i].x)
     circle.x = grid[i].x
     circle.y = grid[i].y
-    console.log(circle.x)
-    console.log(circle.y)
     circle.name = `${i}`
     circle.buttonMode = true
 

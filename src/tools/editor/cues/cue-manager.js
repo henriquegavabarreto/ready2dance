@@ -7,6 +7,9 @@ export default class CueManager {
     this.songManager = songManager
     this.moveManager = moveManager
     this.graphics = cueContainer.getChildByName('cues')
+    this.movesToDraw = []
+    this.holdsToDraw = []
+    this.index = 0
   }
 
   drawCue (handMove, size) {
@@ -23,6 +26,49 @@ export default class CueManager {
       this.graphics.drawCircle(grid[handMove[1]].x, grid[handMove[1]].y, size)
     }
   }
+
+  // drawDynamicCues (danceChart) {
+  //   this.graphics.clear()
+  //
+  //   let moveCount = this.movesToDraw.length + this.holdsToDraw.length
+  //   if (danceChart.moves[this.index][0] >= this.songManager.currentQuarterBeat && danceChart.moves[this.index][0] <= this.songManager.currentQuarterBeat + editorConfig.advanceSpawn) this.movesToDraw.push(danceChart.moves[this.index])
+  //   if (danceChart.moves[this.index][0] === this.songManager.nearestBeat && ((danceChart.moves[this.index][2][0] === 'H' || danceChart.moves[this.index][3][0] === 'H') && (danceChart.moves[this.index][2][2] === 'S' || danceChart.moves[this.index][3][2] === 'S'))) this.holdsToDraw.push(danceChart.moves[this.index])
+  //
+  //   if (this.movesToDraw.length + this.holdsToDraw.length > moveCount) this.index++
+  //
+  //   if (this.movesToDraw.length > 0) {
+  //     for (let i = this.movesToDraw.length - 1; i >= 0; i--) {
+  //       let proportion = (editorConfig.advanceSpawn - (this.movesToDraw[i][0] - this.songManager.currentQuarterBeat)) / editorConfig.advanceSpawn
+  //       if (proportion > 1) {
+  //         this.movesToDraw.splice(1, i)
+  //       } else {
+  //         let leftHand = this.movesToDraw[i][2]
+  //         let rightHand = this.movesToDraw[i][3]
+  //
+  //         let size = editorConfig.cue.size * proportion
+  //         if (rightHand !== 'X') this.drawCue(rightHand, size)
+  //         if (leftHand !== 'X') this.drawCue(leftHand, size)
+  //       }
+  //     }
+  //   }
+  //
+  //   if (this.holdsToDraw.length > 0) {
+  //     for (let i = this.holdsToDraw.length - 1; i >= 0; i--) {
+  //       if (move[2][0] === 'H') this.drawHoldCues(danceChart, move[0], 'L')
+  //       if (move[3][0] === 'H') this.drawHoldCues(danceChart, move[0], 'R')
+  //     }
+  //   }
+  //
+  //   if (this.movesToDraw.length === 0 && this.holdsToDraw.length === 0) {
+  //     this.graphics.visible = false
+  //   } else {
+  //     this.graphics.visible = true
+  //   }
+  // }
+  //
+  // drawStaticCues () {
+  //
+  // }
 
   drawCues (danceChart) {
     this.graphics.clear()
@@ -68,6 +114,20 @@ export default class CueManager {
       this.graphics.arc(grid[position].x, grid[position].y, editorConfig.cue.size, 0, radius)
     }
   }
+  // setCurrentIndex (danceChart) {
+  //   let beat = this.songManager.nearestBeat
+  //   let beatArray = []
+  //
+  //   danceChart.moves.forEach((move) => {
+  //     beatArray.push(move[0])
+  //   })
+  //
+  //   let closest = beatArray.reduce(function(prev, curr) {
+  //     return (Math.abs(curr - beat) < Math.abs(prev - beat) ? curr : prev)
+  //   })
+  //
+  //   this.index = beatArray.indexOf(closest)
+  // }
 
   update (songManager, moveManager) {
     this.songManager = songManager

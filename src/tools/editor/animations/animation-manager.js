@@ -5,6 +5,6 @@ export default {
   animate: function (player, songManager, cueManager, danceChart) {
     updateTimeText(player)
     updateTimeline(songManager.currentBeat)
-    cueManager.drawCues(danceChart)
+    // cueManager.drawCues(danceChart)
   }
 }
