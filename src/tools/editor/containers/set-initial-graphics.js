@@ -6,4 +6,6 @@ export default function setInitialGraphics (containers, textures) {
   drawStaff(containers, textures)
   setGuideLine(containers, textures)
   setSelectionCircles(containers, textures)
+  containers.auxiliary.copyPasteSelection.addChild(textures.selection)
+  containers.auxiliary.cueContainer.addChild(textures.cues)
 }

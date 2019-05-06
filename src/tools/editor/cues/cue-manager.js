@@ -2,15 +2,15 @@
 // import editorConfig from '../config/editor-config'
 
 export default class CueManager {
-  // constructor (songManager, moveManager) {
-  //   this.songManager = songManager
-  //   this.moveManager = moveManager
-  //   this.graphics = cueContainer.getChildByName('cues')
-  //   this.movesToDraw = []
-  //   this.holdsToDraw = []
-  //   this.index = 0
-  // }
-  //
+  constructor (songManager, moveManager) {
+    this.songManager = songManager
+    this.moveManager = moveManager
+    // this.graphics = cueContainer.getChildByName('cues')
+    this.movesToDraw = []
+    this.holdsToDraw = []
+    this.index = 0
+  }
+
   // drawCue (handMove, size) {
   //   if (handMove[0] === 'S' && handMove.length > 1) {
   //     this.graphics.lineStyle(editorConfig.cue.lineWidth, editorConfig.colors.sharp, 1)
@@ -113,23 +113,24 @@ export default class CueManager {
   //     this.graphics.arc(grid[position].x, grid[position].y, editorConfig.cue.size, 0, radius)
   //   }
   // }
-  // setCurrentIndex (danceChart) {
-  //   let beat = this.songManager.nearestBeat
-  //   let beatArray = []
-  //
-  //   danceChart.moves.forEach((move) => {
-  //     beatArray.push(move[0])
-  //   })
-  //
-  //   let closest = beatArray.reduce(function(prev, curr) {
-  //     return (Math.abs(curr - beat) < Math.abs(prev - beat) ? curr : prev)
-  //   })
-  //
-  //   this.index = beatArray.indexOf(closest)
-  // }
+
+  setCurrentIndex (danceChart) {
+    let beat = this.songManager.nearestBeat
+    let beatArray = []
+
+    danceChart.moves.forEach((move) => {
+      beatArray.push(move[0])
+    })
+
+    let closest = beatArray.reduce(function (prev, curr) {
+      return (Math.abs(curr - beat) < Math.abs(prev - beat) ? curr : prev)
+    })
+
+    this.index = beatArray.indexOf(closest)
+  }
 
   update (songManager, moveManager) {
-    // this.songManager = songManager
-    // this.moveManager = moveManager
+    this.songManager = songManager
+    this.moveManager = moveManager
   }
 }

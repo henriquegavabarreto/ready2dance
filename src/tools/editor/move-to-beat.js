@@ -9,7 +9,7 @@ function moveToBeat (player, songManager, moveManager, noteManager, cueManager, 
         noteManager.createNotes(editorConfig.pressedKey, containers, textures, songManager.nearestBeat, skippedBeats)
         moveManager.addBeatToArray(songManager.nearestBeat, skippedBeats)
       }
-      if (editorConfig.selectingMoves) drawSelection(songManager, containers)
+      if (editorConfig.selectingMoves) drawSelection(songManager, containers, textures)
     }, 200)
   }
 }

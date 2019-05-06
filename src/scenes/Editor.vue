@@ -347,6 +347,7 @@ export default {
 
     this.ticker.add(() => {
       animationManager.animate(this.songManager, this.containers, this.cueManager, this.danceChart)
+      this.cueManager.setCurrentIndex(this.danceChart)
     })
     this.ticker.stop()
     this.player.on('paused', () => {
@@ -389,7 +390,7 @@ export default {
     startCopySelection: function () { // starts copy selection
       if (this.player.getState() === 'paused' && !this.selectingArea) {
         copy.start(this.songManager)
-        drawSelection(this.songManager, this.containers)
+        drawSelection(this.songManager, this.containers, this.textures)
         this.containers.auxiliary.copyPasteSelection.visible = true
       }
     },

@@ -7,10 +7,13 @@ export default function createTextures (app, textures) {
   textures.guideLine = PIXI.Texture.from('https://henriquegavabarreto.github.io/paraparagame/assets/guideline.png')
 
   let draw = new PIXI.Graphics()
-  draw.lineStyle(editorConfig.cue.lineWidth, editorConfig.colors.grid, 0.4)
+  draw.lineStyle(editorConfig.cue.lineWidth, editorConfig.colors.grid)
   draw.drawCircle(0, 0, editorConfig.cue.size)
 
   textures.circle = app.renderer.generateTexture(draw)
 
   draw.destroy()
+
+  textures.selection = new PIXI.Graphics()
+  textures.cues = new PIXI.Graphics()
 }
