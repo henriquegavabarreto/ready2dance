@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-container>
-      <video id="videoStream" style="width: 600px; height: 600px;">
+      <video id="videoStream" style="width: 600px; height: 600px; display: none;">
       </video>
       <v-layout row wrap justify-center>
         <v-flex xs6 id="canvas">
@@ -37,13 +37,11 @@ export default {
       app: null,
       circleContainer: null,
       cueContainer: null,
-      rightGraphics: null,
-      leftGraphics: null,
+      graphics: null,
       player: null,
       songManager: null,
       moveIndex: 0,
       stream: null,
-      streaming: false,
       perfect: 0,
       awesome: 0,
       good: 0,
@@ -51,17 +49,15 @@ export default {
       rightHit: false,
       leftHit: false,
       promiseArray: [],
-      cameraLatency: 0
+      cameraLatency: 0 // Camera latency and posenet configuration should be in $store and changeable on a menu in song selection
     }
   },
   created () {
     this.app = new PIXI.Application(pixiConfig)
     this.circleContainer = new PIXI.Container()
     this.cueContainer = new PIXI.Container()
-    this.rightGraphics = new PIXI.Graphics()
-    this.leftGraphics = new PIXI.Graphics()
-    this.cueContainer.addChild(this.rightGraphics)
-    this.cueContainer.addChild(this.leftGraphics)
+    this.graphics = new PIXI.Graphics()
+    this.cueContainer.addChild(this.graphics)
     this.app.stage.addChild(this.circleContainer)
     this.app.stage.addChild(this.cueContainer)
   },
@@ -69,7 +65,7 @@ export default {
     this.player = new YTPlayer('#player', playerConfig)
     this.songManager = new SongManager(this.player, this.$store.state.selectedChart)
     this.cueManager = new CueManager(this.$store.state.selectedChart, this.songManager, this.leftGraphics, this.rightGraphics)
-    this.cameraLatency = (0.32 / this.songManager.tempo) * 4 // measured in quarterBeat
+    this.cameraLatency = (0.32 / this.songManager.tempo) * 4 // measured in quarterBeat => should be a computed property
     this.app.ticker.add(() => {
       if (this.moves[this.moveIndex][0] + 1 <= this.songManager.currentQuarterBeat - this.cameraLatency) {
         if (!(this.moves[this.moveIndex][2][0] === 'H' && this.moves[this.moveIndex][2].length === 2) && !(this.moves[this.moveIndex][3][0] === 'H' && this.moves[this.moveIndex][3].length === 2) &&
@@ -82,7 +78,6 @@ export default {
             let leftHandMove = handMove[2]
             let rightHit = []
             let leftHit = []
-            console.log(values.length - 1, handMove[0])
 
             values.forEach((pose, i) => {
               let rightHandDetected = false
@@ -146,20 +141,27 @@ export default {
         }
       }
     })
+
+    // this.app.ticker.stop()
+
+    this.player.on('playing', () => {
+      this.app.ticker.start()
+    })
+
     document.getElementById('canvas').appendChild(this.app.view)
-    setCircles(this.circleContainer)
+    setCircles(this.app, this.circleContainer)
     this.player.load(this.$store.state.selectedChart.videoId, false)
     getUserMedia({ video: { width: 600, height: 600 }, audio: false }, (err, stream) => {
       if (err) {
         console.log(err)
         this.$store.commit('goToSongSelection')
+        // add a something went wrong snackbar at song selection if an error occurs
       } else {
         this.stream = document.getElementById('videoStream')
         this.stream.width = 600
         this.stream.height = 600
         this.stream.srcObject = stream
         this.stream.play()
-        this.streaming = true
         this.$store.state.net.estimateSinglePose(this.stream)
       }
     })
@@ -177,7 +179,6 @@ export default {
           move[1] = parseInt(move[1])
           newChart.push(move)
         })
-        console.log(newChart)
         return newChart
       }
     }

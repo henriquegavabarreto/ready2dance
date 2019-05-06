@@ -1,11 +1,9 @@
 import setGuideLine from './fixedGraphics/set-guide-line'
-import setBackgroundStaff from './backgroundStaff/set-background-staff'
+import drawStaff from './backgroundStaff/draw-staff'
 import setSelectionCircles from './selectionCircles/set-selection-circles'
 
-function setInitialGraphics (app) {
-  setBackgroundStaff()
-  setGuideLine()
-  setSelectionCircles(app)
+export default function setInitialGraphics (containers, textures) {
+  drawStaff(containers, textures)
+  setGuideLine(containers, textures)
+  setSelectionCircles(containers, textures)
 }
-
-export default setInitialGraphics

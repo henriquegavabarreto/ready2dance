@@ -1,14 +1,14 @@
 import * as PIXI from 'pixi.js'
-import { copyPasteSelection } from '../../config/containers'
 import editorConfig from '../../config/editor-config'
 
-function drawSelection (songManager) {
+export default function drawSelection (songManager, containers) {
   let selection
-  if (copyPasteSelection.children.length > 0) {
-    selection = copyPasteSelection.getChildAt(0)
-    selection.clear()
-  } else {
+  if (containers.auxiliary.copyPasteSelection.children.length === 0) { // if it is the first time using it
     selection = new PIXI.Graphics()
+    containers.auxiliary.copyPasteSelection.addChild(selection)
+  } else { // if there is one graphic created already
+    selection = containers.auxiliary.copyPasteSelection.getChildAt(0)
+    selection.clear()
   }
   selection.beginFill(0x0077FF, 0.4)
   selection.lineStyle(2, 0x0077FF, 1)
@@ -20,6 +20,4 @@ function drawSelection (songManager) {
     h = h - 28
   }
   selection.drawRect(x, y, 174, h)
-  copyPasteSelection.addChild(selection)
 }
-export default drawSelection

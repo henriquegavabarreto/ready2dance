@@ -280,10 +280,9 @@
 <script>
 import playerConfig from '../tools/editor/config/youtube-player'
 import pixiConfig from '../tools/editor/config/pixi-config'
-import setViewAndContainers from '../tools/editor/containers/set-view-and-containers'
+import addContainers from '../tools/editor/containers/add-containers'
+import createTextures from '../tools/editor/containers/create-textures'
 import setInitialGraphics from '../tools/editor/containers/set-initial-graphics'
-import setCueGraphics from '../tools/editor/containers/cueContainer/set-cue-graphics'
-import destroyContainers from '../tools/editor/containers/destroy-containers'
 import SongManager from '../tools/config/song-manager'
 import MoveManager from '../tools/editor/moves/move-manager'
 import NoteManager from '../tools/editor/notes/note-manager'
@@ -291,7 +290,7 @@ import CueManager from '../tools/editor/cues/cue-manager'
 import danceChart from '../tools/editor/data/dance-chart'
 import editorConfig from '../tools/editor/config/editor-config'
 import drawGuideNumbers from '../tools/editor/containers/guideNumbers/draw-guide-numbers'
-import redrawStaff from '../tools/editor/containers/backgroundStaff/redraw-staff'
+import drawStaff from '../tools/editor/containers/backgroundStaff/draw-staff'
 import animationManager from '../tools/editor/animations/animation-manager'
 import drawSelection from '../tools/editor/containers/copyPasteSelection/draw-selection'
 import enableSelection from '../tools/editor/circleSelection/enable-selection'
@@ -310,15 +309,15 @@ export default {
     return {
       tabs: null,
       player: null,
-      editorView: null,
+      editorApp: null,
+      ticker: null,
+      containers: { master: {}, auxiliary: {} },
+      textures: {},
       songManager: null,
       danceChart: danceChart,
       noteManager: null,
       moveManager: null,
       dataManager: dataManager,
-      editorTicker: null,
-      currentVideoTime: 0,
-      sharedTicker: PIXI.ticker.shared,
       selectingArea: false,
       duplicateChart: false,
       saved: false,
@@ -332,57 +331,51 @@ export default {
     }
   },
   created () { // creates pixi app, a ticker for the game graphics and stops the shared ticker, that will be started only when necessary (dealing with selection)
-    this.editorView = new PIXI.Application(pixiConfig)
-    this.editorTicker = new PIXI.ticker.Ticker()
-    this.sharedTicker.autoStart = false
-    this.sharedTicker.stop()
-    this.editorTicker.stop()
+    this.editorApp = new PIXI.Application(pixiConfig)
+    this.ticker = new PIXI.ticker.Ticker()
   },
   mounted () { // set containers, graphics, player and managers. Starts the ticker
-    setViewAndContainers(this.editorView)
-    setInitialGraphics(this.editorView)
-    setCueGraphics()
+    addContainers(this.editorApp, this.containers)
+    document.getElementById('canvas').appendChild(this.editorApp.view)
+    createTextures(this.editorApp, this.textures)
+    setInitialGraphics(this.containers, this.textures)
     this.player = new YTPlayer('#player', playerConfig)
     this.songManager = new SongManager(this.player, this.danceChart)
     this.moveManager = new MoveManager(this.songManager)
     this.noteManager = new NoteManager(this.songManager)
     this.cueManager = new CueManager(this.songManager, this.moveManager)
 
-    this.editorTicker.add(() => {
-      animationManager.animate(this.songManager, this.cueManager, this.danceChart)
+    this.ticker.add(() => {
+      animationManager.animate(this.songManager, this.containers, this.cueManager, this.danceChart)
     })
-
-    this.editorTicker.stop()
-
+    this.ticker.stop()
     this.player.on('paused', () => {
-      this.player.seek(this.songManager.getNearestBeatTime())
-      this.editorTicker.stop()
+      this.ticker.stop()
     })
-
     this.player.on('playing', () => {
-      this.editorTicker.start()
+      this.ticker.start()
     })
   },
   methods: {
     moveToNextQuarterBeat: function () {
       // eslint-disable-next-line
-      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, 1)
-      setTimeout(() => { animationManager.animate(this.songManager, this.cueManager, this.danceChart) }, 200)
+      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, this.containers, this.textures, 1)
+      setTimeout(() => { animationManager.animate(this.songManager, this.containers, this.cueManager, this.danceChart) }, 200)
     },
     moveToPreviousQuarterBeat: function () {
       // eslint-disable-next-line
-      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, -1)
-      setTimeout(() => { animationManager.animate(this.songManager, this.cueManager, this.danceChart) }, 200)
+      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, this.containers, this.textures, -1)
+      setTimeout(() => { animationManager.animate(this.songManager, this.containers, this.cueManager, this.danceChart) }, 200)
     },
     moveToNextBeat: function () {
       // eslint-disable-next-line
-      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, 4)
-      setTimeout(() => { animationManager.animate(this.songManager, this.cueManager, this.danceChart) }, 200)
+      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, this.containers, this.textures, 4)
+      setTimeout(() => { animationManager.animate(this.songManager, this.containers, this.cueManager, this.danceChart) }, 200)
     },
     moveToPreviousBeat: function () {
       // eslint-disable-next-line
-      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, -4)
-      setTimeout(() => { animationManager.animate(this.songManager, this.cueManager, this.danceChart) }, 200)
+      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, this.containers, this.textures, -4)
+      setTimeout(() => { animationManager.animate(this.songManager, this.containers, this.cueManager, this.danceChart) }, 200)
     },
     playAndPause: function () { // shortcut for play and pause when canvas is selected
       if (!this.selectingArea) {
@@ -396,24 +389,26 @@ export default {
     startCopySelection: function () { // starts copy selection
       if (this.player.getState() === 'paused' && !this.selectingArea) {
         copy.start(this.songManager)
-        drawSelection(this.songManager)
+        drawSelection(this.songManager, this.containers)
+        this.containers.auxiliary.copyPasteSelection.visible = true
       }
     },
     endCopySelection: function () { // gets all moves between first and last note on the selection
       if (this.player.getState() === 'paused' && !this.selectingArea) {
         copy.end(this.songManager)
         copy.addSelectionToClipboard(this.danceChart)
+        this.containers.auxiliary.copyPasteSelection.visible = false
       }
     },
     pasteMoves: function () { // paste all selection. Starts on nearestBeat
-      paste(this.danceChart, this.songManager, this.moveManager, this.noteManager)
+      paste(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.containers, this.textures)
     },
     startCreation: function (event) { // starts move/note creation process
       if (this.player.getState() === 'paused' && !this.selectingArea && editorConfig.pressedKey === '') {
         editorConfig.creatingMove = true
         editorConfig.pressedKey = event.key
         this.moveManager.addBeatToArray()
-        this.noteManager.createNotes(event.key)
+        this.noteManager.createNotes(event.key, this.containers, this.textures)
       }
     },
     stopCreation: function (event) { // Happens before dealWithSelection
@@ -424,8 +419,7 @@ export default {
           this.player.seek(this.songManager.getBeatTime(editorConfig.beatArray[0]))
           this.moveManager.setCircleCount()
           this.selectingArea = true
-          enableSelection()
-          this.sharedTicker.start()
+          enableSelection(this.containers)
         } else { // if there are notes overlapping, delete all invalid notes
           this.noteManager.removeInvalidNotes(this.danceChart)
           this.moveManager.clearBeatArray()
@@ -443,15 +437,14 @@ export default {
           editorConfig.changingMove = true
           editorConfig.pressedKey = event.key
           this.selectingArea = true
-          enableSelection()
-          this.sharedTicker.start()
+          enableSelection(this.containers)
         }
       }
     },
     deleteMove: function (event) { // deletes a move and redraws notes
       if (this.player.getState() === 'paused' && !this.selectingArea) {
         this.moveManager.deleteMove(this.danceChart, event.key)
-        this.noteManager.redraw(this.danceChart)
+        this.noteManager.redraw(this.danceChart, this.containers, this.textures)
       }
     },
     dealWithSelection: function () { // What happens after selection occurs. this event is triggered every time the user clicks the canvas
@@ -460,24 +453,22 @@ export default {
           this.player.seek(this.songManager.getBeatTime(editorConfig.beatArray[editorConfig.beatArray.length - 1]))
         } else if (editorConfig.selectedCircles.length === editorConfig.circleCount) {
           this.moveManager.addHandInfo(this.danceChart)
-          this.noteManager.tintNotes()
+          this.noteManager.tintNotes(this.containers)
           this.selectingArea = false
-          disableSelection()
+          disableSelection(this.containers)
           this.moveManager.clearBeatArray()
           editorConfig.selectedCircles = []
           editorConfig.creatingMove = false
           editorConfig.pressedKey = ''
-          this.sharedTicker.stop()
         }
       } else if (editorConfig.changingMove) { // on changing move mode
         if (editorConfig.selectedCircles.length === 1) {
           this.moveManager.changeMove(this.danceChart, this.songManager.nearestBeat, editorConfig.pressedKey, editorConfig.selectedCircles[0])
           this.selectingArea = false
-          disableSelection()
+          disableSelection(this.containers)
           editorConfig.selectedCircles = []
           editorConfig.pressedKey = ''
           editorConfig.changingMove = false
-          this.sharedTicker.stop()
         }
       }
       this.dataManager.sortDanceChart(this.danceChart)
@@ -487,9 +478,9 @@ export default {
         this.moveManager.updateMoves(this.danceChart, parseInt(this.settings.bpm), danceChart.offset - parseFloat(this.settings.offset))
         this.dataManager.updateDanceChart(this.danceChart, this.settings)
         this.dataManager.updateManagers(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.cueManager)
-        this.noteManager.redraw(this.danceChart)
+        this.noteManager.redraw(this.danceChart, this.containers, this.textures)
         drawGuideNumbers(this.player, this.danceChart, this.songManager)
-        redrawStaff(this.player, this.danceChart, this.songManager)
+        drawStaff(this.containers, this.textures, this.player, this.danceChart, this.songManager)
       }
     },
     saveToFirebase: function () { // saves chart to firebase if all information is correct and videoId is unique
@@ -514,7 +505,7 @@ export default {
           this.player.load(this.danceChart.videoId, true)
           setTimeout(() => {
             drawGuideNumbers(this.player, this.danceChart, this.songManager)
-            redrawStaff(this.player, this.danceChart, this.songManager)
+            drawStaff(this.containers, this.textures, this.player, this.danceChart, this.songManager)
           }, 4000)
         }
       }
@@ -547,13 +538,11 @@ export default {
           })
           this.dataManager.updateChartAndSettings(this.danceChart, this.settings, loadedChart)
           this.dataManager.updateManagers(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.cueManager)
-          this.noteManager.redraw(this.danceChart)
-          drawGuideNumbers(this.player, this.danceChart, this.songManager)
-          redrawStaff(this.player, this.danceChart, this.songManager)
+          this.noteManager.redraw(this.danceChart, this.containers, this.textures)
           this.player.load(this.danceChart.videoId, true)
           setTimeout(() => {
             drawGuideNumbers(this.player, this.danceChart, this.songManager)
-            redrawStaff(this.player, this.danceChart, this.songManager)
+            drawStaff(this.containers, this.textures, this.player, this.danceChart, this.songManager)
           }, 3000)
         }).catch(err => console.log(err))
       }
@@ -571,9 +560,18 @@ export default {
       // TODO : proper way to destroy all created pixi objects
       this.player.stop()
       this.player.destroy()
-      this.editorTicker.remove()
-      destroyContainers()
-      this.editorView.destroy(true)
+      for (let texture in this.textures) {
+        this.textures[texture].destroy()
+      }
+      for (let container in this.containers.auxiliary) {
+        this.containers.auxiliary[container].destroy(true)
+      }
+      for (let container in this.containers.master) {
+        this.containers.master[container].destroy()
+      }
+      this.editorApp.destroy()
+      this.ticker.stop()
+      this.ticker.destroy()
       this.$store.commit('goToSongSelection')
     }
   },
