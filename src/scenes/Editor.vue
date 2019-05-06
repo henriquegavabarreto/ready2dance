@@ -347,13 +347,16 @@ export default {
 
     this.ticker.add(() => {
       animationManager.animate(this.songManager, this.containers, this.cueManager, this.danceChart)
-      this.cueManager.setCurrentIndex(this.danceChart)
+      this.cueManager.drawDynamicCues(this.danceChart, this.textures)
     })
     this.ticker.stop()
     this.player.on('paused', () => {
       this.ticker.stop()
     })
     this.player.on('playing', () => {
+      this.cueManager.setCurrentIndex(this.danceChart)
+      this.cueManager.holdsToDraw = []
+      this.cueManager.movesToDraw = []
       this.ticker.start()
     })
   },
