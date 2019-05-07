@@ -51,11 +51,30 @@ export default class NoteManager {
     }
   }
 
-  redraw (danceChart, containers, textures) { // call after update chart or after move deletion
-    containers.auxiliary.noteElements.children.forEach((child) => {
-      child.destroy()
-      containers.auxiliary.noteElements.removeChild(child)
-    })
+  removeNote (containers, beat, hand) { // remove specific note
+    let note = containers.auxiliary.noteElements.getChildByName(`${beat}${hand}`)
+    note.destroy()
+    containers.auxiliary.noteElements.removeChild(note)
+  }
+
+  addNote (beat, hand, move, containers, textures) {
+    let note = new PIXI.Sprite(textures.note)
+    let x = 22
+    if (hand === 'R') x = 108
+    note.x = x
+    note.y = (56 * beat / 4) + 58
+    note.scale.x = 0.9
+    if (x === 22) {
+      note.name = `${beat}L`
+    } else {
+      note.name = `${beat}R`
+    }
+    this.tint(move[0], note)
+    containers.auxiliary.noteElements.addChild(note)
+  }
+
+  redraw (danceChart, containers, textures) { // call after update chart or after a move delete
+    if (containers.auxiliary.noteElements.children.length > 0) containers.auxiliary.noteElements.removeChildren()
     danceChart.moves.forEach(move => { // insert all elements again
       if (move[2] !== 'X') {
         this.drawNote(22, move[0], containers, textures)

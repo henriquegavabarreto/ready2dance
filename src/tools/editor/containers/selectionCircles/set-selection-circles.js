@@ -17,11 +17,11 @@ function setSelectionCircles (containers, textures) {
     })
 
     circle.on('mouseout', (event) => {
-      circle.alpha = 1
+      circle.alpha = 0.4
     })
 
     circle.on('mousedown', (event) => {
-      circle.alpha = 1
+      circle.alpha = 0.4
       editorConfig.selectedCircles.push(circle.name)
     })
     containers.auxiliary.selectionCircles.addChild(circle)

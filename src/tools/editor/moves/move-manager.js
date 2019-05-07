@@ -45,7 +45,7 @@ export default class MoveManager {
 
   getStartBeat (danceChart, beat, hand) { // internal - get start beat of a hold or motion
     let handMove = this.getHandMove(danceChart, beat, hand)
-    if (handMove[handMove.length - 1] === 'S') {
+    if (handMove[handMove.length - 1] === 'S' || /\d/.test(handMove[handMove.length - 1])) {
       return beat
     } else if (handMove[handMove.length - 1] === 'E' || handMove[handMove.length - 1] === 'P') {
       return this.getStartBeat(danceChart, beat - 1, hand)
@@ -56,7 +56,7 @@ export default class MoveManager {
     let handMove = this.getHandMove(danceChart, beat, hand)
     if (handMove[handMove.length - 1] === 'E') {
       return beat
-    } else if (handMove[handMove.length - 1] === 'S' || handMove[handMove.length - 1] === 'P') {
+    } else if (handMove[handMove.length - 1] === 'S' || handMove[handMove.length - 1] === 'P' || /\d/.test(handMove[handMove.length - 1])) {
       return this.getEndBeat(danceChart, beat + 1, hand)
     }
   }
@@ -187,30 +187,32 @@ export default class MoveManager {
     danceChart.moves = updatedMoves // update moves on the dance chart
   }
 
-  deleteMove (danceChart, key) { // call when q or w keyup to delete moves
+  deleteMove (danceChart, key, noteManager, containers) { // call when q or w keyup to delete moves
     if (key === 'q') {
       let handMove = this.getHandMove(danceChart, this.songManager.nearestBeat, 'L')
       if (handMove !== 'X') {
-        this.searchAndDelete(danceChart, this.songManager.nearestBeat, handMove, 'L')
+        this.searchAndDelete(danceChart, this.songManager.nearestBeat, handMove, 'L', noteManager, containers)
         this.removeNoInfoMoves(danceChart)
       }
     } else {
       let handMove = this.getHandMove(danceChart, this.songManager.nearestBeat, 'R')
       if (handMove !== 'X') {
-        this.searchAndDelete(danceChart, this.songManager.nearestBeat, handMove, 'R')
+        this.searchAndDelete(danceChart, this.songManager.nearestBeat, handMove, 'R', noteManager, containers)
         this.removeNoInfoMoves(danceChart)
       }
     }
   }
 
-  searchAndDelete (danceChart, beat, handMove, hand) { // internal - search surrounding moves to delete
+  searchAndDelete (danceChart, beat, handMove, hand, noteManager, containers) { // internal - search surrounding moves to delete
     if (handMove[0] === 'S') { // if sharp move
       this.removeHandInfo(danceChart, beat, hand)
+      noteManager.removeNote(containers, beat, hand)
     } else if (handMove[0] === 'H' || handMove[0] === 'M') {
       let startBeat = this.getStartBeat(danceChart, beat, hand)
       let endBeat = this.getEndBeat(danceChart, beat, hand)
       for (let i = startBeat; i <= endBeat; i++) {
         this.removeHandInfo(danceChart, i, hand)
+        noteManager.removeNote(containers, i, hand)
       }
     }
   }

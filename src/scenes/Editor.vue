@@ -333,7 +333,6 @@ export default {
   created () { // creates pixi app, a ticker for the game graphics and stops the shared ticker, that will be started only when necessary (dealing with selection)
     this.editorApp = new PIXI.Application(pixiConfig)
     this.ticker = new PIXI.ticker.Ticker()
-    console.log(this.editorApp.view)
   },
   mounted () { // set containers, graphics, player and managers. Starts the ticker
     addContainers(this.editorApp, this.containers)
@@ -348,19 +347,19 @@ export default {
 
     this.ticker.add(() => {
       animationManager.animate(this.songManager, this.containers, this.cueManager, this.danceChart)
-      this.cueManager.drawDynamicCues(this.danceChart, this.textures)
+      this.cueManager.drawDynamicCues(this.danceChart, this.textures.cues)
     })
     this.ticker.stop()
     this.player.on('paused', () => {
       this.ticker.stop()
     })
     this.player.on('playing', () => {
+      console.log(this.danceChart)
       this.cueManager.setCurrentIndex(this.danceChart)
       this.cueManager.holdsToDraw = []
       this.cueManager.movesToDraw = []
       this.ticker.start()
     })
-    console.log(this.containers)
   },
   methods: {
     moveToNextQuarterBeat: function () {
@@ -449,8 +448,8 @@ export default {
     },
     deleteMove: function (event) { // deletes a move and redraws notes
       if (this.player.getState() === 'paused' && !this.selectingArea) {
-        this.moveManager.deleteMove(this.danceChart, event.key)
-        this.noteManager.redraw(this.danceChart, this.containers, this.textures)
+        this.moveManager.deleteMove(this.danceChart, event.key, this.noteManager, this.containers)
+        // this.noteManager.redraw(this.danceChart, this.containers, this.textures)
       }
     },
     dealWithSelection: function () { // What happens after selection occurs. this event is triggered every time the user clicks the canvas
@@ -484,6 +483,7 @@ export default {
         this.moveManager.updateMoves(this.danceChart, parseInt(this.settings.bpm), danceChart.offset - parseFloat(this.settings.offset))
         this.dataManager.updateDanceChart(this.danceChart, this.settings)
         this.dataManager.updateManagers(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.cueManager)
+        // is this redraw necessary?
         this.noteManager.redraw(this.danceChart, this.containers, this.textures)
         drawGuideNumbers(this.player, this.danceChart, this.songManager)
         drawStaff(this.containers, this.textures, this.player, this.danceChart, this.songManager)
