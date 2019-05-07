@@ -18,7 +18,6 @@ function paste (danceChart, songManager, moveManager, noteManager, containers, t
       if (move[2] !== 'X') noteManager.addNote(move[0], 'L', move[2], containers, textures)
       if (move[3] !== 'X') noteManager.addNote(move[0], 'R', move[3], containers, textures)
     })
-    // noteManager.redraw(danceChart, containers, textures)
   }
 }
 

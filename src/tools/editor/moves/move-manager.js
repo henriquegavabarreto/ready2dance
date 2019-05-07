@@ -91,10 +91,18 @@ export default class MoveManager {
         }
       } else {
         if (index === 0) {
-          if (danceChart.moves[i][2] !== 'X' && danceChart.moves[i][2].length === 1) {
-            danceChart.moves[i][2] = moveType + editorConfig.selectedCircles[0] + 'S' + (editorConfig.beatArray[editorConfig.beatArray.length - 1] - editorConfig.beatArray[0] + 1)
-          } else if (danceChart.moves[i][3] !== 'X' && danceChart.moves[i][3].length === 1) {
-            danceChart.moves[i][3] = moveType + editorConfig.selectedCircles[0] + 'S' + (editorConfig.beatArray[editorConfig.beatArray.length - 1] - editorConfig.beatArray[0] + 1)
+          if (moveType === 'H') { // adds duration for hold moves
+            if (danceChart.moves[i][2] !== 'X' && danceChart.moves[i][2].length === 1) {
+              danceChart.moves[i][2] = moveType + editorConfig.selectedCircles[0] + 'S' + (editorConfig.beatArray[editorConfig.beatArray.length - 1] - editorConfig.beatArray[0] + 1)
+            } else if (danceChart.moves[i][3] !== 'X' && danceChart.moves[i][3].length === 1) {
+              danceChart.moves[i][3] = moveType + editorConfig.selectedCircles[0] + 'S' + (editorConfig.beatArray[editorConfig.beatArray.length - 1] - editorConfig.beatArray[0] + 1)
+            }
+          } else {
+            if (danceChart.moves[i][2] !== 'X' && danceChart.moves[i][2].length === 1) {
+              danceChart.moves[i][2] = moveType + editorConfig.selectedCircles[0] + 'S'
+            } else if (danceChart.moves[i][3] !== 'X' && danceChart.moves[i][3].length === 1) {
+              danceChart.moves[i][3] = moveType + editorConfig.selectedCircles[0] + 'S'
+            }
           }
         } else if (index > 0 && index < editorConfig.beatArray.length - 1) {
           if (danceChart.moves[i][2] !== 'X' && danceChart.moves[i][2].length === 1) {

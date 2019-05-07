@@ -286,7 +286,7 @@ import setInitialGraphics from '../tools/editor/containers/set-initial-graphics'
 import SongManager from '../tools/config/song-manager'
 import MoveManager from '../tools/editor/moves/move-manager'
 import NoteManager from '../tools/editor/notes/note-manager'
-import CueManager from '../tools/editor/cues/cue-manager'
+import CueManager from '../tools/config/cue-manager'
 import danceChart from '../tools/editor/data/dance-chart'
 import editorConfig from '../tools/editor/config/editor-config'
 import drawGuideNumbers from '../tools/editor/containers/guideNumbers/draw-guide-numbers'
@@ -343,7 +343,7 @@ export default {
     this.songManager = new SongManager(this.player, this.danceChart)
     this.moveManager = new MoveManager(this.songManager)
     this.noteManager = new NoteManager(this.songManager)
-    this.cueManager = new CueManager(this.songManager, this.moveManager)
+    this.cueManager = new CueManager(this.songManager)
 
     this.ticker.add(() => {
       animationManager.animate(this.songManager, this.containers, this.cueManager, this.danceChart)
@@ -354,7 +354,6 @@ export default {
       this.ticker.stop()
     })
     this.player.on('playing', () => {
-      console.log(this.danceChart)
       this.cueManager.setCurrentIndex(this.danceChart)
       this.cueManager.holdsToDraw = []
       this.cueManager.movesToDraw = []
@@ -449,7 +448,6 @@ export default {
     deleteMove: function (event) { // deletes a move and redraws notes
       if (this.player.getState() === 'paused' && !this.selectingArea) {
         this.moveManager.deleteMove(this.danceChart, event.key, this.noteManager, this.containers)
-        // this.noteManager.redraw(this.danceChart, this.containers, this.textures)
       }
     },
     dealWithSelection: function () { // What happens after selection occurs. this event is triggered every time the user clicks the canvas
@@ -483,7 +481,6 @@ export default {
         this.moveManager.updateMoves(this.danceChart, parseInt(this.settings.bpm), danceChart.offset - parseFloat(this.settings.offset))
         this.dataManager.updateDanceChart(this.danceChart, this.settings)
         this.dataManager.updateManagers(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.cueManager)
-        // is this redraw necessary?
         this.noteManager.redraw(this.danceChart, this.containers, this.textures)
         drawGuideNumbers(this.player, this.danceChart, this.songManager)
         drawStaff(this.containers, this.textures, this.player, this.danceChart, this.songManager)
