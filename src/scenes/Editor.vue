@@ -298,6 +298,7 @@ import disableSelection from '../tools/editor/circleSelection/disable-selection'
 import copy from '../tools/editor/copyPaste/copy'
 import paste from '../tools/editor/copyPaste/paste'
 import moveToBeat from '../tools/editor/move-to-beat'
+import grid from '../tools/editor/config/grid'
 import * as PIXI from 'pixi.js'
 import firebase from '../tools/config/firebase'
 import dataManager from '../tools/editor/data-manager'
@@ -343,7 +344,7 @@ export default {
     this.songManager = new SongManager(this.player, this.danceChart)
     this.moveManager = new MoveManager(this.songManager)
     this.noteManager = new NoteManager(this.songManager)
-    this.cueManager = new CueManager(this.songManager)
+    this.cueManager = new CueManager(this.songManager, editorConfig, grid)
 
     this.ticker.add(() => {
       animationManager.animate(this.songManager, this.containers, this.cueManager, this.danceChart)

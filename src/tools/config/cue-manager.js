@@ -1,27 +1,26 @@
-import grid from '../editor/config/grid'
-import editorConfig from '../editor/config/editor-config'
-
 export default class CueManager {
-  constructor (songManager) {
+  constructor (songManager, config, grid) {
     this.songManager = songManager
     this.movesToDraw = []
     this.holdsToDraw = []
     this.index = 0
     this.holdIndex = 0
+    this.config = config
+    this.grid = grid
   }
 
   drawCue (handMove, size, cues) {
     if (handMove[0] === 'S' && handMove.length > 1) {
-      cues.lineStyle(editorConfig.cue.lineWidth, editorConfig.colors.sharp, 1)
-      cues.drawCircle(grid[handMove[1]].x, grid[handMove[1]].y, size)
+      cues.lineStyle(this.config.cue.lineWidth, this.config.colors.sharp, 1)
+      cues.drawCircle(this.grid[handMove[1]].x, this.grid[handMove[1]].y, size)
     } else if (handMove[0] === 'H' && handMove[2] === 'S') {
       if (size < 80) {
-        cues.lineStyle(editorConfig.cue.lineWidth, editorConfig.colors.hold, 1)
-        cues.drawCircle(grid[handMove[1]].x, grid[handMove[1]].y, size)
+        cues.lineStyle(this.config.cue.lineWidth, this.config.colors.hold, 1)
+        cues.drawCircle(this.grid[handMove[1]].x, this.grid[handMove[1]].y, size)
       }
     } else if (handMove[0] === 'M' && handMove.length === 3) {
-      cues.lineStyle(editorConfig.cue.lineWidth, editorConfig.colors.motion, 1)
-      cues.drawCircle(grid[handMove[1]].x, grid[handMove[1]].y, size)
+      cues.lineStyle(this.config.cue.lineWidth, this.config.colors.motion, 1)
+      cues.drawCircle(this.grid[handMove[1]].x, this.grid[handMove[1]].y, size)
     }
   }
 
@@ -38,7 +37,7 @@ export default class CueManager {
     }
 
     if (this.index < moves.length) {
-      if (moves[this.index][0] >= this.songManager.currentQuarterBeat && moves[this.index][0] <= this.songManager.currentQuarterBeat + editorConfig.advanceSpawn) {
+      if (moves[this.index][0] >= this.songManager.currentQuarterBeat && moves[this.index][0] <= this.songManager.currentQuarterBeat + this.config.advanceSpawn) {
         this.movesToDraw.push(moves[this.index])
         this.index++
       }
@@ -46,14 +45,14 @@ export default class CueManager {
 
     if (this.movesToDraw.length > 0) {
       for (let i = this.movesToDraw.length - 1; i >= 0; i--) {
-        let proportion = (editorConfig.advanceSpawn - (this.movesToDraw[i][0] - this.songManager.currentQuarterBeat)) / editorConfig.advanceSpawn
+        let proportion = (this.config.advanceSpawn - (this.movesToDraw[i][0] - this.songManager.currentQuarterBeat)) / this.config.advanceSpawn
         if (proportion > 1) {
           this.movesToDraw.splice(1, i)
         } else {
           let leftHand = this.movesToDraw[i][2]
           let rightHand = this.movesToDraw[i][3]
 
-          let size = editorConfig.cue.size * proportion
+          let size = this.config.cue.size * proportion
           if (rightHand !== 'X') this.drawCue(rightHand, size, cues)
           if (leftHand !== 'X') this.drawCue(leftHand, size, cues)
         }
@@ -82,9 +81,9 @@ export default class CueManager {
     } else {
       let position = handMove[1]
       let radius = (2 * Math.PI * proportion) + (2 * Math.PI / duration) + 0.4
-      cues.moveTo(grid[position].x + editorConfig.cue.size, grid[position].y)
-      cues.lineStyle(editorConfig.cue.lineWidth, editorConfig.colors.hold, 1)
-      cues.arc(grid[position].x, grid[position].y, editorConfig.cue.size, 0, radius)
+      cues.moveTo(this.grid[position].x + this.config.cue.size, this.grid[position].y)
+      cues.lineStyle(this.config.cue.lineWidth, this.config.colors.hold, 1)
+      cues.arc(this.grid[position].x, this.grid[position].y, this.config.cue.size, 0, radius)
     }
   }
 
