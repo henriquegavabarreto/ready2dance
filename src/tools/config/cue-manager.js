@@ -25,21 +25,21 @@ export default class CueManager {
     }
   }
 
-  drawDynamicCues (danceChart, cues) {
+  drawDynamicCues (moves, cues) {
     cues.clear()
 
-    if (this.holdIndex < danceChart.moves.length) {
-      if (danceChart.moves[this.holdIndex][0] === this.songManager.nearestBeat) {
-        if ((danceChart.moves[this.holdIndex][2][0] === 'H' || danceChart.moves[this.holdIndex][3][0] === 'H') && (danceChart.moves[this.holdIndex][2][2] === 'S' || danceChart.moves[this.holdIndex][3][2] === 'S')) {
-          this.holdsToDraw.push(danceChart.moves[this.holdIndex])
+    if (this.holdIndex < moves.length) {
+      if (moves[this.holdIndex][0] === this.songManager.nearestBeat) {
+        if ((moves[this.holdIndex][2][0] === 'H' || moves[this.holdIndex][3][0] === 'H') && (moves[this.holdIndex][2][2] === 'S' || moves[this.holdIndex][3][2] === 'S')) {
+          this.holdsToDraw.push(moves[this.holdIndex])
         }
         this.holdIndex++
       }
     }
 
-    if (this.index < danceChart.moves.length) {
-      if (danceChart.moves[this.index][0] >= this.songManager.currentQuarterBeat && danceChart.moves[this.index][0] <= this.songManager.currentQuarterBeat + editorConfig.advanceSpawn) {
-        this.movesToDraw.push(danceChart.moves[this.index])
+    if (this.index < moves.length) {
+      if (moves[this.index][0] >= this.songManager.currentQuarterBeat && moves[this.index][0] <= this.songManager.currentQuarterBeat + editorConfig.advanceSpawn) {
+        this.movesToDraw.push(moves[this.index])
         this.index++
       }
     }
@@ -62,8 +62,8 @@ export default class CueManager {
 
     if (this.holdsToDraw.length > 0) {
       for (let i = this.holdsToDraw.length - 1; i >= 0; i--) {
-        if (this.holdsToDraw[i][2][0] === 'H') this.drawHoldCues(danceChart, this.holdsToDraw[i][0], 'L', cues, this.holdsToDraw[i][2], i)
-        if (this.holdsToDraw[i][3][0] === 'H') this.drawHoldCues(danceChart, this.holdsToDraw[i][0], 'R', cues, this.holdsToDraw[i][3], i)
+        if (this.holdsToDraw[i][2][0] === 'H') this.drawHoldCues(this.holdsToDraw[i][0], 'L', cues, this.holdsToDraw[i][2], i)
+        if (this.holdsToDraw[i][3][0] === 'H') this.drawHoldCues(this.holdsToDraw[i][0], 'R', cues, this.holdsToDraw[i][3], i)
       }
     }
 
@@ -74,7 +74,7 @@ export default class CueManager {
     }
   }
 
-  drawHoldCues (danceChart, beat, hand, cues, handMove, i) {
+  drawHoldCues (beat, hand, cues, handMove, i) {
     let duration = parseInt(handMove.slice(3))
     let proportion = (duration - ((beat + duration) - this.songManager.currentQuarterBeat)) / duration
     if (proportion > 1) {

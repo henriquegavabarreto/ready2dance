@@ -347,7 +347,7 @@ export default {
 
     this.ticker.add(() => {
       animationManager.animate(this.songManager, this.containers, this.cueManager, this.danceChart)
-      this.cueManager.drawDynamicCues(this.danceChart, this.textures.cues)
+      this.cueManager.drawDynamicCues(this.danceChart.moves, this.textures.cues)
     })
     this.ticker.stop()
     this.player.on('paused', () => {
