@@ -102,8 +102,8 @@ export default class CueManager {
     let duration = (endBeat - startBeat) + 1
     let proportion = (duration - ((startBeat + duration) - this.songManager.currentQuarterBeat)) / duration
     let position = this.moveManager.getHandMove(danceChart, startBeat, hand)[1]
-    let radius = (2 * Math.PI * proportion) + (2 * Math.PI / duration)
-    if (radius > 0 && radius <= 2 * Math.PI) {
+    let radius = (2 * Math.PI * proportion) + (2 * Math.PI / duration) + 0.4
+    if (proportion > 0 && proportion <= 1) {
       textures.cues.moveTo(grid[position].x + editorConfig.cue.size, grid[position].y)
       textures.cues.lineStyle(editorConfig.cue.lineWidth, editorConfig.colors.hold, 1)
       textures.cues.arc(grid[position].x, grid[position].y, editorConfig.cue.size, 0, radius)

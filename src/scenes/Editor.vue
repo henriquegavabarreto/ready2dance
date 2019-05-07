@@ -333,6 +333,7 @@ export default {
   created () { // creates pixi app, a ticker for the game graphics and stops the shared ticker, that will be started only when necessary (dealing with selection)
     this.editorApp = new PIXI.Application(pixiConfig)
     this.ticker = new PIXI.ticker.Ticker()
+    console.log(this.editorApp.view)
   },
   mounted () { // set containers, graphics, player and managers. Starts the ticker
     addContainers(this.editorApp, this.containers)
@@ -359,6 +360,7 @@ export default {
       this.cueManager.movesToDraw = []
       this.ticker.start()
     })
+    console.log(this.containers)
   },
   methods: {
     moveToNextQuarterBeat: function () {
