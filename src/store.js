@@ -31,6 +31,9 @@ export default new Vuex.Store({
     goToGame: state => {
       state.currentScene = 'game'
     },
+    goToResults: state => {
+      state.currentScene = 'results'
+    },
     changeSelectedChart: (state, data) => {
       state.selectedChart = data
     },

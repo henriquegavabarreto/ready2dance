@@ -61,8 +61,10 @@ export default class CueManager {
 
     if (this.holdsToDraw.length > 0) {
       for (let i = this.holdsToDraw.length - 1; i >= 0; i--) {
-        if (this.holdsToDraw[i][2][0] === 'H') this.drawHoldCues(this.holdsToDraw[i][0], 'L', cues, this.holdsToDraw[i][2], i)
-        if (this.holdsToDraw[i][3][0] === 'H') this.drawHoldCues(this.holdsToDraw[i][0], 'R', cues, this.holdsToDraw[i][3], i)
+        if (this.holdsToDraw[i][2][0] === 'H' && this.holdsToDraw[i][2].length > 2) this.drawHoldCues(this.holdsToDraw[i][0], 'L', cues, this.holdsToDraw[i][2], i)
+        if (this.holdsToDraw[i]) { // avoids spliced element
+          if (this.holdsToDraw[i][3][0] === 'H' && this.holdsToDraw[i][3].length > 2) this.drawHoldCues(this.holdsToDraw[i][0], 'R', cues, this.holdsToDraw[i][3], i)
+        }
       }
     }
 

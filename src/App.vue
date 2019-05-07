@@ -8,13 +8,15 @@
 import Editor from './scenes/Editor'
 import SongSelection from './scenes/SongSelection'
 import Game from './scenes/Game'
+import Results from './scenes/Results'
 
 export default {
   name: 'App',
   components: {
     'editor': Editor,
     'song-selection': SongSelection,
-    'game': Game
+    'game': Game,
+    'results': Results
   },
   data () {
     return {

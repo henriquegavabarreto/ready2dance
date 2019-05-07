@@ -573,9 +573,9 @@ export default {
       for (let container in this.containers.master) {
         this.containers.master[container].destroy()
       }
-      this.editorApp.destroy()
       this.ticker.stop()
       this.ticker.destroy()
+      this.editorApp.destroy()
       this.$store.commit('goToSongSelection')
     }
   },

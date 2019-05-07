@@ -146,6 +146,13 @@ export default {
           }
         }
       }
+      if (this.player.getCurrentTime() >= this.videoEnd && this.videoEnd !== 0) {
+        this.goToResults()
+      }
+    })
+
+    this.player.on('ended', () => {
+      this.goToResults()
     })
 
     this.ticker.stop()
@@ -175,6 +182,28 @@ export default {
       }
     })
   },
+  methods: {
+    goToResults: function () {
+      this.player.stop()
+      this.player.destroy()
+      for (let texture in this.textures) {
+        this.textures[texture].destroy()
+      }
+      for (let container in this.containers) {
+        this.containers[container].destroy(true)
+      }
+      this.ticker.stop()
+      this.ticker.destroy()
+      this.app.destroy()
+      this.stopCapture()
+      this.$store.commit('goToResults')
+    },
+    stopCapture () {
+      this.stream.srcObject.getVideoTracks().forEach((track) => {
+        track.stop()
+      })
+    }
+  },
   computed: {
     moves () {
       if (this.$store.state.selectedChart.moves === '') {
@@ -190,6 +219,9 @@ export default {
         })
         return newChart
       }
+    },
+    videoEnd () {
+      return this.$store.state.selectedChart.videoEnd
     }
   }
 }
