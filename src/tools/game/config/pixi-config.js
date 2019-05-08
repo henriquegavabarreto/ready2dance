@@ -5,8 +5,8 @@ var pixiConfig = {
   autoDensity: true,
   antialias: true,
   clearBeforeRender: true,
-  width: 600,
-  height: 600
+  width: 640,
+  height: 640
 }
 
 export default pixiConfig

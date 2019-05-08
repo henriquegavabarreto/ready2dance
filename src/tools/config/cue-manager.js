@@ -9,7 +9,7 @@ export default class CueManager {
     this.grid = grid
   }
 
-  drawCue (handMove, size, cues) {
+  drawCue (handMove, size, cues) { // draw circle cues
     if (handMove[0] === 'S' && handMove.length > 1) {
       cues.lineStyle(this.config.cue.lineWidth, this.config.colors.sharp, 1)
       cues.drawCircle(this.grid[handMove[1]].x, this.grid[handMove[1]].y, size)
@@ -33,6 +33,7 @@ export default class CueManager {
           this.holdsToDraw.push(moves[this.holdIndex])
         }
         this.holdIndex++
+        console.log(this.holdIndex)
       }
     }
 
@@ -75,7 +76,7 @@ export default class CueManager {
     }
   }
 
-  drawHoldCues (beat, hand, cues, handMove, i) {
+  drawHoldCues (beat, hand, cues, handMove, i) { // draw hold arcs
     let duration = parseInt(handMove.slice(3))
     let proportion = (duration - ((beat + duration) - this.songManager.currentQuarterBeat)) / duration
     if (proportion > 1) {
@@ -89,7 +90,7 @@ export default class CueManager {
     }
   }
 
-  setCurrentIndex (danceChart) {
+  setCurrentIndex (danceChart) { // set the current index to be checked
     if (danceChart.moves.length > 0) {
       let beat = this.songManager.nearestBeat
       let beatArray = []

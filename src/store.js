@@ -13,6 +13,7 @@ export default new Vuex.Store({
     songs: null,
     selectedSong: null,
     selectedChart: null,
+    results: {},
     currentScene: 'song-selection'
   },
   mutations: {
@@ -39,6 +40,9 @@ export default new Vuex.Store({
     },
     loadNet: (state, data) => {
       state.net = data
+    },
+    changeResults: (state, data) => {
+      state.results = data
     }
   },
   actions: {
@@ -53,7 +57,7 @@ export default new Vuex.Store({
       }, (err) => { console.log(err) })
     },
     loadNet: context => {
-      posenet.load().then((data) => {
+      posenet.load(0.5).then((data) => {
         context.commit('loadNet', data)
       }).catch((err) => console.log(err))
     }

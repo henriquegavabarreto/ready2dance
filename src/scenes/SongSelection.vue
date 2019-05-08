@@ -13,6 +13,7 @@
         class="mx-3"
         flat
       ></v-text-field>
+      <v-btn @click="toggleSettings"><v-icon>settings</v-icon></v-btn>
       <v-btn @click="goToEditor">EDITOR</v-btn>
       <v-btn>LOGOUT</v-btn>
     </v-toolbar>
@@ -90,6 +91,12 @@ export default {
       if (this.selectedSong !== null) {
         this.$store.commit('goToGame')
       }
+    },
+    toggleSettings: function () {
+      // change model multiplier
+      // don't show animation (aka youtube and feedback only - no canvas)
+      // change camera latency
+      console.log('show settings')
     }
   },
   computed: {
