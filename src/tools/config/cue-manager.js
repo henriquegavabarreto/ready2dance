@@ -33,7 +33,6 @@ export default class CueManager {
           this.holdsToDraw.push(moves[this.holdIndex])
         }
         this.holdIndex++
-        console.log(this.holdIndex)
       }
     }
 

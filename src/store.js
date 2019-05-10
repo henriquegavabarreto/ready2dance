@@ -12,6 +12,7 @@ export default new Vuex.Store({
     net: null,
     songs: null,
     selectedSong: null,
+    selectedChartId: null,
     selectedChart: null,
     results: {},
     currentScene: 'song-selection'
@@ -19,6 +20,9 @@ export default new Vuex.Store({
   mutations: {
     selectSong: (state, data) => {
       state.selectedSong = data
+    },
+    selectChart: (state, data) => {
+      state.selectedChartId = data
     },
     updateSongs: (state, data) => {
       state.songs = data
@@ -52,7 +56,7 @@ export default new Vuex.Store({
       }, (err) => { console.log(err) })
     },
     changeSelectedChart: (context, payload) => {
-      firebase.database.ref(`charts/${payload}`).once('value', (data) => {
+      return firebase.database.ref(`charts/${payload}`).once('value', (data) => {
         context.commit('changeSelectedChart', data.val())
       }, (err) => { console.log(err) })
     },

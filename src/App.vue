@@ -25,6 +25,7 @@ export default {
   },
   created () {
     this.$store.dispatch('updateSongs')
+    // load the net before going to the game, according to settings
     this.$store.dispatch('loadNet')
   }
 }

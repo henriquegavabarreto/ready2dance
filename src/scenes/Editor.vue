@@ -73,22 +73,28 @@
                       Load Chart
                     </v-card-title>
                     <v-card-text>
-                      <v-list dense two-line style="max-height: 200px; max-width: 300px" class="scroll-y blue lighten-5">
+                      <v-list dense three-line style="max-height: 200px; max-width: 400px" class="scroll-y blue lighten-5">
                         <v-list-tile
-                          v-for="song in songs"
+                          v-for="(song, name) in songs"
                           :key="song.chartId"
-                          :class="selectedSong === song.chartId ? 'blue lighten' : ''"
-                          @click="selectSong(song.chartId)"
                         >
                           <v-list-tile-content>
                             <v-list-tile-title>{{song.title}}</v-list-tile-title>
                             <v-list-tile-sub-title>{{song.artist}}</v-list-tile-sub-title>
+                            <div >
+                              <v-btn
+                                v-for="(chartId, dif) in song.charts"
+                                :key="dif"
+                                small
+                                @click="selectSong(name, chartId)"
+                                :class="selectedChartId === chartId ? 'blue lighten' : ''">{{dif}}</v-btn>
+                            </div>
                           </v-list-tile-content>
                         </v-list-tile>
                       </v-list>
                     </v-card-text>
                     <v-card-actions>
-                      <v-btn dark @click="loadChart(dataManager.getSongId($store.state.songs, selectedSong), selectedSong)">Load</v-btn>
+                      <v-btn dark @click="loadChart(selectedSong, selectedChartId)">Load</v-btn>
                     </v-card-actions>
                   </v-card>
                 </v-flex>
@@ -98,9 +104,14 @@
                     <v-card-title primary-title>
                       Save Chart
                     </v-card-title>
-                    <v-card-actions>
-                      <v-btn dark @click="saveToFirebase">Save Chart</v-btn>
-                    </v-card-actions>
+                    <v-select
+                       :items="difficulties"
+                       label="Difficulty"
+                       outline
+                       v-model="difficulty"
+                       style="width: 150px;"
+                     ></v-select>
+                    <v-btn dark @click="saveToFirebase" class="pt-0">Save Chart</v-btn>
                     <v-alert class="yellow black--text" :value="duplicateChart" style="max-height: 50px">
                       There is already a dance chart for this video. Do you want to overwrite it?
                       <v-btn dark small @click="duplicateChart = !duplicateChart">cancel</v-btn><v-btn dark small @click="overwriteChart">overwrite</v-btn>
@@ -309,6 +320,8 @@ export default {
   data () {
     return {
       tabs: null,
+      difficulties: [ 'easy', 'medium', 'hard' ],
+      difficulty: '',
       player: null,
       editorApp: null,
       ticker: null,
@@ -488,34 +501,45 @@ export default {
       }
     },
     saveToFirebase: function () { // saves chart to firebase if all information is correct and videoId is unique
-      if (this.$refs.videoId.validate() && this.$refs.timing.validate() && this.$refs.songInfo.validate()) {
-        if (!this.dataManager.checkForVideoId(this.$store.state.songs, this.danceChart)) {
-          this.dataManager.saveNewChart(this.danceChart, this.player)
+      if (this.$refs.videoId.validate() && this.$refs.timing.validate() && this.$refs.songInfo.validate() && this.difficulties.indexOf(this.difficulty) !== -1) {
+        let songId = this.dataManager.getSongIdByVideoId(this.songs, this.player.videoId)
+        if (songId === '') { // if there is no song with this videoId
+          // should dataManager return a promise so we can toggle saved from here?
+          this.dataManager.saveNewSong(this.danceChart, this.player, this.difficulty)
           this.saved = true
         } else {
-          this.duplicateChart = true
+          if (!this.songs[songId].charts.hasOwnProperty(this.difficulty)) { // if the song exists, but this difficulty has not been set
+            this.dataManager.saveNewChart(this.danceChart, this.player, songId, this.difficulty)
+            this.saved = true
+          } else { // if there is the set difficulty for this song id
+            this.duplicateChart = true
+          }
         }
+      } else {
+        this.missingInfo = true
+      }
+    },
+    overwriteChart: function () { // updates a danceChart with existing video Id in the database
+      if (this.$refs.videoId.validate() && this.$refs.timing.validate() && this.$refs.songInfo.validate()) {
+        this.dataManager.overwriteChart(this.danceChart)
+        this.duplicateChart = false
+        this.saved = true
       } else {
         this.missingInfo = true
       }
     },
     loadVideoById: function () { // loads a video according to the input. If the video already has a chart, it will be loaded
       if (this.$refs.videoId.validate()) {
-        let info = this.dataManager.searchSongByVideoId(this.$store.state.songs, this.danceChart.videoId)
-        if (info !== null) {
-          this.existingChart = true
-          this.loadChart(info.songId, info.chartId)
-        } else {
-          this.player.load(this.danceChart.videoId, true)
-          setTimeout(() => {
-            drawGuideNumbers(this.player, this.danceChart, this.songManager)
-            drawStaff(this.containers, this.textures, this.player, this.danceChart, this.songManager)
-          }, 4000)
-        }
+        this.player.load(this.danceChart.videoId, true)
+        setTimeout(() => {
+          drawGuideNumbers(this.player, this.danceChart, this.songManager)
+          drawStaff(this.containers, this.textures, this.player, this.danceChart, this.songManager)
+        }, 4000)
       }
     },
-    selectSong: function (value) { // selects a song value from the store, loaded when the website is created
-      this.$store.commit('selectSong', value)
+    selectSong: function (songId, chartId) { // changes selected song in the store with the given song id
+      this.$store.commit('selectSong', songId)
+      this.$store.commit('selectChart', chartId)
     },
     loadChart: function (songId, chartId) { // pulls chart info from the database and applies to the danceChart and settings tab
       if (chartId !== '') {
@@ -551,15 +575,6 @@ export default {
         }).catch(err => console.log(err))
       }
     },
-    overwriteChart: function () { // updates a danceChart with existing video Id in the database
-      if (this.$refs.videoId.validate() && this.$refs.timing.validate() && this.$refs.songInfo.validate()) {
-        this.dataManager.overwriteChart(this.danceChart)
-        this.duplicateChart = false
-        this.saved = true
-      } else {
-        this.missingInfo = true
-      }
-    },
     goToSongSelection: function () { // goes back to song selection Scene
       // TODO : proper way to destroy all created pixi objects
       this.player.stop()
@@ -580,11 +595,22 @@ export default {
     }
   },
   computed: { // All songs from database
-    songs: function () {
-      return this.$store.state.songs
+    songs: function () { // return songs with sorted difficulty
+      let sortedDif = {}
+      for (let song in this.$store.state.songs) {
+        let info = this.$store.state.songs[song]
+        let order = ['easy', 'medium', 'hard']
+        let sortedChart = Object.entries(info.charts).sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0]))
+        info.charts = Object.fromEntries(sortedChart)
+        sortedDif[song] = info
+      }
+      return sortedDif
     },
     selectedSong: function () { // changes the selected song from the list
       return this.$store.state.selectedSong
+    },
+    selectedChartId: function () {
+      return this.$store.state.selectedChartId
     }
   }
 }

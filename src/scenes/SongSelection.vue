@@ -36,12 +36,12 @@
                 <v-flex
                 xs12
                 v-for="song in filteredSongs"
-                :key="song.chartId"
-                @click="selectSong(song.chartId)">
+                :key="song.videoId"
+                @click="selectSong(song)">
                   <v-card
                     style="border-radius: 15px;"
                     hover
-                    :class="selectedSong === song.chartId ? 'blue lighten' : ''">
+                    :class="selectedSong.title === song.title ? 'blue lighten' : ''">
                     <v-card-title primary-title>
                       <div>
                         <h3 class="headline mb-0">{{song.title}}</h3>
@@ -55,13 +55,21 @@
           </v-card>
         </v-flex>
         <v-flex xs6 v-if="selectedSong">
-          <v-card>
+          <v-card style="width: 800px;">
             <v-card-title primary-title>
               <div class="mr-5">
-                <h3 class="headline mb-0">{{currentSelection.title}} {{filteredSongs.title}}</h3>
-                <div>{{currentSelection.artist}}</div>
+                <h3 class="headline mb-0">{{selectedSong.title}} {{filteredSongs.title}}</h3>
+                <div>{{selectedSong.artist}}</div>
               </div>
-              <v-btn class="ml-5" @click="goToGame"><v-icon>play_arrow</v-icon></v-btn>
+              <div v-for="(chartId, dif) in songCharts" :key="dif">
+                <v-btn
+                  small
+                  @click="selectChart(chartId)"
+                  :class="selectedChart === chartId ? 'blue lighten' : ''">{{dif}}</v-btn>
+              </div>
+              <v-btn class="ml-5"
+                :disabled="selectedChart === ''"
+                @click="goToGame"><v-icon>play_arrow</v-icon></v-btn>
             </v-card-title>
           </v-card>
         </v-flex>
@@ -76,21 +84,27 @@
 export default {
   data () {
     return {
-      search: ''
+      search: '',
+      selectedSong: {},
+      selectedChart: ''
     }
   },
   methods: {
-    goToEditor: function () {
+    goToEditor: function () { // go to editor
       this.$store.commit('goToEditor')
     },
-    selectSong: function (value) {
-      this.$store.commit('selectSong', value)
-      this.$store.dispatch('changeSelectedChart', this.selectedSong)
+    selectSong: function (song) { // get song info from the list of filtered songs
+      this.selectedSong = song
     },
-    goToGame: function () {
-      if (this.selectedSong !== null) {
-        this.$store.commit('goToGame')
+    goToGame: function () { // goes to the game after the chart is loaded
+      if (this.selectedSong !== {} && this.selectedChart !== '') {
+        this.$store.dispatch('changeSelectedChart', this.selectedChart).then(() => {
+          this.$store.commit('goToGame')
+        })
       }
+    },
+    selectChart: function (chartId) { // get the id of the selected chart so it can be loaded
+      this.selectedChart = chartId
     },
     toggleSettings: function () {
       // change model multiplier
@@ -100,35 +114,13 @@ export default {
     }
   },
   computed: {
-    currentSelection: function () {
-      let value = {}
-      if (this.selectedSong === null) {
-        value = {
-          title: '',
-          artist: ''
-        }
-      } else {
-        for (let song in this.songs) {
-          if (this.songs[song].chartId === this.selectedSong) {
-            value = {
-              title: this.songs[song].title,
-              artist: this.songs[song].artist
-            }
-            break
-          }
-        }
-      }
-      return value
-    },
-    songs: function () {
+    songs: function () { // loads all songs from the $store
       return this.$store.state.songs
     },
-    selectedSong: function () {
-      return this.$store.state.selectedSong
-    },
-    filteredSongs: function () {
+    filteredSongs: function () { // Returns array of songs based on the search.
       let songArray = []
       let filteredSongs = []
+
       for (let song in this.songs) {
         songArray.push(this.songs[song])
       }
@@ -139,6 +131,15 @@ export default {
         }
       })
       return filteredSongs
+    },
+    songCharts: function () { // returns charts object by order of difficulty
+      if (this.selectedSong.hasOwnProperty('charts')) {
+        let order = ['easy', 'medium', 'hard']
+        let sortedChart = Object.entries(this.selectedSong.charts).sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0]))
+        return Object.fromEntries(sortedChart)
+      } else {
+        return {}
+      }
     }
   }
 }
