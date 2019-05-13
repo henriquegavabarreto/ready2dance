@@ -75,6 +75,8 @@ export default {
       songManager: null,
       moveIndex: 0,
       stream: null,
+      holdingLeft: false,
+      holdingRight: false,
       perfect: 0,
       awesome: 0,
       good: 0,
@@ -235,10 +237,6 @@ export default {
 
     this.player.setVolume(0)
     this.player.load(this.$store.state.selectedChart.videoId, false)
-
-    // this.player.on('unstarted', () => {
-    //   this.player.seek(parseFloat(this.videoStart))
-    // })
 
     getUserMedia({ video: { width: 600, height: 600 }, audio: false }, (err, stream) => {
       if (err) {
