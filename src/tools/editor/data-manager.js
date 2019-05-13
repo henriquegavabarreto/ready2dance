@@ -6,6 +6,16 @@ export default {
       return a[0] - b[0]
     })
   },
+  getSongIdByVideoId: function (songs, videoId) {
+    if (songs !== null) {
+      for (var songId in songs) {
+        if (songs[songId].videoId === videoId) {
+          return songId
+        }
+      }
+    }
+    return ''
+  },
   checkForVideoId: function (songs, danceChart) {
     for (var songId in songs) {
       if (songs[songId].videoId === danceChart.videoId) {
@@ -13,13 +23,6 @@ export default {
       }
     }
     return false
-  },
-  getSongId: function (songs, chartId) {
-    for (var songId in songs) {
-      if (songs[songId].chartId === chartId) {
-        return songId
-      }
-    }
   },
   searchSongByVideoId: function (songs, videoId) {
     for (var songId in songs) {
@@ -29,7 +32,8 @@ export default {
     }
     return null
   },
-  saveNewChart: function (danceChart, player) {
+  saveNewSong: function (danceChart, player, difficulty) { // save non existing song
+    this.sortDanceChart(danceChart)
     firebase.database.ref('charts').push({
       offset: danceChart.offset,
       bpm: danceChart.bpm,
@@ -43,26 +47,44 @@ export default {
       firebase.database.ref('songs').push({
         title: danceChart.title,
         artist: danceChart.artist,
-        chartId: chartRef.key,
+        charts: {
+          [difficulty]: chartRef.key
+        },
         videoId: player.videoId
       }).then((songRef) => {
         danceChart.songId = songRef.key
       }).catch(err => console.log(err))
     }).catch(err => console.log(err))
   },
-  overwriteChart: function (danceChart) {
-    firebase.database.ref('charts').child(`${danceChart.chartId}`).update({
+  saveNewChart: function (danceChart, player, songId, difficulty) { // save new chart to existing song
+    this.sortDanceChart(danceChart)
+    firebase.database.ref('charts').push({
+      offset: danceChart.offset,
+      bpm: danceChart.bpm,
+      videoId: player.videoId,
+      videoStart: danceChart.videoStart,
+      videoEnd: danceChart.videoEnd,
+      moves: danceChart.moves.join(' '),
+      createdAt: new Date().getTime()
+    }).then((chartRef) => {
+      danceChart.chartId = chartRef.key
+      firebase.database.ref('songs/' + songId).child('charts').update({
+        [difficulty]: chartRef.key
+      }).then(() => {
+        danceChart.songId = songId
+      }).catch(err => console.log(err))
+    }).catch(err => console.log(err))
+  },
+  overwriteChart: function (danceChart, chartId) {
+    this.sortDanceChart(danceChart)
+    firebase.database.ref('charts').child(`${chartId}`).update({
       offset: danceChart.offset,
       bpm: danceChart.bpm,
       videoStart: danceChart.videoStart,
       videoEnd: danceChart.videoEnd,
       moves: danceChart.moves.join(' '),
       updatedAt: new Date().getTime()
-    })
-    firebase.database.ref('songs').child(`${danceChart.songId}`).update({
-      title: danceChart.title,
-      artist: danceChart.artist
-    })
+    }).catch((err) => { console.log(err) })
   },
   updateChartAndSettings: function (danceChart, settings, loadedChart) {
     danceChart.offset = parseFloat(loadedChart.offset)
@@ -92,7 +114,7 @@ export default {
     songManager.update(danceChart)
     moveManager.update(songManager)
     noteManager.update(songManager)
-    cueManager.update(songManager, moveManager)
+    cueManager.update(songManager)
   },
   parseChart: function (moves) {
     if (moves === '') {

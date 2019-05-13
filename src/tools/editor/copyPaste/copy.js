@@ -1,5 +1,4 @@
 import editorConfig from '../config/editor-config'
-import { copyPasteSelection } from '../config/containers'
 
 var copy = {
   start: function (songManager) {
@@ -11,7 +10,6 @@ var copy = {
   end: function (songManager) {
     editorConfig.copySelection.push(songManager.nearestBeat)
     editorConfig.copySelection.sort((a, b) => a - b)
-    copyPasteSelection.removeChildren()
     editorConfig.selectingMoves = false
   },
   addSelectionToClipboard: function (danceChart) {

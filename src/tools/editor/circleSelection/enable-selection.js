@@ -1,9 +1,5 @@
-import { selectionCircles } from '../config/containers'
-
-function enableSelection () {
-  selectionCircles.children.forEach(circle => {
+export default function enableSelection (containers) {
+  containers.auxiliary.selectionCircles.children.forEach(circle => {
     circle.interactive = true
   })
 }
-
-export default enableSelection

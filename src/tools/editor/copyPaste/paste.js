@@ -1,6 +1,6 @@
 import editorConfig from '../config/editor-config'
 
-function paste (danceChart, songManager, moveManager, noteManager) {
+function paste (danceChart, songManager, moveManager, noteManager, containers, textures) {
   let addMoves = true
   let movesToAdd = []
   for (let move of editorConfig.clipboard) {
@@ -9,14 +9,15 @@ function paste (danceChart, songManager, moveManager, noteManager) {
       addMoves = false
       break
     }
-    move[0] = newBeat
-    movesToAdd.push(move)
+    let newMove = [newBeat, move[1], move[2], move[3]]
+    movesToAdd.push(newMove)
   }
   if (addMoves) {
-    for (let move of movesToAdd) {
-      danceChart.moves.push(move)
-    }
-    noteManager.redraw(danceChart)
+    danceChart.moves = danceChart.moves.concat(movesToAdd)
+    movesToAdd.forEach((move) => {
+      if (move[2] !== 'X') noteManager.addNote(move[0], 'L', move[2], containers, textures)
+      if (move[3] !== 'X') noteManager.addNote(move[0], 'R', move[3], containers, textures)
+    })
   }
 }
 

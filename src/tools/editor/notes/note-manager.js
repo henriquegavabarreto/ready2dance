@@ -1,4 +1,3 @@
-import { noteElements } from '../config/containers'
 import editorConfig from '../config/editor-config'
 import * as PIXI from 'pixi.js'
 
@@ -7,31 +6,31 @@ export default class NoteManager {
     this.songManager = songManager
   }
 
-  createNotes (key, beat = this.songManager.nearestBeat, modifier = 1) { // call to create notes
+  createNotes (key, containers, textures, beat = this.songManager.nearestBeat, modifier = 1) { // call to create notes
     let x = 22 // default x to left hand
     if (key === 'x') {
       x = 108
     }
 
     if (modifier === 1 || modifier === -1) {
-      this.drawNote(x, beat)
+      this.drawNote(x, beat, containers, textures)
     } else if (modifier === 4) {
       for (let i = 0; i <= 3; i++) { // adds notes in between
         let beatToAdd = beat - i
-        this.drawNote(x, beatToAdd)
+        this.drawNote(x, beatToAdd, containers, textures)
       }
     } else if (modifier === -4) {
       for (let i = 0; i <= 3; i++) {
         let beatToAdd = beat + i
-        this.drawNote(x, beatToAdd)
+        this.drawNote(x, beatToAdd, containers, textures)
       }
     }
   }
 
-  drawNote (x, beat) { // internal use - actually draws the note in the container
-    if (!this.isOccupied(x, beat)) {
+  drawNote (x, beat, containers, textures) { // internal use - actually draws the note in the container
+    if (!this.isOccupied(x, beat, containers)) {
       // eslint-disable-next-line
-      let note = new PIXI.Sprite.from('https://henriquegavabarreto.github.io/paraparagame/assets/move.png')
+      let note = new PIXI.Sprite(textures.note)
       note.x = x
       note.y = (56 * beat / 4) + 58
       note.scale.x = 0.9
@@ -40,33 +39,55 @@ export default class NoteManager {
       } else {
         note.name = `${beat}R`
       }
-      noteElements.addChild(note)
+      containers.auxiliary.noteElements.addChild(note)
     }
   }
 
-  isOccupied (x, beat) { // checks for note in a beat
-    for (let notes of noteElements.children) {
+  isOccupied (x, beat, containers) { // checks for note in a beat
+    for (let notes of containers.auxiliary.noteElements.children) {
       if (notes.x === x && notes.y === (56 * beat / 4) + 58) {
         return true
       }
     }
   }
 
-  redraw (danceChart) { // call after update chart or after move deletion
-    noteElements.removeChildren() // remove all notes
+  removeNote (containers, beat, hand) { // remove specific note
+    let note = containers.auxiliary.noteElements.getChildByName(`${beat}${hand}`)
+    note.destroy()
+    containers.auxiliary.noteElements.removeChild(note)
+  }
+
+  addNote (beat, hand, move, containers, textures) {
+    let note = new PIXI.Sprite(textures.note)
+    let x = 22
+    if (hand === 'R') x = 108
+    note.x = x
+    note.y = (56 * beat / 4) + 58
+    note.scale.x = 0.9
+    if (x === 22) {
+      note.name = `${beat}L`
+    } else {
+      note.name = `${beat}R`
+    }
+    this.tint(move[0], note)
+    containers.auxiliary.noteElements.addChild(note)
+  }
+
+  redraw (danceChart, containers, textures) { // call after update chart or after a move delete
+    if (containers.auxiliary.noteElements.children.length > 0) containers.auxiliary.noteElements.removeChildren()
     danceChart.moves.forEach(move => { // insert all elements again
       if (move[2] !== 'X') {
-        this.drawNote(22, move[0])
-        this.tintNotes(move[0], 'L', move[2][0])
+        this.drawNote(22, move[0], containers, textures)
+        this.tintNotes(containers, move[0], 'L', move[2][0])
       }
       if (move[3] !== 'X') {
-        this.drawNote(108, move[0])
-        this.tintNotes(move[0], 'R', move[3][0])
+        this.drawNote(108, move[0], containers, textures)
+        this.tintNotes(containers, move[0], 'R', move[3][0])
       }
     })
   }
 
-  removeInvalidNotes (danceChart) { // call if a insertion is not valid (see isValidInsert in MoveManager)
+  removeInvalidNotes (danceChart, containers) { // call if a insertion is not valid (see isValidInsert in MoveManager)
     let invalidNotes = []
     editorConfig.beatArray.forEach((beat) => {
       let i = this.checkForMove(danceChart, beat)
@@ -84,8 +105,9 @@ export default class NoteManager {
       invalidNotes.forEach((beat) => {
         let selectedHand = 'L'
         if (editorConfig.pressedKey === 'x') selectedHand = 'R'
-        let noteToRemove = noteElements.getChildByName(`${beat}${selectedHand}`)
-        noteElements.removeChild(noteToRemove)
+        let noteToRemove = containers.auxiliary.noteElements.getChildByName(`${beat}${selectedHand}`)
+        noteToRemove.destroy()
+        containers.auxiliary.noteElements.removeChild(noteToRemove)
       })
     }
   }
@@ -104,19 +126,19 @@ export default class NoteManager {
     }
   }
 
-  tintNotes (beatToTint, hand, moveType) { // tint a specific note or all notes from the beat array (call after the information is added to chart)
+  tintNotes (containers, beatToTint, hand, moveType) { // tint a specific note or all notes from the beat array (call after the information is added to chart)
     if (!beatToTint && !hand && !moveType) {
       hand = 'L'
       if (editorConfig.pressedKey === 'x') hand = 'R'
       moveType = this.moveType
       editorConfig.beatArray.forEach((beat) => {
         let noteName = `${beat}${hand}`
-        let note = noteElements.getChildByName(noteName)
+        let note = containers.auxiliary.noteElements.getChildByName(noteName)
         this.tint(moveType, note)
       })
     } else {
       let noteName = `${beatToTint}${hand}`
-      let note = noteElements.getChildByName(noteName)
+      let note = containers.auxiliary.noteElements.getChildByName(noteName)
       this.tint(moveType, note)
     }
   }

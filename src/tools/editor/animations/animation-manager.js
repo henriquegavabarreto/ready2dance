@@ -1,10 +1,8 @@
-import updateTimeText from './update-time-text'
 import updateTimeline from './update-timeline'
 
 export default {
-  animate: function (player, songManager, cueManager, danceChart) {
-    updateTimeText(player)
-    updateTimeline(songManager.currentBeat)
-    cueManager.drawCues(danceChart)
+  animate: function (songManager, containers, cueManager, danceChart) {
+    updateTimeline(songManager.currentBeat, containers)
+    // cueManager.drawCues(danceChart)
   }
 }

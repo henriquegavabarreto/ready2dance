@@ -1,21 +1,14 @@
 import * as PIXI from 'pixi.js'
-import { selectionCircles } from '../../config/containers'
 import grid from '../../config/grid.js'
 import editorConfig from '../../config/editor-config'
 
-function setSelectionCircles () {
-  var circleConfig = {
-    size: editorConfig.cue.size,
-    lineWidth: editorConfig.cue.lineWidth,
-    gridColor: 0xc0c0c0,
-    gridAlpha: 0.4
-  }
-
+function setSelectionCircles (containers, textures) {
   for (let i = 1; i < grid.length; i++) {
-    let circle = new PIXI.Graphics()
-    circle.lineStyle(circleConfig.lineWidth, circleConfig.gridColor, circleConfig.gridAlpha)
-    circle.drawCircle(grid[i].x, grid[i].y, circleConfig.size)
-    circle.cacheAsBitmap = true
+    let circle = new PIXI.Sprite(textures.circle)
+    circle.alpha = 0.4
+    circle.anchor.set(0.5)
+    circle.x = grid[i].x
+    circle.y = grid[i].y
     circle.name = `${i}`
     circle.buttonMode = true
 
@@ -24,14 +17,14 @@ function setSelectionCircles () {
     })
 
     circle.on('mouseout', (event) => {
-      circle.alpha = 1
+      circle.alpha = 0.4
     })
 
     circle.on('mousedown', (event) => {
-      circle.alpha = 1
+      circle.alpha = 0.4
       editorConfig.selectedCircles.push(circle.name)
     })
-    selectionCircles.addChild(circle)
+    containers.auxiliary.selectionCircles.addChild(circle)
   }
 }
 
