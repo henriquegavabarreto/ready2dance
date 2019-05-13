@@ -11,6 +11,7 @@ export default new Vuex.Store({
   state: {
     net: null,
     songs: null,
+    somethingWentWrong: false,
     selectedSong: null,
     selectedChartId: null,
     selectedChart: null,
@@ -47,6 +48,9 @@ export default new Vuex.Store({
     },
     changeResults: (state, data) => {
       state.results = data
+    },
+    somethingWentWrong: state => {
+      state.somethingWentWrong = !state.somethingWentWrong
     }
   },
   actions: {

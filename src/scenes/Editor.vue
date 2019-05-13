@@ -521,7 +521,8 @@ export default {
     },
     overwriteChart: function () { // updates a danceChart with existing video Id in the database
       if (this.$refs.videoId.validate() && this.$refs.timing.validate() && this.$refs.songInfo.validate()) {
-        this.dataManager.overwriteChart(this.danceChart)
+        let songId = this.dataManager.getSongIdByVideoId(this.songs, this.player.videoId)
+        this.dataManager.overwriteChart(this.danceChart, this.songs[songId].charts[this.difficulty])
         this.duplicateChart = false
         this.saved = true
       } else {

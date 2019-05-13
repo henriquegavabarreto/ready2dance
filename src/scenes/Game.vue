@@ -8,22 +8,41 @@
         </v-flex>
         <v-flex xs6 style="background-color: black;">
           <v-container fluid class="pa-0 ma-0">
-            <v-layout row wrap justify-center align-center class="pa-0 ma-0">
-              <v-flex xs12 id="player" style="width:720px;"></v-flex>
+            <v-layout row wrap justify-center align-center class="pa-0 mt-5">
+              <v-flex xs12 id="player" style="width:720px;" class="mt-5"></v-flex>
             </v-layout>
           </v-container>
         </v-flex>
       </v-layout>
     </v-container>
-    <v-footer height="120" color="blue">
+    <v-footer height="120" color="dark-gray">
+      <h1 id="score" style="border: 2px solid white; border-radius: 5px;" class="ml-5 pl-3 pr-3">SCORE: {{displayScore}}</h1>
+      <v-spacer></v-spacer>
       <ul style="list-style-type: none;">
-        <li>PERFECT: {{perfect}}</li>
-        <li>AWESOME: {{awesome}}</li>
-        <li>GOOD: {{good}}</li>
-        <li>MISS: {{miss}}</li>
-        <li>COMBO: {{combo}}</li>
-        <li>MAXCOMBO: {{maxCombo}}</li>
-        <li>SCORE: {{score}}</li>
+        <li><h3>You're listening to:</h3></li>
+        <li>
+          <ul style="list-style-type: none; border: 2px solid white; border-radius: 5px;" class="pa-3">
+            <li>{{song.title}}</li>
+            <li>{{song.artist}}</li>
+          </ul>
+        </li>
+      </ul>
+      <ul style="list-style-type: none;">
+        <li><h3>Status:</h3></li>
+        <li>
+          <ul style="columns: 2; -webkit-columns: 2; -moz-columns: 2; list-style-type: none; border: 2px solid white; border-radius: 5px;" class="pl-3 pr-3">
+          <li>
+            <ul>
+              <li>PERFECT: {{perfect}}</li>
+              <li>AWESOME: {{awesome}}</li>
+              <li>GOOD: {{good}}</li>
+              <li>MISS: {{miss}}</li>
+              <li>COMBO: {{combo}}</li>
+              <li>MAXCOMBO: {{maxCombo}}</li>
+            </ul>
+          </li>
+          </ul>
+        </li>
       </ul>
     </v-footer>
   </div>
@@ -63,6 +82,7 @@ export default {
       combo: 0,
       maxCombo: 0,
       score: 0,
+      displayScore: 0,
       report: {
         rightHand: [],
         leftHand: []
@@ -128,13 +148,13 @@ export default {
               if (rightHit.length > 0) {
                 if (rightHit[0] === 0) {
                   this.perfect++
-                  this.score += 500
+                  this.score += 1000
                 } else if (rightHit[0] === values.length - 1 && values.length > 2) {
                   this.good++
-                  this.score += 300
+                  this.score += 600
                 } else {
                   this.awesome++
-                  this.score += 400
+                  this.score += 800
                 }
                 this.combo++
                 if (this.combo > this.maxCombo) this.maxCombo = this.combo
@@ -147,13 +167,13 @@ export default {
               if (leftHit.length > 0) {
                 if (leftHit[0] === 0) {
                   this.perfect++
-                  this.score += 500
+                  this.score += 1000
                 } else if (leftHit[0] === values.length - 1 && values.length > 2) {
                   this.good++
-                  this.score += 300
+                  this.score += 600
                 } else {
                   this.awesome++
-                  this.score += 400
+                  this.score += 800
                 }
                 this.combo++
                 if (this.combo > this.maxCombo) this.maxCombo = this.combo
@@ -175,6 +195,16 @@ export default {
               this.promiseArray.push(this.$store.state.net.estimateSinglePose(this.stream))
             }
           }
+        }
+      }
+      if (this.displayScore < this.score) {
+        let dif = this.score - this.displayScore
+        if (dif <= 10) {
+          this.displayScore += 1
+        } else if (dif <= 100 && dif > 10) {
+          this.displayScore += 10
+        } else {
+          this.displayScore += 100
         }
       }
       if (this.player.getCurrentTime() <= parseFloat(this.videoStart) + 5) {
@@ -213,6 +243,7 @@ export default {
     getUserMedia({ video: { width: 600, height: 600 }, audio: false }, (err, stream) => {
       if (err) {
         console.log(err)
+        this.$store.commit('somethingWentWrong')
         this.$store.commit('goToSongSelection')
         // add a something went wrong snackbar at song selection if an error occurs
       } else {
@@ -277,7 +308,19 @@ export default {
     },
     videoEnd () {
       return this.$store.state.selectedChart.videoEnd
+    },
+    song () {
+      return this.$store.state.selectedSong
     }
   }
 }
 </script>
+<style scoped>
+  li {
+    font-size: 20px;
+  }
+
+  #score {
+    font-size: 60px;
+  }
+</style>

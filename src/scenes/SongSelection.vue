@@ -98,6 +98,7 @@ export default {
     },
     goToGame: function () { // goes to the game after the chart is loaded
       if (this.selectedSong !== {} && this.selectedChart !== '') {
+        this.$store.commit('selectSong', this.selectedSong)
         this.$store.dispatch('changeSelectedChart', this.selectedChart).then(() => {
           this.$store.commit('goToGame')
         })
@@ -132,7 +133,7 @@ export default {
       })
       return filteredSongs
     },
-    songCharts: function () { // returns charts object by order of difficulty
+    songCharts: function () { // returns charts object with charts by order of difficulty
       if (this.selectedSong.hasOwnProperty('charts')) {
         let order = ['easy', 'medium', 'hard']
         let sortedChart = Object.entries(this.selectedSong.charts).sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0]))
