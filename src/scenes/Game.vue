@@ -177,7 +177,13 @@ export default {
           }
         }
       }
-      if (this.player.getCurrentTime() >= this.videoEnd && this.videoEnd !== 0) {
+      if (this.player.getCurrentTime() <= parseFloat(this.videoStart) + 5) {
+        this.player.setVolume(this.player.getVolume() + 1)
+      }
+      if (this.player.getCurrentTime() >= parseFloat(this.videoEnd) - 2 && parseFloat(this.videoEnd) !== 0) {
+        this.player.setVolume(this.player.getVolume() - 1)
+      }
+      if (this.player.getCurrentTime() >= parseFloat(this.videoEnd) && parseFloat(this.videoEnd) !== 0) {
         this.goToResults()
       }
     })
@@ -189,6 +195,7 @@ export default {
     this.ticker.stop()
 
     this.player.on('playing', () => {
+      if (parseFloat(this.videoStart) !== 0 && this.player.getCurrentTime() < 0.5) this.player.seek(parseFloat(this.videoStart))
       this.ticker.start()
     })
 
@@ -196,7 +203,12 @@ export default {
       this.ticker.stop()
     })
 
+    this.player.setVolume(0)
     this.player.load(this.$store.state.selectedChart.videoId, false)
+
+    // this.player.on('unstarted', () => {
+    //   this.player.seek(parseFloat(this.videoStart))
+    // })
 
     getUserMedia({ video: { width: 600, height: 600 }, audio: false }, (err, stream) => {
       if (err) {

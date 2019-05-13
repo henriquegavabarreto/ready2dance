@@ -6,6 +6,7 @@
     <p>Good: {{results.good}}</p>
     <p>Max Combo: {{results.maxCombo}}</p>
     <p>Miss: {{results.miss}}</p>
+    <p>Score: {{results.score}}</p>
     <p>{{results.report}}</p>
     <v-btn @click="goToSongSelection">BACK TO SONG SELECTION</v-btn>
   </div>
