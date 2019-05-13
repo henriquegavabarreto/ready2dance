@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div style="background-color: black; height: 765px;">
     <v-toolbar
       color="primary"
       dark
@@ -20,7 +20,7 @@
     <v-container mx-0>
       <v-layout row wrap justify-space-between>
         <v-flex xs5 class="blue">
-          <v-card>
+          <v-card style="width: 550px;">
             <v-card-title>
               <v-icon
                 large

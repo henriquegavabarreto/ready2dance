@@ -3,27 +3,28 @@
     <v-container fluid class="pa-0">
       <video id="videoStream" style="width: 600px; height: 600px; display: none;">
       </video>
-      <v-layout row nowrap class="ma-0">
+      <v-layout row nowrap class="ma-0" style="background-color: black;">
         <v-flex xs6 id="canvas">
         </v-flex>
-        <v-flex xs6>
+        <v-flex xs6 style="background-color: black;">
           <v-container fluid class="pa-0 ma-0">
             <v-layout row wrap justify-center align-center class="pa-0 ma-0">
-              <v-flex xs12 id="player">
-
-              </v-flex>
+              <v-flex xs12 id="player" style="width:720px;"></v-flex>
             </v-layout>
           </v-container>
         </v-flex>
       </v-layout>
     </v-container>
     <v-footer height="120" color="blue">
-      <h1>PERFECT: {{perfect}}</h1>
-      <h1>AWESOME: {{awesome}}</h1>
-      <h1>GOOD: {{good}}</h1>
-      <h1>MISS: {{miss}}</h1>
-      <h1>COMBO: {{combo}}</h1>
-      <h1>MAXCOMBO: {{maxCombo}}</h1>
+      <ul style="list-style-type: none;">
+        <li>PERFECT: {{perfect}}</li>
+        <li>AWESOME: {{awesome}}</li>
+        <li>GOOD: {{good}}</li>
+        <li>MISS: {{miss}}</li>
+        <li>COMBO: {{combo}}</li>
+        <li>MAXCOMBO: {{maxCombo}}</li>
+        <li>SCORE: {{score}}</li>
+      </ul>
     </v-footer>
   </div>
 </template>
@@ -61,6 +62,7 @@ export default {
       miss: 0,
       combo: 0,
       maxCombo: 0,
+      score: 0,
       report: {
         rightHand: [],
         leftHand: []
@@ -126,10 +128,13 @@ export default {
               if (rightHit.length > 0) {
                 if (rightHit[0] === 0) {
                   this.perfect++
+                  this.score += 500
                 } else if (rightHit[0] === values.length - 1 && values.length > 2) {
                   this.good++
+                  this.score += 300
                 } else {
                   this.awesome++
+                  this.score += 400
                 }
                 this.combo++
                 if (this.combo > this.maxCombo) this.maxCombo = this.combo
@@ -142,10 +147,13 @@ export default {
               if (leftHit.length > 0) {
                 if (leftHit[0] === 0) {
                   this.perfect++
+                  this.score += 500
                 } else if (leftHit[0] === values.length - 1 && values.length > 2) {
                   this.good++
+                  this.score += 300
                 } else {
                   this.awesome++
+                  this.score += 400
                 }
                 this.combo++
                 if (this.combo > this.maxCombo) this.maxCombo = this.combo
@@ -226,6 +234,7 @@ export default {
         good: this.good,
         miss: this.miss,
         maxCombo: this.maxCombo,
+        score: this.score,
         report: this.report
       })
     },
@@ -250,6 +259,9 @@ export default {
         })
         return newChart
       }
+    },
+    videoStart () {
+      return this.$store.state.selectedChart.videoStart
     },
     videoEnd () {
       return this.$store.state.selectedChart.videoEnd

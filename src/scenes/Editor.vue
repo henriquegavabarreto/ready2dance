@@ -43,12 +43,12 @@
             </v-tabs>
         </v-toolbar>
 
-        <v-tabs-items v-model="tabs">
+        <v-tabs-items v-model="tabs" style="height: 698px;">
           <v-tab-item>
             <v-container pb-0>
               <v-layout row wrap>
                 <v-flex xs12>
-                  <v-card flat>
+                  <v-card>
                     <v-card-title primary-title>
                       Load Video
                     </v-card-title>
@@ -68,7 +68,7 @@
                   </v-card>
                 </v-flex>
                 <v-flex xs12>
-                  <v-card flat>
+                  <v-card>
                     <v-card-title primary-title>
                       Load Chart
                     </v-card-title>
@@ -100,7 +100,7 @@
                 </v-flex>
 
                 <v-flex xs12>
-                  <v-card flat>
+                  <v-card>
                     <v-card-title primary-title>
                       Save Chart
                     </v-card-title>
@@ -280,8 +280,8 @@
           </v-tab-item>
         </v-tabs-items>
       </v-flex>
-      <v-flex xs12 md6>
-        <div id="player">
+      <v-flex xs12 md6 style="background-color: black;">
+        <div id="player" style="width: 720px;">
         </div>
       </v-flex>
     </v-layout>
@@ -378,22 +378,22 @@ export default {
     moveToNextQuarterBeat: function () {
       // eslint-disable-next-line
       moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, this.containers, this.textures, 1)
-      setTimeout(() => { animationManager.animate(this.songManager, this.containers, this.cueManager, this.danceChart) }, 200)
+      setTimeout(() => { animationManager.animate(this.songManager, this.containers, this.cueManager, this.danceChart) }, 280)
     },
     moveToPreviousQuarterBeat: function () {
       // eslint-disable-next-line
       moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, this.containers, this.textures, -1)
-      setTimeout(() => { animationManager.animate(this.songManager, this.containers, this.cueManager, this.danceChart) }, 200)
+      setTimeout(() => { animationManager.animate(this.songManager, this.containers, this.cueManager, this.danceChart) }, 280)
     },
     moveToNextBeat: function () {
       // eslint-disable-next-line
       moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, this.containers, this.textures, 4)
-      setTimeout(() => { animationManager.animate(this.songManager, this.containers, this.cueManager, this.danceChart) }, 200)
+      setTimeout(() => { animationManager.animate(this.songManager, this.containers, this.cueManager, this.danceChart) }, 280)
     },
     moveToPreviousBeat: function () {
       // eslint-disable-next-line
       moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, this.containers, this.textures, -4)
-      setTimeout(() => { animationManager.animate(this.songManager, this.containers, this.cueManager, this.danceChart) }, 200)
+      setTimeout(() => { animationManager.animate(this.songManager, this.containers, this.cueManager, this.danceChart) }, 280)
     },
     playAndPause: function () { // shortcut for play and pause when canvas is selected
       if (!this.selectingArea) {
