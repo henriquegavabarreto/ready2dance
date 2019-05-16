@@ -73,7 +73,7 @@
                       Load Chart
                     </v-card-title>
                     <v-card-text>
-                      <v-list dense three-line style="max-height: 200px; max-width: 400px" class="scroll-y blue lighten-5">
+                      <v-list dense three-line style="max-height: 200px; max-width: 400px;" class="scroll-y blue lighten-5">
                         <v-list-tile
                           v-for="(song, name) in songs"
                           :key="song.chartId"
@@ -104,14 +104,16 @@
                     <v-card-title primary-title>
                       Save Chart
                     </v-card-title>
-                    <v-select
-                       :items="difficulties"
-                       label="Difficulty"
-                       outline
-                       v-model="difficulty"
-                       style="width: 150px;"
-                     ></v-select>
-                    <v-btn dark @click="saveToFirebase" class="pt-0">Save Chart</v-btn>
+                    <v-card-actions>
+                      <v-select
+                         :items="difficulties"
+                         label="Difficulty"
+                         outline
+                         v-model="difficulty"
+                         style="max-width: 150px; margin-right: 10px;"
+                       ></v-select>
+                      <v-btn dark @click="saveToFirebase" class="pt-0">Save Chart</v-btn>
+                    </v-card-actions>
                     <v-alert class="yellow black--text" :value="duplicateChart" style="max-height: 50px">
                       There is already a dance chart for this video. Do you want to overwrite it?
                       <v-btn dark small @click="duplicateChart = !duplicateChart">cancel</v-btn><v-btn dark small @click="overwriteChart">overwrite</v-btn>
