@@ -1,5 +1,5 @@
 export default class CueManager {
-  constructor (songManager, config, grid) {
+  constructor (songManager, config, grid, speed = 1) {
     this.songManager = songManager
     this.movesToDraw = []
     this.holdsToDraw = []
@@ -7,6 +7,7 @@ export default class CueManager {
     this.holdIndex = 0
     this.config = config
     this.grid = grid
+    this.speed = speed
   }
 
   drawCue (handMove, size, cues) { // draw circle cues
@@ -37,7 +38,7 @@ export default class CueManager {
     }
 
     if (this.index < moves.length) {
-      if (moves[this.index][0] >= this.songManager.currentQuarterBeat && moves[this.index][0] <= this.songManager.currentQuarterBeat + this.config.advanceSpawn) {
+      if (moves[this.index][0] >= this.songManager.currentQuarterBeat && moves[this.index][0] <= this.songManager.currentQuarterBeat + (this.config.advanceSpawn / this.speed)) {
         this.movesToDraw.push(moves[this.index])
         this.index++
       }
@@ -45,7 +46,7 @@ export default class CueManager {
 
     if (this.movesToDraw.length > 0) {
       for (let i = this.movesToDraw.length - 1; i >= 0; i--) {
-        let proportion = (this.config.advanceSpawn - (this.movesToDraw[i][0] - this.songManager.currentQuarterBeat)) / this.config.advanceSpawn
+        let proportion = ((this.config.advanceSpawn / this.speed) - (this.movesToDraw[i][0] - this.songManager.currentQuarterBeat)) / (this.config.advanceSpawn / this.speed)
         if (proportion > 1) {
           this.movesToDraw.splice(1, i)
         } else {

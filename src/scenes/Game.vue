@@ -1,22 +1,22 @@
 <template>
   <div>
+    <video id="videoStream" style="width: 100px; height: 100px; position: fixed; left: 10px; bottom: 10px;" :style="displayWebcam">
+    </video>
     <v-container fluid class="pa-0">
-      <video id="videoStream" style="width: 600px; height: 600px; display: none;">
-      </video>
       <v-layout row nowrap class="ma-0" style="background-color: black;">
-        <v-flex xs6 id="canvas">
+        <v-flex v-if="gameOptions.showAnimation" xs6 id="canvas">
         </v-flex>
-        <v-flex xs6 style="background-color: black;">
+        <v-flex xs6 style="background-color: black;" :style="noCanvas">
           <v-container fluid class="pa-0 ma-0">
             <v-layout row wrap justify-center align-center class="pa-0 mt-5">
-              <v-flex xs12 id="player" style="width:720px;" class="mt-5"></v-flex>
+              <v-flex xs12 id="player" style="width: 720px;" class="mt-5"></v-flex>
             </v-layout>
           </v-container>
         </v-flex>
       </v-layout>
     </v-container>
     <v-footer height="120" color="dark-gray">
-      <h1 id="score" style="border: 2px solid white; border-radius: 5px;" class="ml-5 pl-3 pr-3">SCORE: {{displayScore}}</h1>
+      <h1 id="score" style="border: 2px solid white; border-radius: 5px; margin-left: 120px;" class="pl-3 pr-3">SCORE: {{displayScore}}</h1>
       <v-spacer></v-spacer>
       <ul style="list-style-type: none;">
         <li><h3>You're listening to:</h3></li>
@@ -96,20 +96,26 @@ export default {
   created () {
     this.app = new PIXI.Application(pixiConfig)
     this.ticker = new PIXI.ticker.Ticker()
-    createTextures(this.app, this.textures, gameConfig)
-    addContainers(this.app, this.containers)
-    addGraphics(this.containers, this.textures)
+    if (this.gameOptions.showAnimation) {
+      createTextures(this.app, this.textures, gameConfig)
+      addContainers(this.app, this.containers)
+      addGraphics(this.containers, this.textures)
+    }
   },
   mounted () {
-    document.getElementById('canvas').appendChild(this.app.view)
     this.player = new YTPlayer('#player', playerConfig)
     this.songManager = new SongManager(this.player, this.$store.state.selectedChart)
-    this.cueManager = new CueManager(this.songManager, gameConfig, grid)
-    this.cameraLatency = (0.32 / this.songManager.tempo) * 4 // measured in quarterBeat => should be in the $store
+    if (this.gameOptions.showAnimation) {
+      document.getElementById('canvas').appendChild(this.app.view)
+      this.cueManager = new CueManager(this.songManager, gameConfig, grid, this.gameOptions.speed)
+      this.ticker.add(() => {
+        this.cueManager.drawDynamicCues(this.moves, this.textures.cues)
+      })
+    }
+    this.cameraLatency = (this.gameOptions.latency / this.songManager.tempo) * 4 // measured in quarterBeat => should be in the $store
     this.ticker.add(() => {
-      this.cueManager.drawDynamicCues(this.moves, this.textures.cues)
-      if (this.moveIndex < this.moves.length) {
-        if (this.moves[this.moveIndex][0] + 1 <= this.songManager.currentQuarterBeat - this.cameraLatency) {
+      if (this.moveIndex < this.moves.length) { // index value is not higher than the array length
+        if (this.moves[this.moveIndex][0] + 1 <= this.songManager.currentQuarterBeat - this.cameraLatency) { // if the beat of the current index has passed the current beat
           if (!(this.moves[this.moveIndex][2][0] === 'H' && this.moves[this.moveIndex][2].length === 2) && !(this.moves[this.moveIndex][3][0] === 'H' && this.moves[this.moveIndex][3].length === 2) &&
             !(this.moves[this.moveIndex][2][0] === 'M' && this.moves[this.moveIndex][2].length === 2) && !(this.moves[this.moveIndex][3][0] === 'M' && this.moves[this.moveIndex][3].length === 2)) {
             this.promiseArray.push(this.$store.state.net.estimateSinglePose(this.stream))
@@ -128,8 +134,10 @@ export default {
                   if (leftHandMove[0] === 'S') { // evaluate Sharp move
                     leftHandDetected = detectionManager.detect('L', leftHandMove[1], pose)
                   } else if (leftHandMove[0] === 'H' && leftHandMove.length > 2) { // evaluate Hold move
+                    if (leftHandMove[2] === 'S') this.holdingLeft = true // if it is the first of a hold, holding left is true
                     leftHandDetected = detectionManager.detect('L', leftHandMove[1], pose)
                   } else if (leftHandMove[0] === 'M' && leftHandMove.length > 2) { // evaluate Motion move
+                    if (leftHandMove[2] === 'S') this.holdingLeft = true // if it is the first of a motion, holding left is true
                     leftHandDetected = detectionManager.detect('L', leftHandMove[1], pose)
                   }
                   if (leftHandDetected) leftHit.push(i)
@@ -139,8 +147,10 @@ export default {
                   if (rightHandMove[0] === 'S') { // evaluate Sharp move
                     rightHandDetected = detectionManager.detect('R', rightHandMove[1], pose)
                   } else if (rightHandMove[0] === 'H' && rightHandMove.length > 2) { // evaluate Hold move
+                    if (rightHandMove[2] === 'S') this.holdingRight = true // if it is the first of a hold, holding right is true
                     rightHandDetected = detectionManager.detect('R', rightHandMove[1], pose)
                   } else if (rightHandMove[0] === 'M' && rightHandMove.length > 2) { // evaluate Motion move
+                    if (rightHandMove[2] === 'S') this.holdingRight = true // if it is the first of a motion, holding right is true
                     rightHandDetected = detectionManager.detect('R', rightHandMove[1], pose)
                   }
                   if (rightHandDetected) rightHit.push(i)
@@ -148,41 +158,77 @@ export default {
               })
 
               if (rightHit.length > 0) {
-                if (rightHit[0] === 0) {
-                  this.perfect++
-                  this.score += 1000
-                } else if (rightHit[0] === values.length - 1 && values.length > 2) {
-                  this.good++
-                  this.score += 600
-                } else {
-                  this.awesome++
-                  this.score += 800
+                // add track for hold and motion
+                if (rightHandMove[0] === 'S') {
+                  if (rightHit[0] === 0) {
+                    this.perfect++
+                    this.score += 1000
+                  } else if (rightHit[0] === values.length - 1 && values.length > 2) {
+                    this.good++
+                    this.score += 600
+                  } else {
+                    this.awesome++
+                    this.score += 800
+                  }
+                  this.combo++
+                  if (this.combo > this.maxCombo) this.maxCombo = this.combo
+                } else if ((rightHandMove[0] === 'H' || rightHandMove[0] === 'M') && this.holdingRight === true) { // check only if holding is true
+                  if (rightHit[0] === 0) {
+                    this.perfect++
+                    this.score += 1000
+                  } else if (rightHit[0] === values.length - 1 && values.length > 2) {
+                    this.good++
+                    this.score += 600
+                  } else {
+                    this.awesome++
+                    this.score += 800
+                  }
+                  this.combo++
+                  if (this.combo > this.maxCombo) this.maxCombo = this.combo
+                  if ((rightHandMove[0] === 'H' || rightHandMove[0] === 'M') && rightHandMove[2] === 'E') this.holdingRight = false // if it is the last of the move, set back to false
                 }
-                this.combo++
-                if (this.combo > this.maxCombo) this.maxCombo = this.combo
               } else if (rightHit.length === 0 && rightHandMove !== 'X' && !((rightHandMove[0] === 'H' || rightHandMove[0] === 'M') && rightHandMove.length === 2)) {
                 this.miss++
                 this.report.rightHand.push(handMove)
                 this.combo = 0
+                this.holdingRight = false
               }
 
               if (leftHit.length > 0) {
-                if (leftHit[0] === 0) {
-                  this.perfect++
-                  this.score += 1000
-                } else if (leftHit[0] === values.length - 1 && values.length > 2) {
-                  this.good++
-                  this.score += 600
-                } else {
-                  this.awesome++
-                  this.score += 800
+                // add track for hold and motion
+                if (leftHandMove[0] === 'S') {
+                  if (leftHit[0] === 0) {
+                    this.perfect++
+                    this.score += 1000
+                  } else if (leftHit[0] === values.length - 1 && values.length > 2) {
+                    this.good++
+                    this.score += 600
+                  } else {
+                    this.awesome++
+                    this.score += 800
+                  }
+                  this.combo++
+                  if (this.combo > this.maxCombo) this.maxCombo = this.combo
+                } else if ((leftHandMove[0] === 'H' || leftHandMove[0] === 'M') && this.holdingLeft === true) { // check only if holding is true
+                  if (leftHit[0] === 0) {
+                    this.perfect++
+                    this.score += 1000
+                  } else if (leftHit[0] === values.length - 1 && values.length > 2) {
+                    this.good++
+                    this.score += 600
+                  } else {
+                    this.awesome++
+                    this.score += 800
+                  }
+                  this.combo++
+                  if (this.combo > this.maxCombo) this.maxCombo = this.combo
+                  if ((leftHandMove[0] === 'H' || leftHandMove[0] === 'M') && leftHandMove[2] === 'E') this.holdingLeft = false // if it is the last of the move, set back to false
                 }
-                this.combo++
-                if (this.combo > this.maxCombo) this.maxCombo = this.combo
               } else if (leftHit.length === 0 && leftHandMove !== 'X' && !((leftHandMove[0] === 'H' || leftHandMove[0] === 'M') && leftHandMove.length === 2)) {
                 this.miss++
                 this.report.leftHand.push(handMove)
                 this.combo = 0
+                this.holdingLeft = false
               }
             }).catch((err) => { console.log(err) })
             this.promiseArray = []
@@ -258,11 +304,13 @@ export default {
     goToResults: function () {
       this.player.stop()
       this.player.destroy()
-      for (let texture in this.textures) {
-        this.textures[texture].destroy()
-      }
-      for (let container in this.containers) {
-        this.containers[container].destroy(true)
+      if (this.gameOptions.showAnimation) {
+        for (let texture in this.textures) {
+          this.textures[texture].destroy()
+        }
+        for (let container in this.containers) {
+          this.containers[container].destroy(true)
+        }
       }
       this.ticker.stop()
       this.ticker.destroy()
@@ -309,6 +357,28 @@ export default {
     },
     song () {
       return this.$store.state.selectedSong
+    },
+    gameOptions () {
+      return this.$store.state.gameOptions
+    },
+    displayWebcam () {
+      if (this.gameOptions.showWebcam === true) {
+        return {}
+      } else {
+        return { display: 'none' }
+      }
+    },
+    noCanvas () {
+      if (this.gameOptions.showAnimation === true) {
+        return {}
+      } else {
+        return {
+          height: '640px',
+          width: '100%',
+          margin: '0',
+          padding: '0'
+        }
+      }
     }
   }
 }
@@ -320,5 +390,9 @@ export default {
 
   #score {
     font-size: 60px;
+  }
+
+  video {
+    transform: scaleX(-1);
   }
 </style>

@@ -17,6 +17,88 @@
       <v-btn @click="goToEditor">EDITOR</v-btn>
       <v-btn>LOGOUT</v-btn>
     </v-toolbar>
+    <v-dialog
+    v-model="settings"
+    max-width="500"
+    min-height="500"
+    >
+      <v-card>
+        <v-card-title class="headline">Settings</v-card-title>
+
+        <v-card-text>
+          <h3>Change pose detection precision (advanced)</h3>
+          <v-select
+            :items="multipliers"
+            v-model="options.multiplier"
+            label="multiplier"
+            hint="The larger the value, more accurate at the cost of speed - defaults to 0.5"
+          ></v-select>
+          <v-checkbox
+            color="blue"
+            v-model="options.showAnimation">
+            <template v-slot:label>
+              <div class="black--text">
+                Show circle animations
+              </div>
+            </template>
+          </v-checkbox>
+          <v-select
+            :items="speed"
+            v-model="options.speed"
+            label="Circle Speed"
+            hint="Speed of the circles appearing on screen"
+          ></v-select>
+          <v-checkbox
+            color="blue"
+            v-model="options.showWebcam">
+            <template v-slot:label>
+              <div class="black--text">
+                Show webcam video
+              </div>
+            </template>
+          </v-checkbox>
+
+          <h3>Change your camera latency:</h3>
+          <v-text-field
+            label="Latency"
+            v-model="options.latency"
+            hint="ex: 0.32"
+          ></v-text-field>
+        </v-card-text>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+
+          <v-btn
+            color="green darken-1"
+            flat="flat"
+            @click="settings = false"
+          >
+            Close and Apply
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-dialog
+      v-model="loading"
+      hide-overlay
+      persistent
+      width="300"
+    >
+      <v-card
+        color="primary"
+        dark
+      >
+        <v-card-text>
+          Loading
+          <v-progress-linear
+            indeterminate
+            color="white"
+            class="mb-0"
+          ></v-progress-linear>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
     <v-container mx-0>
       <v-layout row wrap justify-space-between>
         <v-flex xs5 class="blue">
@@ -74,7 +156,6 @@
           </v-card>
         </v-flex>
       </v-layout>
-
     </v-container>
   </div>
 </template>
@@ -86,8 +167,26 @@ export default {
     return {
       search: '',
       selectedSong: {},
-      selectedChart: ''
+      selectedChart: '',
+      settings: false,
+      multipliers: [0.5, 0.75, 1.0],
+      speed: [0.5, 1, 2],
+      options: {
+        multiplier: 0.5,
+        latency: 0.32,
+        showAnimation: true,
+        showWebcam: true,
+        speed: 1
+      },
+      loading: false
     }
+  },
+  created () {
+    this.options.showAnimation = this.$store.state.gameOptions.showAnimation
+    this.options.showWebcam = this.$store.state.gameOptions.showWebcam
+    this.options.latency = this.$store.state.gameOptions.latency
+    this.options.multiplier = this.$store.state.gameOptions.multiplier
+    this.options.speed = this.$store.state.gameOptions.speed
   },
   methods: {
     goToEditor: function () { // go to editor
@@ -98,20 +197,29 @@ export default {
     },
     goToGame: function () { // goes to the game after the chart is loaded
       if (this.selectedSong !== {} && this.selectedChart !== '') {
-        this.$store.commit('selectSong', this.selectedSong)
-        this.$store.dispatch('changeSelectedChart', this.selectedChart).then(() => {
-          this.$store.commit('goToGame')
-        })
+        this.loading = true
+        if (this.options.multiplier !== this.$store.state.gameOptions.multiplier) { // if there is a new multiplier
+          this.$store.dispatch('loadNet', this.options.multiplier).then(() => {
+            this.$store.commit('changeOptions', this.options)
+            this.$store.commit('selectSong', this.selectedSong)
+            this.$store.dispatch('changeSelectedChart', this.selectedChart).then(() => {
+              this.$store.commit('goToGame')
+            })
+          })
+        } else { // if the multiplier is the same as in the store
+          this.$store.commit('changeOptions', this.options)
+          this.$store.commit('selectSong', this.selectedSong)
+          this.$store.dispatch('changeSelectedChart', this.selectedChart).then(() => {
+            this.$store.commit('goToGame')
+          })
+        }
       }
     },
     selectChart: function (chartId) { // get the id of the selected chart so it can be loaded
       this.selectedChart = chartId
     },
     toggleSettings: function () {
-      // change model multiplier
-      // don't show animation (aka youtube and feedback only - no canvas)
-      // change camera latency
-      console.log('show settings')
+      this.settings = !this.settings
     }
   },
   computed: {

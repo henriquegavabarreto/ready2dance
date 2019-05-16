@@ -16,6 +16,13 @@ export default new Vuex.Store({
     selectedChartId: null,
     selectedChart: null,
     results: {},
+    gameOptions: {
+      showAnimation: true,
+      showWebcam: true,
+      latency: 0.32,
+      multiplier: 0.5,
+      speed: 1
+    },
     currentScene: 'song-selection'
   },
   mutations: {
@@ -51,6 +58,13 @@ export default new Vuex.Store({
     },
     somethingWentWrong: state => {
       state.somethingWentWrong = !state.somethingWentWrong
+    },
+    changeOptions: (state, data) => {
+      state.gameOptions.showAnimation = data.showAnimation
+      state.gameOptions.showWebcam = data.showWebcam
+      state.gameOptions.latency = parseFloat(data.latency)
+      state.gameOptions.multiplier = data.multiplier
+      state.gameOptions.speed = data.speed
     }
   },
   actions: {
@@ -64,8 +78,8 @@ export default new Vuex.Store({
         context.commit('changeSelectedChart', data.val())
       }, (err) => { console.log(err) })
     },
-    loadNet: context => {
-      posenet.load(0.5).then((data) => {
+    loadNet: (context, payload) => {
+      posenet.load(payload).then((data) => {
         context.commit('loadNet', data)
       }).catch((err) => console.log(err))
     }
