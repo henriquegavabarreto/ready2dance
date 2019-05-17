@@ -363,39 +363,33 @@ export default {
 
     this.ticker.add(() => {
       animationManager.animate(this.songManager, this.containers, this.cueManager, this.danceChart)
-      this.cueManager.drawDynamicCues(this.danceChart.moves, this.textures.cues)
+      if (this.player.getState() === 'playing') this.cueManager.drawDynamicCues(this.danceChart.moves, this.textures.cues)
     })
-    this.ticker.stop()
-    this.player.on('paused', () => {
-      this.ticker.stop()
-    })
+
+    this.ticker.start()
+
     this.player.on('playing', () => {
       this.cueManager.setCurrentIndex(this.danceChart)
       this.cueManager.holdsToDraw = []
       this.cueManager.movesToDraw = []
-      this.ticker.start()
     })
   },
   methods: {
     moveToNextQuarterBeat: function () {
       // eslint-disable-next-line
       moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, this.containers, this.textures, 1)
-      setTimeout(() => { animationManager.animate(this.songManager, this.containers, this.cueManager, this.danceChart) }, 280)
     },
     moveToPreviousQuarterBeat: function () {
       // eslint-disable-next-line
       moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, this.containers, this.textures, -1)
-      setTimeout(() => { animationManager.animate(this.songManager, this.containers, this.cueManager, this.danceChart) }, 280)
     },
     moveToNextBeat: function () {
       // eslint-disable-next-line
       moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, this.containers, this.textures, 4)
-      setTimeout(() => { animationManager.animate(this.songManager, this.containers, this.cueManager, this.danceChart) }, 280)
     },
     moveToPreviousBeat: function () {
       // eslint-disable-next-line
       moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, this.containers, this.textures, -4)
-      setTimeout(() => { animationManager.animate(this.songManager, this.containers, this.cueManager, this.danceChart) }, 280)
     },
     playAndPause: function () { // shortcut for play and pause when canvas is selected
       if (!this.selectingArea) {

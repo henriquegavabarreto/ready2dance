@@ -113,7 +113,7 @@
               </v-icon>
               <span class="display-1">Select a Song</span>
             </v-card-title>
-            <v-container fluid grid-list-lg>
+            <v-container fluid grid-list-lg style="max-height: 580px;" class="scroll-y">
               <v-layout row wrap>
                 <v-flex
                 xs12
