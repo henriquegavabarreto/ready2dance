@@ -25,7 +25,7 @@ export default new Vuex.Store({
       imageScale: 0.5,
       speed: 1
     },
-    currentScene: 'song-selection'
+    currentScene: 'home'
   },
   mutations: {
     selectSong: (state, data) => {
@@ -36,6 +36,9 @@ export default new Vuex.Store({
     },
     updateSongs: (state, data) => {
       state.songs = data
+    },
+    goToHome: state => {
+      state.currentScene = 'home'
     },
     goToEditor: state => {
       state.currentScene = 'editor'

@@ -23,6 +23,7 @@ import Editor from './scenes/Editor'
 import SongSelection from './scenes/SongSelection'
 import Game from './scenes/Game'
 import Results from './scenes/Results'
+import Home from './scenes/Home'
 
 export default {
   name: 'App',
@@ -30,7 +31,8 @@ export default {
     'editor': Editor,
     'song-selection': SongSelection,
     'game': Game,
-    'results': Results
+    'results': Results,
+    'home': Home
   },
   data () {
     return {

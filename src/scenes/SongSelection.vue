@@ -15,7 +15,7 @@
       ></v-text-field>
       <v-btn @click="toggleSettings"><v-icon>settings</v-icon></v-btn>
       <v-btn @click="goToEditor">EDITOR</v-btn>
-      <v-btn>LOGOUT</v-btn>
+      <v-btn @click="logout">LOGOUT</v-btn>
     </v-toolbar>
     <v-dialog
     v-model="settings"
@@ -182,6 +182,7 @@
 </template>
 
 <script>
+import firebase from '../tools/config/firebase'
 
 export default {
   data () {
@@ -246,6 +247,11 @@ export default {
     },
     toggleSettings: function () {
       this.settings = !this.settings
+    },
+    logout: function () {
+      firebase.auth.signOut().then(() => {
+        this.$store.commit('goToHome')
+      }).catch((err) => { console.log(err) })
     }
   },
   computed: {
