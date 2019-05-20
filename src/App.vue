@@ -2,7 +2,7 @@
   <div data-app=true>
     <component :is="$store.state.currentScene"></component>
     <v-snackbar
-      v-model="somethingWentWrong"
+      v-model="$store.state.somethingWentWrong"
       center
       :timeout="8000"
     >
@@ -45,11 +45,6 @@ export default {
   methods: {
     toggleWrong: function () {
       this.$store.commit('somethingWentWrong')
-    }
-  },
-  computed: {
-    somethingWentWrong: function () {
-      return this.$store.state.somethingWentWrong
     }
   }
 }

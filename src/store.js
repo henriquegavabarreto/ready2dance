@@ -21,6 +21,8 @@ export default new Vuex.Store({
       showWebcam: true,
       latency: 0.32,
       multiplier: 0.5,
+      outputStride: 16,
+      imageScale: 0.5,
       speed: 1
     },
     currentScene: 'song-selection'
@@ -64,7 +66,9 @@ export default new Vuex.Store({
       state.gameOptions.showWebcam = data.showWebcam
       state.gameOptions.latency = parseFloat(data.latency)
       state.gameOptions.multiplier = data.multiplier
-      state.gameOptions.speed = data.speed
+      state.gameOptions.speed = parseInt(data.speed)
+      state.gameOptions.outputStride = parseInt(data.outputStride)
+      state.gameOptions.imageScale = parseFloat(data.imageScale)
     }
   },
   actions: {

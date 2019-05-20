@@ -26,13 +26,7 @@
         <v-card-title class="headline">Settings</v-card-title>
 
         <v-card-text>
-          <h3>Change pose detection precision (advanced)</h3>
-          <v-select
-            :items="multipliers"
-            v-model="options.multiplier"
-            label="multiplier"
-            hint="The larger the value, more accurate at the cost of speed - defaults to 0.5"
-          ></v-select>
+          <h3>Camera and animations</h3>
           <v-checkbox
             color="blue"
             v-model="options.showAnimation">
@@ -45,7 +39,7 @@
           <v-select
             :items="speed"
             v-model="options.speed"
-            label="Circle Speed"
+            label="Circle Animation Speed"
             hint="Speed of the circles appearing on screen"
           ></v-select>
           <v-checkbox
@@ -53,17 +47,44 @@
             v-model="options.showWebcam">
             <template v-slot:label>
               <div class="black--text">
-                Show webcam video
+                Show video from webcam
               </div>
             </template>
           </v-checkbox>
-
-          <h3>Change your camera latency:</h3>
           <v-text-field
-            label="Latency"
+            label="Camera Latency"
             v-model="options.latency"
             hint="ex: 0.32"
           ></v-text-field>
+          <h3 class="mt-5">Change pose detection precision (advanced)</h3>
+          <v-select
+            class="mt-4"
+            :items="multipliers"
+            v-model="options.multiplier"
+            label="multiplier"
+            hint="The larger the value, more accurate at the cost of speed - defaults to 0.5"
+          ></v-select>
+          <v-select
+            class="mt-4"
+            :items="outputStrideValues"
+            v-model="options.outputStride"
+            label="output stride"
+            hint="The smaller the value, more accurate at the cost of speed - defaults to 16"
+          ></v-select>
+          <v-slider
+            class="mt-4"
+            v-model="options.imageScale"
+            color="blue"
+            always-dirty
+            label="Image Scale"
+            thumb-label="always"
+            :thumb-size="24"
+            :min="0.2"
+            :max="1"
+            step="0.01"
+            hint="The larger the value, more accurate at the cost of speed - defaults to 0.5"
+            persistent-hint
+          ></v-slider>
         </v-card-text>
 
         <v-card-actions>
@@ -170,9 +191,12 @@ export default {
       selectedChart: '',
       settings: false,
       multipliers: [0.5, 0.75, 1.0],
+      outputStrideValues: [8, 16, 32],
       speed: [0.5, 1, 2],
       options: {
         multiplier: 0.5,
+        outputStride: 16,
+        imageScale: 0.5,
         latency: 0.32,
         showAnimation: true,
         showWebcam: true,
@@ -187,6 +211,8 @@ export default {
     this.options.latency = this.$store.state.gameOptions.latency
     this.options.multiplier = this.$store.state.gameOptions.multiplier
     this.options.speed = this.$store.state.gameOptions.speed
+    this.options.outputStride = this.$store.state.gameOptions.outputStride
+    this.options.imageScale = this.$store.state.gameOptions.imageScale
   },
   methods: {
     goToEditor: function () { // go to editor

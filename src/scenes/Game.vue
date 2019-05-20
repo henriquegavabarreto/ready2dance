@@ -94,9 +94,9 @@ export default {
     }
   },
   created () {
-    this.app = new PIXI.Application(pixiConfig)
     this.ticker = new PIXI.ticker.Ticker()
     if (this.gameOptions.showAnimation) {
+      this.app = new PIXI.Application(pixiConfig)
       createTextures(this.app, this.textures, gameConfig)
       addContainers(this.app, this.containers)
       addGraphics(this.containers, this.textures)
@@ -118,7 +118,7 @@ export default {
         if (this.moves[this.moveIndex][0] + 1 <= this.songManager.currentQuarterBeat - this.cameraLatency) { // if the beat of the current index has passed the current beat
           if (!(this.moves[this.moveIndex][2][0] === 'H' && this.moves[this.moveIndex][2].length === 2) && !(this.moves[this.moveIndex][3][0] === 'H' && this.moves[this.moveIndex][3].length === 2) &&
             !(this.moves[this.moveIndex][2][0] === 'M' && this.moves[this.moveIndex][2].length === 2) && !(this.moves[this.moveIndex][3][0] === 'M' && this.moves[this.moveIndex][3].length === 2)) {
-            this.promiseArray.push(this.$store.state.net.estimateSinglePose(this.stream))
+            this.promiseArray.push(this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride))
             this.promiseArray.push(this.moves[this.moveIndex])
             Promise.all(this.promiseArray).then((values) => {
               let handMove = values.splice(values.length - 1, 1)[0]
@@ -240,7 +240,7 @@ export default {
           if (this.moves[this.moveIndex][0] <= this.songManager.currentQuarterBeat - this.cameraLatency) { // push estimate pose to promise array if it is a move with length > 2 (except Sharp)
             if (!(this.moves[this.moveIndex][2][0] === 'H' && this.moves[this.moveIndex][2].length === 2) && !(this.moves[this.moveIndex][3][0] === 'H' && this.moves[this.moveIndex][3].length === 2) &&
               !(this.moves[this.moveIndex][2][0] === 'M' && this.moves[this.moveIndex][2].length === 2) && !(this.moves[this.moveIndex][3][0] === 'M' && this.moves[this.moveIndex][3].length === 2)) {
-              this.promiseArray.push(this.$store.state.net.estimateSinglePose(this.stream))
+              this.promiseArray.push(this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride))
             }
           }
         }
@@ -284,19 +284,19 @@ export default {
     this.player.setVolume(0)
     this.player.load(this.$store.state.selectedChart.videoId, false)
 
-    getUserMedia({ video: { width: 600, height: 600 }, audio: false }, (err, stream) => {
+    getUserMedia({ video: { width: 300, height: 300 }, audio: false }, (err, stream) => {
       if (err) {
         console.log(err)
+        this.stopCapture()
         this.$store.commit('somethingWentWrong')
         this.$store.commit('goToSongSelection')
-        // add a something went wrong snackbar at song selection if an error occurs
       } else {
         this.stream = document.getElementById('videoStream')
         this.stream.width = 600
         this.stream.height = 600
         this.stream.srcObject = stream
         this.stream.play()
-        this.$store.state.net.estimateSinglePose(this.stream)
+        this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride)
       }
     })
   },
@@ -311,10 +311,10 @@ export default {
         for (let container in this.containers) {
           this.containers[container].destroy(true)
         }
+        this.app.destroy()
       }
       this.ticker.stop()
       this.ticker.destroy()
-      this.app.destroy()
       this.stopCapture()
       this.$store.commit('goToResults')
       this.$store.commit('changeResults', {

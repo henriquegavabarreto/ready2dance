@@ -95,6 +95,7 @@
                     </v-card-text>
                     <v-card-actions>
                       <v-btn dark @click="loadChart(selectedSong, selectedChartId)">Load</v-btn>
+                      <v-btn dark color="red" @click="deleteChart(selectedSong, selectedChartId)">Delete</v-btn>
                     </v-card-actions>
                   </v-card>
                 </v-flex>
@@ -570,6 +571,18 @@ export default {
             drawStaff(this.containers, this.textures, this.player, this.danceChart, this.songManager)
           }, 3000)
         }).catch(err => console.log(err))
+      }
+    },
+    deleteChart: function (songId, chartId) { // removes selected chart from the database
+      if (chartId !== '') {
+        let key = Object.keys(this.songs[songId].charts).find(key => this.songs[songId].charts[key] === chartId)
+        if (Object.keys(this.songs[songId].charts).length === 1) {
+          firebase.database.ref(`charts/${chartId}`).remove()
+          firebase.database.ref(`songs/${songId}`).remove()
+        } else {
+          firebase.database.ref(`charts/${chartId}`).remove()
+          firebase.database.ref(`songs/${songId}/charts/${key}`).remove()
+        }
       }
     },
     goToSongSelection: function () { // goes back to song selection Scene
