@@ -14,9 +14,41 @@
         flat
       ></v-text-field>
       <v-btn @click="toggleSettings"><v-icon>settings</v-icon></v-btn>
-      <v-btn @click="goToEditor">EDITOR</v-btn>
+      <v-btn v-if="$store.state.user.type === 'admin'" @click="manageUsers = true"><v-icon>assignment_ind</v-icon></v-btn>
+      <v-btn v-if="$store.state.user.type !== 'user'" @click="goToEditor">EDITOR</v-btn>
       <v-btn @click="logout">LOGOUT</v-btn>
     </v-toolbar>
+    <v-dialog
+    v-model="manageUsers"
+    max-width="500"
+    min-height="500"
+    >
+      <v-card>
+        <v-card-title class="headline">Manage Users</v-card-title>
+
+        <v-card-text>
+          <v-list dense two-line style="max-height: 400px; max-width: 400px;" class="scroll-y blue lighten-5">
+            <v-list-tile
+              v-for="(user, name) in users"
+              :key="name"
+              :class="selectedUser === name ? 'blue lighten' : ''"
+              @click="selectedUser = name"
+            >
+              <v-list-tile-content>
+                <v-list-tile-title>{{user.username}}</v-list-tile-title>
+                <v-list-tile-sub-title>{{user.type}}</v-list-tile-sub-title>
+              </v-list-tile-content>
+            </v-list-tile>
+          </v-list>
+        </v-card-text>
+
+        <v-card-actions>
+          <v-btn @click="changeUserStatus('user')">user</v-btn>
+          <v-btn @click="changeUserStatus('editor')">editor</v-btn>
+          <v-btn @click="changeUserStatus('admin')">admin</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-dialog
     v-model="settings"
     max-width="500"
@@ -203,10 +235,17 @@ export default {
         showWebcam: true,
         speed: 1
       },
-      loading: false
+      loading: false,
+      username: '',
+      manageUsers: false,
+      selectedUser: '',
+      users: null
     }
   },
   created () {
+    firebase.database.ref('users').on('value', (data) => {
+      this.users = data.val()
+    })
     this.options.showAnimation = this.$store.state.gameOptions.showAnimation
     this.options.showWebcam = this.$store.state.gameOptions.showWebcam
     this.options.latency = this.$store.state.gameOptions.latency
@@ -252,6 +291,21 @@ export default {
       firebase.auth.signOut().then(() => {
         this.$store.commit('goToHome')
       }).catch((err) => { console.log(err) })
+    },
+    changeUserStatus: function (status) {
+      firebase.database.ref('users').once('value').then((value) => {
+        let users = value.val()
+        for (let user in users) {
+          if (user === this.selectedUser) {
+            firebase.database.ref(`users/${user}`).update({
+              type: status
+            })
+            return
+          }
+        }
+      }).catch((err) => {
+        console.log(err)
+      })
     }
   },
   computed: {

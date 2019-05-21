@@ -9,6 +9,7 @@ Vue.use(posenet)
 
 export default new Vuex.Store({
   state: {
+    user: null,
     net: null,
     songs: null,
     somethingWentWrong: false,
@@ -28,6 +29,9 @@ export default new Vuex.Store({
     currentScene: 'home'
   },
   mutations: {
+    changeUser: (state, data) => {
+      state.user = data
+    },
     selectSong: (state, data) => {
       state.selectedSong = data
     },

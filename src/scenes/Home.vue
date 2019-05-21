@@ -8,9 +8,17 @@
         flat
       >
       <v-card-text>
-        <v-text-field v-model="username" label="Username*" required></v-text-field>
-        <v-text-field v-model="email" label="Email*" required></v-text-field>
-        <v-text-field v-model="password" label="Password*" type="password" required></v-text-field>
+        <p v-if="error">
+          <b>Error:</b>
+          <ul>
+            <li class="red--text">{{ error }}</li>
+          </ul>
+        </p>
+        <v-form ref="register">
+          <v-text-field v-model="username" label="Username*" :rules="usernameRules" required></v-text-field>
+          <v-text-field v-model="email" label="Email*" :rules="emailRules" required></v-text-field>
+          <v-text-field v-model="password" label="Password*" :rules="passwordRules" type="password" required></v-text-field>
+        </v-form>
       </v-card-text>
       <v-card-actions>
         <v-btn
@@ -27,6 +35,12 @@
     <v-dialog v-model="loginModal" persistent max-width="600">
       <v-card>
         <v-card-text>
+          <p v-if="error">
+            <b>Error:</b>
+            <ul>
+              <li>{{ error }}</li>
+            </ul>
+          </p>
           <v-text-field v-model="email" label="Email*" required></v-text-field>
           <v-text-field v-model="password" label="Password*" type="password" required></v-text-field>
         </v-card-text>
@@ -58,7 +72,11 @@ export default {
       email: '',
       password: '',
       username: '',
-      loading: false
+      loading: false,
+      error: null,
+      usernameRules: [ v => (!!/^[a-z0-9_-]/g.test(v) && v.length > 3 && v.length < 17) || 'Alphanumeric lowercase only. Can include _ and – having a length of 4 to 16 characters.' ],
+      emailRules: [ v => !!/^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/g.test(v) || 'Enter a valid e-mail address.' ],
+      passwordRules: [ v => v.length > 5 || 'The password must be at least 6 characters long.' ]
     }
   },
   methods: {
@@ -69,62 +87,73 @@ export default {
       this.loginModal = !this.loginModal
     },
     registerNewUser: function () {
-      this.loading = true
-      firebase.database.ref('users').once('value').then((value) => { // check for users in the database
-        let users = value.val()
-        if (users === null) { // if there are no users
-          console.log(users)
-          firebase.auth.createUserWithEmailAndPassword(this.email, this.password).then((result) => { // create new user
-            console.log('created')
-            firebase.database.ref(`users/${result.user.uid}`).set({ // set new user in the database
-              username: this.username,
-              type: 'user'
-            }).then(() => {
-              this.loading = false
-              this.$store.commit('goToSongSelection')
-            }).catch((err) => {
-              this.loading = false
-              console.log(err)
-            })
-          }).catch((err) => {
-            this.loading = false
-            console.log(err)
-          })
-        } else { // if there are users
-          let taken = false
-          for (let user in users) {
-            if (users[user].username === this.username) {
-              console.log('username taken')
-              this.loading = false
-              taken = true
-              return
-            }
-          }
-          if (!taken) {
+      if (this.$refs.register.validate()) {
+        this.loading = true
+        firebase.database.ref('users').once('value').then((value) => { // check for users in the database
+          let users = value.val()
+          if (users === null) { // if there are no users
             firebase.auth.createUserWithEmailAndPassword(this.email, this.password).then((result) => { // create new user
-              console.log('created')
               firebase.database.ref(`users/${result.user.uid}`).set({ // set new user in the database
-                username: this.username
+                username: this.username,
+                type: 'user'
               }).then(() => {
+                this.loading = false
                 this.$store.commit('goToSongSelection')
               }).catch((err) => {
                 this.loading = false
+                this.error = err.message
                 console.log(err)
               })
             }).catch((err) => {
               this.loading = false
+              this.error = err.message
               console.log(err)
             })
+          } else { // if there are users
+            let taken = false
+            for (let user in users) {
+              if (users[user].username === this.username) {
+                this.loading = false
+                this.error = 'Username not available, please choose another one.'
+                taken = true
+                return
+              }
+            }
+            if (!taken) {
+              firebase.auth.createUserWithEmailAndPassword(this.email, this.password).then((result) => { // create new user
+                let user = { // set new user in the database
+                  username: this.username,
+                  type: 'user'
+                }
+                firebase.database.ref(`users/${result.user.uid}`).set(user).then(() => {
+                  this.$store.commit('changeUser', user)
+                  this.$store.commit('goToSongSelection')
+                }).catch((err) => {
+                  this.loading = false
+                  this.error = err.message
+                  console.log(err)
+                })
+              }).catch((err) => {
+                this.loading = false
+                this.error = err.message
+                console.log(err)
+              })
+            }
           }
-        }
-      })
+        })
+      }
     },
     logUserIn: function () {
       this.loading = true
       firebase.auth.signInWithEmailAndPassword(this.email, this.password).then((result) => {
-        this.loading = false
-        this.$store.commit('goToSongSelection')
+        firebase.database.ref(`users/${result.user.uid}`).once('value').then((value) => {
+          this.$store.commit('changeUser', value.val())
+          this.loading = false
+          this.$store.commit('goToSongSelection')
+        })
       }).catch((err) => {
+        this.error = err.message
+        this.loading = false
         console.log(err)
       })
     }
