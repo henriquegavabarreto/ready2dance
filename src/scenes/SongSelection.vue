@@ -193,19 +193,44 @@
           <v-card style="width: 800px;">
             <v-card-title primary-title>
               <div class="mr-5">
-                <h3 class="headline mb-0">{{selectedSong.title}} {{filteredSongs.title}}</h3>
-                <div>{{selectedSong.artist}}</div>
+                <h3 class="headline mb-1">{{selectedSong.title}} {{filteredSongs.title}}</h3>
+                <div class="subheading">{{selectedSong.artist}}</div>
               </div>
               <div v-for="(chartId, dif) in songCharts" :key="dif">
                 <v-btn
                   small
-                  @click="selectChart(chartId)"
+                  @click="selectChart(chartId, dif)"
                   :class="selectedChart === chartId ? 'blue lighten' : ''">{{dif}}</v-btn>
               </div>
+              <v-spacer></v-spacer>
               <v-btn class="ml-5"
                 :disabled="selectedChart === ''"
                 @click="goToGame"><v-icon>play_arrow</v-icon></v-btn>
             </v-card-title>
+          </v-card>
+          <v-card v-show="selectedSong !== {}" style="width: 800px; height: 500px;" class="mt-3">
+            <v-card-title class="display-2" primary-title>
+              SCORE BOARD
+            </v-card-title>
+            <v-card-text v-if="typeof $store.state.songScores === 'string'">
+              {{$store.state.songScores}}
+            </v-card-text>
+            <v-card-text v-else>
+              <table class="scroll-y" style="width: 600px; max-height: 600px;">
+                <thead class="headline">
+                  <th>Rank</th>
+                  <th>Player</th>
+                  <th>Score</th>
+                </thead>
+                <tbody>
+                  <tr v-for="(score, index) in $store.state.songScores" :key="index" class="title text-sm-center">
+                    <td>{{index + 1}}</td>
+                    <td>{{score[0]}}</td>
+                    <td>{{score[1]}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </v-card-text>
           </v-card>
         </v-flex>
       </v-layout>
@@ -260,6 +285,8 @@ export default {
     },
     selectSong: function (song) { // get song info from the list of filtered songs
       this.selectedSong = song
+      this.$store.commit('selectSong', song)
+      this.$store.commit('changeSongScores', 'Select a difficulty')
     },
     goToGame: function () { // goes to the game after the chart is loaded
       if (this.selectedSong !== {} && this.selectedChart !== '') {
@@ -281,14 +308,26 @@ export default {
         }
       }
     },
-    selectChart: function (chartId) { // get the id of the selected chart so it can be loaded
+    selectChart: function (chartId, dif) { // get the id of the selected chart so it can be loaded
       this.selectedChart = chartId
+      this.$store.commit('selectDifficulty', dif)
+      this.$store.commit('selectChart', chartId)
+      if (!this.selectedSong.scores) {
+        this.$store.commit('changeSongScores', 'No scores for this song yet!')
+      } else {
+        if (!this.selectedSong.scores[dif]) {
+          this.$store.commit('changeSongScores', 'No scores for this difficulty yet!')
+        } else {
+          this.$store.dispatch('updateSongScores', this.selectedSong.scores[dif])
+        }
+      }
     },
     toggleSettings: function () {
       this.settings = !this.settings
     },
     logout: function () {
       firebase.auth.signOut().then(() => {
+        this.$store.commit('changeSongScores', 'Select a Song!')
         this.$store.commit('goToHome')
       }).catch((err) => { console.log(err) })
     },
@@ -339,3 +378,11 @@ export default {
   }
 }
 </script>
+<style scoped>
+  th {
+    padding-bottom: 25px;
+  }
+  td {
+    padding-bottom: 15px;
+  }
+</style>

@@ -61,6 +61,7 @@ import createTextures from '../tools/game/create-textures'
 import addContainers from '../tools/game/add-containers'
 import addGraphics from '../tools/game/add-graphics'
 import * as PIXI from 'pixi.js'
+import firebase from '../tools/config/firebase'
 
 const YTPlayer = require('yt-player')
 
@@ -292,8 +293,8 @@ export default {
         this.$store.commit('goToSongSelection')
       } else {
         this.stream = document.getElementById('videoStream')
-        this.stream.width = 600
-        this.stream.height = 600
+        this.stream.width = 300
+        this.stream.height = 300
         this.stream.srcObject = stream
         this.stream.play()
         this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride)
@@ -316,6 +317,61 @@ export default {
       this.ticker.stop()
       this.ticker.destroy()
       this.stopCapture()
+
+      for (let song in this.$store.state.songs) {
+        if (this.$store.state.selectedSong.videoId === this.$store.state.songs[song].videoId) {
+          firebase.database.ref(`songs/${song}`).once('value').then((value) => {
+            let songToCheck = value.val()
+            if (!songToCheck.hasOwnProperty('scores')) { // if there are no scores for this song
+              // create scores with the new difficulty
+              firebase.database.ref('scores').push({
+                [this.$store.state.user.username]: this.score
+              }).then((scoreRef) => {
+                this.$store.dispatch('updateSongScores', scoreRef.key)
+                firebase.database.ref(`songs/${song}`).update({
+                  scores: {
+                    [this.$store.state.selectedDifficulty]: scoreRef.key
+                  }
+                })
+              })
+            } else { // if there are scores
+              if (songToCheck.scores.hasOwnProperty(this.$store.state.selectedDifficulty)) { // if selected difficulty is part of the score node
+                let scoreId = songToCheck.scores[this.$store.state.selectedDifficulty]
+                firebase.database.ref(`scores/${scoreId}`).once('value').then((value) => {
+                  let scores = value.val()
+                  let hasScore = false
+                  for (let score in scores) {
+                    if (score.username === this.$store.state.user.username) { // user already has a score
+                      hasScore = true
+                      if (this.score > score[this.$store.state.user.username]) {
+                        firebase.database.ref(`scores/${scoreId}`).update({
+                          [this.$store.state.user.username]: this.score
+                        })
+                      }
+                    }
+                  }
+                  if (!hasScore) {
+                    firebase.database.ref(`scores/${scoreId}`).update({
+                      [this.$store.state.user.username]: this.score
+                    })
+                  }
+                })
+              } else {
+                // create new score in database and update it in the song
+                firebase.database.ref('scores').push({
+                  [this.$store.state.user.username]: this.score
+                }).then((scoreRef) => {
+                  this.$store.dispatch('updateSongScores', scoreRef.key)
+                  firebase.database.ref(`songs/${song}/scores`).update({
+                    [this.$store.state.selectedDifficulty]: scoreRef.key
+                  })
+                })
+              }
+            }
+          })
+        }
+      }
+
       this.$store.commit('goToResults')
       this.$store.commit('changeResults', {
         perfect: this.perfect,

@@ -1,12 +1,29 @@
 <template>
-  <div>Ready 2 Dance
-    <v-btn @click="toggleRegisterModal">register</v-btn>
-    <v-btn @click="toggleLoginModal">log in</v-btn>
+  <div>
+    <v-container>
+      <v-layout row wrap align-center justify-center>
+        <v-flex class="display-1 mb-2" xs12>
+          Are You
+        </v-flex>
+        <v-flex class="display-4 mb-5" xs12>
+          Ready 2 Dance
+        </v-flex>
+        <v-flex xs12>
+          <v-btn large dark @click="toggleLoginModal">log in</v-btn>
+        </v-flex>
+        <v-flex xs12>
+          <v-btn large dark @click="toggleRegisterModal">register</v-btn>
+        </v-flex>
+      </v-layout>
+    </v-container>
     <v-layout row justify-center>
     <v-dialog v-model="registerModal" persistent max-width="600">
       <v-card
         flat
       >
+      <v-toolbar dark color="black">
+        <v-toolbar-title>Register</v-toolbar-title>
+      </v-toolbar>
       <v-card-text>
         <p v-if="error">
           <b>Error:</b>
@@ -17,23 +34,26 @@
         <v-form ref="register">
           <v-text-field v-model="username" label="Username*" :rules="usernameRules" required></v-text-field>
           <v-text-field v-model="email" label="Email*" :rules="emailRules" required></v-text-field>
-          <v-text-field v-model="password" label="Password*" :rules="passwordRules" type="password" required></v-text-field>
+          <v-text-field @keyup.enter="registerNewUser" v-model="password" label="Password*" :rules="passwordRules" type="password" required></v-text-field>
         </v-form>
       </v-card-text>
       <v-card-actions>
         <v-btn
-          color="blue"
+          dark
           :loading="loading"
           @click="registerNewUser"
         >
           Continue
         </v-btn>
-        <v-btn @click="toggleRegisterModal" flat>Cancel</v-btn>
+        <v-btn :disable="loading" @click="toggleRegisterModal" flat>Cancel</v-btn>
       </v-card-actions>
       </v-card>
     </v-dialog>
     <v-dialog v-model="loginModal" persistent max-width="600">
       <v-card>
+        <v-toolbar dark color="black">
+          <v-toolbar-title>Login</v-toolbar-title>
+        </v-toolbar>
         <v-card-text>
           <p v-if="error">
             <b>Error:</b>
@@ -42,18 +62,18 @@
             </ul>
           </p>
           <v-text-field v-model="email" label="Email*" required></v-text-field>
-          <v-text-field v-model="password" label="Password*" type="password" required></v-text-field>
+          <v-text-field @keyup.enter="logUserIn" v-model="password" label="Password*" type="password" required></v-text-field>
         </v-card-text>
         <v-card-actions>
           <v-btn
-            color="blue"
+            dark
             @click="logUserIn"
             :loading="loading"
           >
             Continue
           </v-btn>
 
-          <v-btn @click="toggleLoginModal" flat>Cancel</v-btn>
+          <v-btn :disable="loading" @click="toggleLoginModal" flat>Cancel</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -93,11 +113,13 @@ export default {
           let users = value.val()
           if (users === null) { // if there are no users
             firebase.auth.createUserWithEmailAndPassword(this.email, this.password).then((result) => { // create new user
-              firebase.database.ref(`users/${result.user.uid}`).set({ // set new user in the database
+              let user = {
                 username: this.username,
                 type: 'user'
-              }).then(() => {
+              }
+              firebase.database.ref(`users/${result.user.uid}`).set(user).then(() => {
                 this.loading = false
+                this.$store.commit('changeUser', user)
                 this.$store.commit('goToSongSelection')
               }).catch((err) => {
                 this.loading = false

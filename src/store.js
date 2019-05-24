@@ -12,10 +12,12 @@ export default new Vuex.Store({
     user: null,
     net: null,
     songs: null,
+    songScores: 'Select a song!',
     somethingWentWrong: false,
     selectedSong: null,
     selectedChartId: null,
     selectedChart: null,
+    selectedDifficulty: null,
     results: {},
     gameOptions: {
       showAnimation: true,
@@ -37,6 +39,9 @@ export default new Vuex.Store({
     },
     selectChart: (state, data) => {
       state.selectedChartId = data
+    },
+    selectDifficulty: (state, data) => {
+      state.selectedDifficulty = data
     },
     updateSongs: (state, data) => {
       state.songs = data
@@ -76,6 +81,9 @@ export default new Vuex.Store({
       state.gameOptions.speed = parseInt(data.speed)
       state.gameOptions.outputStride = parseInt(data.outputStride)
       state.gameOptions.imageScale = parseFloat(data.imageScale)
+    },
+    changeSongScores: (state, data) => {
+      state.songScores = data
     }
   },
   actions: {
@@ -93,6 +101,13 @@ export default new Vuex.Store({
       posenet.load(payload).then((data) => {
         context.commit('loadNet', data)
       }).catch((err) => console.log(err))
+    },
+    updateSongScores: (context, payload) => {
+      firebase.database.ref(`scores/${payload}`).on('value', (data) => {
+        let scores = data.val()
+        let sortedScores = Object.entries(scores).sort((a, b) => b[1] - a[1])
+        context.commit('changeSongScores', sortedScores)
+      }, (err) => { console.log(err) })
     }
   },
   getter: {

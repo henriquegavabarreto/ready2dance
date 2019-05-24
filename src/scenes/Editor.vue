@@ -95,7 +95,7 @@
                     </v-card-text>
                     <v-card-actions>
                       <v-btn dark @click="loadChart(selectedSong, selectedChartId)">Load</v-btn>
-                      <v-btn dark color="red" @click="deleteChart(selectedSong, selectedChartId)">Delete</v-btn>
+                      <v-btn dark v-if="$store.state.user.type === 'admin'" color="red" @click="deleteChart(selectedSong, selectedChartId)">Delete</v-btn>
                     </v-card-actions>
                   </v-card>
                 </v-flex>
