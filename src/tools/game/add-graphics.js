@@ -13,4 +13,15 @@ export default function addGraphics (containers, textures) {
 
     containers.circles.addChild(circle)
   }
+
+  for (let i = 1; i < grid.length; i++) { // add one feedback for each circle
+    let feedback = new PIXI.Sprite(textures.perfect)
+    feedback.visible = false
+    feedback.anchor.set(0.5)
+    feedback.x = grid[i].x
+    feedback.y = grid[i].y
+    feedback.name = `${i}`
+
+    containers.feedback.addChild(feedback)
+  }
 }

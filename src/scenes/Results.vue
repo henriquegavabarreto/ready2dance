@@ -27,7 +27,7 @@
             SCORE BOARD
           </v-card-title>
           <v-divider></v-divider>
-          <h2 class="mt-3 mb-3 text-sm-center">Your ranking: #{{userPlace}}</h2>
+          <h2 class="mt-3 mb-3 text-sm-center">Your ranking: # {{userPlace}} </h2>
           <v-divider></v-divider>
           <v-card-text>
             <table class="scroll-y" style="width: 600px; max-height: 400px;">
@@ -66,11 +66,13 @@ export default {
       return this.$store.state.results
     },
     userPlace: function () {
-      return this.$store.state.songScores.forEach((score, index) => {
+      let place = 1
+      this.$store.state.songScores.forEach((score, i) => {
         if (score[0] === this.$store.state.user.username) {
-          return index + 1
+          place = i + 1
         }
       })
+      return place
     }
   }
 }

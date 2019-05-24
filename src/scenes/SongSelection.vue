@@ -3,6 +3,7 @@
     <v-toolbar
       color="primary"
       dark
+      icons-and-text
     >
       <v-text-field
         prepend-icon="search"
@@ -13,10 +14,10 @@
         class="mx-3"
         flat
       ></v-text-field>
-      <v-btn @click="toggleSettings"><v-icon>settings</v-icon></v-btn>
-      <v-btn v-if="$store.state.user.type === 'admin'" @click="manageUsers = true"><v-icon>assignment_ind</v-icon></v-btn>
-      <v-btn v-if="$store.state.user.type !== 'user'" @click="goToEditor">EDITOR</v-btn>
-      <v-btn @click="logout">LOGOUT</v-btn>
+      <v-btn @click="toggleSettings"><v-icon left>settings</v-icon><span>Settings</span></v-btn>
+      <v-btn v-if="$store.state.user.type === 'admin'" @click="manageUsers = true"><v-icon left>assignment_ind</v-icon><span>Users</span></v-btn>
+      <v-btn v-if="$store.state.user.type !== 'user'" @click="goToEditor"><v-icon left>edit</v-icon>EDITOR</v-btn>
+      <v-btn @click="logout"><v-icon left>exit_to_app</v-icon>LOGOUT</v-btn>
     </v-toolbar>
     <v-dialog
     v-model="manageUsers"

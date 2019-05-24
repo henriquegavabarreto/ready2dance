@@ -109,8 +109,5 @@ export default new Vuex.Store({
         context.commit('changeSongScores', sortedScores)
       }, (err) => { console.log(err) })
     }
-  },
-  getter: {
-    // thingyName: state => { return Artist, Title and Key from charts to display somewhere }
   }
 })

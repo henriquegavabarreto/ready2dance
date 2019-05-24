@@ -13,16 +13,16 @@ export default function createTextures (app, textures, gameConfig) {
 
   let perfect = new PIXI.Text('PERFECT', {
     fontFamily: 'Arial',
-    fontSize: 50,
+    fontSize: 30,
     fill: ['#FFB90D', '#eeeeee', '#FFB90D'],
     stroke: '#cccccc',
     strokeThickness: 2,
     align: 'center'
   })
 
-  let great = new PIXI.Text('GREAT', {
+  let awesome = new PIXI.Text('AWESOME', {
     fontFamily: 'Arial',
-    fontSize: 50,
+    fontSize: 30,
     fill: ['#0EB800', '#eeeeee', '#0EB800'],
     stroke: '#cccccc',
     strokeThickness: 2,
@@ -31,7 +31,7 @@ export default function createTextures (app, textures, gameConfig) {
 
   let good = new PIXI.Text('GOOD', {
     fontFamily: 'Arial',
-    fontSize: 50,
+    fontSize: 30,
     fill: ['#0051D5', '#eeeeee', '#0051D5'],
     stroke: '#cccccc',
     strokeThickness: 2,
@@ -40,7 +40,7 @@ export default function createTextures (app, textures, gameConfig) {
 
   let miss = new PIXI.Text('MISS', {
     fontFamily: 'Arial',
-    fontSize: 50,
+    fontSize: 30,
     fill: ['#E30000', '#eeeeee', '#E30000'],
     stroke: '#cccccc',
     strokeThickness: 2,
@@ -48,17 +48,12 @@ export default function createTextures (app, textures, gameConfig) {
   })
 
   perfect.updateText()
-  great.updateText()
+  awesome.updateText()
   good.updateText()
   miss.updateText()
 
   textures.perfect = perfect.texture
-  textures.great = great.texture
+  textures.awesome = awesome.texture
   textures.good = good.texture
   textures.miss = miss.texture
-
-  // perfect.destroy()
-  // great.destroy()
-  // good.destroy()
-  // miss.destroy()
 }

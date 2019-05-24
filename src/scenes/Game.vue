@@ -6,10 +6,10 @@
       <v-layout row nowrap class="ma-0" style="background-color: black;">
         <v-flex v-if="gameOptions.showAnimation" xs6 id="canvas">
         </v-flex>
-        <v-flex xs6 style="background-color: black;" :style="noCanvas">
+        <v-flex xs6 style="background-color: black;" :style="noCanvas" class="text-xs-center">
           <v-container fluid class="pa-0 ma-0">
             <v-layout row wrap justify-center align-center class="pa-0 mt-5">
-              <v-flex xs12 id="player" style="width: 720px;" class="mt-5"></v-flex>
+              <v-flex xs12 id="player" style="width: 720px;" class="mt-5 text-xs-center"></v-flex>
             </v-layout>
           </v-container>
         </v-flex>
@@ -62,6 +62,7 @@ import addContainers from '../tools/game/add-containers'
 import addGraphics from '../tools/game/add-graphics'
 import * as PIXI from 'pixi.js'
 import firebase from '../tools/config/firebase'
+import giveFeedback from '../tools/game/give-feedback'
 
 const YTPlayer = require('yt-player')
 
@@ -127,6 +128,8 @@ export default {
               let leftHandMove = handMove[2]
               let rightHit = []
               let leftHit = []
+              let rightHitType = ''
+              let leftHitType = ''
 
               values.forEach((pose, i) => {
                 let rightHandDetected = false
@@ -161,13 +164,17 @@ export default {
               if (rightHit.length > 0) {
                 // add track for hold and motion
                 if (rightHandMove[0] === 'S') {
+                  // let rightFeedback = this.containers.feedback.getChildAt(parseInt(rightHandMove[1]) - 1)
                   if (rightHit[0] === 0) {
+                    rightHitType = 'perfect'
                     this.perfect++
                     this.score += 1000
                   } else if (rightHit[0] === values.length - 1 && values.length > 2) {
+                    rightHitType = 'good'
                     this.good++
                     this.score += 600
                   } else {
+                    rightHitType = 'awesome'
                     this.awesome++
                     this.score += 800
                   }
@@ -175,12 +182,15 @@ export default {
                   if (this.combo > this.maxCombo) this.maxCombo = this.combo
                 } else if ((rightHandMove[0] === 'H' || rightHandMove[0] === 'M') && this.holdingRight === true) { // check only if holding is true
                   if (rightHit[0] === 0) {
+                    rightHitType = 'perfect'
                     this.perfect++
                     this.score += 1000
                   } else if (rightHit[0] === values.length - 1 && values.length > 2) {
+                    rightHitType = 'good'
                     this.good++
                     this.score += 600
                   } else {
+                    rightHitType = 'awesome'
                     this.awesome++
                     this.score += 800
                   }
@@ -189,6 +199,7 @@ export default {
                   if ((rightHandMove[0] === 'H' || rightHandMove[0] === 'M') && rightHandMove[2] === 'E') this.holdingRight = false // if it is the last of the move, set back to false
                 }
               } else if (rightHit.length === 0 && rightHandMove !== 'X' && !((rightHandMove[0] === 'H' || rightHandMove[0] === 'M') && rightHandMove.length === 2)) {
+                rightHitType = 'miss'
                 this.miss++
                 this.report.rightHand.push(handMove)
                 this.combo = 0
@@ -199,12 +210,15 @@ export default {
                 // add track for hold and motion
                 if (leftHandMove[0] === 'S') {
                   if (leftHit[0] === 0) {
+                    leftHitType = 'perfect'
                     this.perfect++
                     this.score += 1000
                   } else if (leftHit[0] === values.length - 1 && values.length > 2) {
+                    leftHitType = 'good'
                     this.good++
                     this.score += 600
                   } else {
+                    leftHitType = 'awesome'
                     this.awesome++
                     this.score += 800
                   }
@@ -212,12 +226,15 @@ export default {
                   if (this.combo > this.maxCombo) this.maxCombo = this.combo
                 } else if ((leftHandMove[0] === 'H' || leftHandMove[0] === 'M') && this.holdingLeft === true) { // check only if holding is true
                   if (leftHit[0] === 0) {
+                    leftHitType = 'perfect'
                     this.perfect++
                     this.score += 1000
                   } else if (leftHit[0] === values.length - 1 && values.length > 2) {
+                    leftHitType = 'good'
                     this.good++
                     this.score += 600
                   } else {
+                    leftHitType = 'awesome'
                     this.awesome++
                     this.score += 800
                   }
@@ -226,15 +243,16 @@ export default {
                   if ((leftHandMove[0] === 'H' || leftHandMove[0] === 'M') && leftHandMove[2] === 'E') this.holdingLeft = false // if it is the last of the move, set back to false
                 }
               } else if (leftHit.length === 0 && leftHandMove !== 'X' && !((leftHandMove[0] === 'H' || leftHandMove[0] === 'M') && leftHandMove.length === 2)) {
+                leftHitType = 'miss'
                 this.miss++
                 this.report.leftHand.push(handMove)
                 this.combo = 0
                 this.holdingLeft = false
               }
+              if (this.gameOptions.showAnimation) giveFeedback(leftHandMove, rightHandMove, leftHitType, rightHitType, this.containers.feedback, this.textures)
             }).catch((err) => { console.log(err) })
             this.promiseArray = []
           }
-
           this.moveIndex++
         }
         if (this.moveIndex < this.moves.length) {
@@ -288,6 +306,19 @@ export default {
     getUserMedia({ video: { width: 300, height: 300 }, audio: false }, (err, stream) => {
       if (err) {
         console.log(err)
+        this.player.stop()
+        this.player.destroy()
+        if (this.gameOptions.showAnimation) {
+          for (let texture in this.textures) {
+            this.textures[texture].destroy()
+          }
+          for (let container in this.containers) {
+            this.containers[container].destroy(true)
+          }
+          this.app.destroy()
+        }
+        this.ticker.stop()
+        this.ticker.destroy()
         this.stopCapture()
         this.$store.commit('somethingWentWrong')
         this.$store.commit('goToSongSelection')
@@ -332,8 +363,8 @@ export default {
                   scores: {
                     [this.$store.state.selectedDifficulty]: scoreRef.key
                   }
-                })
-              })
+                }).catch((err) => { console.log(err) })
+              }).catch((err) => { console.log(err) })
             } else { // if there are scores
               if (songToCheck.scores.hasOwnProperty(this.$store.state.selectedDifficulty)) { // if selected difficulty is part of the score node
                 let scoreId = songToCheck.scores[this.$store.state.selectedDifficulty]
@@ -346,16 +377,16 @@ export default {
                       if (this.score > score[this.$store.state.user.username]) {
                         firebase.database.ref(`scores/${scoreId}`).update({
                           [this.$store.state.user.username]: this.score
-                        })
+                        }).catch((err) => { console.log(err) })
                       }
                     }
                   }
                   if (!hasScore) {
                     firebase.database.ref(`scores/${scoreId}`).update({
                       [this.$store.state.user.username]: this.score
-                    })
+                    }).catch((err) => { console.log(err) })
                   }
-                })
+                }).catch((err) => { console.log(err) })
               } else {
                 // create new score in database and update it in the song
                 firebase.database.ref('scores').push({
@@ -364,8 +395,8 @@ export default {
                   this.$store.dispatch('updateSongScores', scoreRef.key)
                   firebase.database.ref(`songs/${song}/scores`).update({
                     [this.$store.state.selectedDifficulty]: scoreRef.key
-                  })
-                })
+                  }).catch((err) => { console.log(err) })
+                }).catch((err) => { console.log(err) })
               }
             }
           })
@@ -431,7 +462,7 @@ export default {
         return {
           height: '640px',
           width: '100%',
-          margin: '0',
+          marginLeft: '25%',
           padding: '0'
         }
       }

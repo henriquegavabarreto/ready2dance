@@ -1,5 +1,5 @@
 <template>
-  <div data-app=true>
+  <div style="font-family: Arial;" data-app=true>
     <component :is="$store.state.currentScene"></component>
     <v-snackbar
       v-model="$store.state.somethingWentWrong"
@@ -33,11 +33,6 @@ export default {
     'game': Game,
     'results': Results,
     'home': Home
-  },
-  data () {
-    return {
-      //
-    }
   },
   created () {
     this.$store.dispatch('updateSongs')
