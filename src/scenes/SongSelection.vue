@@ -50,15 +50,17 @@
       </v-card>
     </v-dialog>
     <v-dialog
-    v-model="settings"
-    max-width="500"
-    min-height="500"
+      v-model="settings"
+      max-width="500"
+      min-height="500"
     >
       <v-card>
-        <v-card-title class="headline">Settings</v-card-title>
+        <v-toolbar flat class="cyan headline">
+          Settings
+        </v-toolbar>
 
-        <v-card-text>
-          <h3>Camera and animations</h3>
+        <v-card-text class="blue-grey lighten-5">
+          <h3>Animations</h3>
           <v-checkbox
             color="blue"
             v-model="options.showAnimation">
@@ -69,11 +71,15 @@
             </template>
           </v-checkbox>
           <v-select
+            :disabled="!options.showAnimation"
+            outline
             :items="speed"
             v-model="options.speed"
             label="Circle Animation Speed"
             hint="Speed of the circles appearing on screen"
           ></v-select>
+          <v-divider></v-divider>
+          <h3 class="mt-4">Camera</h3>
           <v-checkbox
             color="blue"
             v-model="options.showWebcam">
@@ -84,12 +90,15 @@
             </template>
           </v-checkbox>
           <v-text-field
+            outline
             label="Camera Latency"
             v-model="options.latency"
             hint="ex: 0.32"
           ></v-text-field>
-          <h3 class="mt-5">Change pose detection precision (advanced)</h3>
+          <v-divider></v-divider>
+          <h3 class="mt-4">Change pose detection precision (advanced)</h3>
           <v-select
+            outline
             class="mt-4"
             :items="multipliers"
             v-model="options.multiplier"
@@ -97,6 +106,7 @@
             hint="The larger the value, more accurate at the cost of speed - defaults to 0.5"
           ></v-select>
           <v-select
+            outline
             class="mt-4"
             :items="outputStrideValues"
             v-model="options.outputStride"
@@ -119,12 +129,13 @@
           ></v-slider>
         </v-card-text>
 
-        <v-card-actions>
+        <v-card-actions class="cyan">
           <v-spacer></v-spacer>
 
           <v-btn
+          class="white"
             color="green darken-1"
-            flat="flat"
+            flat
             @click="settings = false"
           >
             Close and Apply
@@ -154,8 +165,8 @@
     </v-dialog>
     <v-container mx-0>
       <v-layout row wrap justify-space-between>
-        <v-flex xs5 class="blue">
-          <v-card style="width: 550px;">
+        <v-flex xs5>
+          <v-card style="width: 550px; border-radius: 10px;" class="blue-grey lighten-5">
             <v-card-title>
               <v-icon
                 large
@@ -166,7 +177,7 @@
               </v-icon>
               <span class="display-1">Select a Song</span>
             </v-card-title>
-            <v-container fluid grid-list-lg style="max-height: 580px;" class="scroll-y">
+            <v-container fluid grid-list-lg style="height: 580px;" class="scroll-y">
               <v-layout row wrap>
                 <v-flex
                 xs12
@@ -190,7 +201,7 @@
           </v-card>
         </v-flex>
         <v-flex xs6 v-if="selectedSong">
-          <v-card style="width: 800px;">
+          <v-card style="width: 800px; border-radius: 10px;" class="blue-grey lighten-5">
             <v-card-title primary-title>
               <div class="mr-5">
                 <h3 class="headline mb-1">{{selectedSong.title}} {{filteredSongs.title}}</h3>
@@ -208,15 +219,16 @@
                 @click="goToGame"><v-icon>play_arrow</v-icon></v-btn>
             </v-card-title>
           </v-card>
-          <v-card v-show="selectedSong !== {}" style="width: 800px; height: 500px;" class="mt-3">
+          <v-card v-show="selectedSong !== {}" style="width: 800px; height: 542px; border-radius: 10px;" class="mt-3 blue-grey lighten-5">
             <v-card-title class="display-2" primary-title>
               SCORE BOARD
             </v-card-title>
+            <v-divider></v-divider>
             <v-card-text v-if="typeof $store.state.songScores === 'string'">
               {{$store.state.songScores}}
             </v-card-text>
             <v-card-text v-else>
-              <table class="scroll-y" style="width: 600px; max-height: 600px;">
+              <table class="scroll-y" style="width: 600px; max-height: 400px;">
                 <thead class="headline">
                   <th>Rank</th>
                   <th>Player</th>

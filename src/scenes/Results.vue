@@ -30,7 +30,7 @@
           <h2 class="mt-3 mb-3 text-sm-center">Your ranking: #{{userPlace}}</h2>
           <v-divider></v-divider>
           <v-card-text>
-            <table class="scroll-y" style="width: 600px; max-height: 600px;">
+            <table class="scroll-y" style="width: 600px; max-height: 400px;">
               <thead class="headline">
                 <th>Rank</th>
                 <th>Player</th>
