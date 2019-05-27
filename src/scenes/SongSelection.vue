@@ -86,7 +86,7 @@
             v-model="options.showWebcam">
             <template v-slot:label>
               <div class="black--text">
-                Show video from webcam
+                Show webcam video
               </div>
             </template>
           </v-checkbox>
@@ -208,11 +208,11 @@
                 <h3 class="headline mb-1">{{selectedSong.title}} {{filteredSongs.title}}</h3>
                 <div class="subheading">{{selectedSong.artist}}</div>
               </div>
-              <div v-for="(chartId, dif) in songCharts" :key="dif">
+              <div v-for="(chart, dif) in songCharts" :key="dif">
                 <v-btn
                   small
-                  @click="selectChart(chartId, dif)"
-                  :class="selectedChart === chartId ? 'blue lighten' : ''">{{dif}}</v-btn>
+                  @click="selectChart(chart.id, dif)"
+                  :class="selectedChart === chart.id ? 'blue lighten' : ''">{{dif}}</v-btn>
               </div>
               <v-spacer></v-spacer>
               <v-btn class="ml-5"

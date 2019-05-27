@@ -83,11 +83,11 @@
                             <v-list-tile-sub-title>{{song.artist}}</v-list-tile-sub-title>
                             <div >
                               <v-btn
-                                v-for="(chartId, dif) in song.charts"
+                                v-for="(chart, dif) in song.charts"
                                 :key="dif"
                                 small
-                                @click="selectSong(name, chartId)"
-                                :class="selectedChartId === chartId ? 'blue lighten' : ''">{{dif}}</v-btn>
+                                @click="selectSong(name, chart.id)"
+                                :class="selectedChartId === chart.id ? 'blue lighten' : ''">{{dif}}</v-btn>
                             </div>
                           </v-list-tile-content>
                         </v-list-tile>
@@ -113,7 +113,7 @@
                          v-model="difficulty"
                          style="max-width: 150px; margin-right: 10px;"
                        ></v-select>
-                       <v-checkbox label="draft" v-model="draft" value="draft"></v-checkbox>
+                       <v-checkbox color="blue" label="draft" v-model="draft" value="draft"></v-checkbox>
                       <v-btn dark @click="saveToFirebase" class="pt-0">Save Chart</v-btn>
                     </v-card-actions>
                     <v-snackbar
@@ -510,11 +510,11 @@ export default {
         let songId = this.dataManager.getSongIdByVideoId(this.songs, this.player.videoId)
         if (songId === '') { // if there is no song with this videoId
           // should dataManager return a promise so we can toggle saved from here?
-          this.dataManager.saveNewSong(this.danceChart, this.player, this.difficulty)
+          this.dataManager.saveNewSong(this.danceChart, this.player, this.difficulty, this.draft, this.$store.state.user.username)
           this.saved = true
         } else {
           if (!this.songs[songId].charts.hasOwnProperty(this.difficulty)) { // if the song exists, but this difficulty has not been set
-            this.dataManager.saveNewChart(this.danceChart, this.player, songId, this.difficulty)
+            this.dataManager.saveNewChart(this.danceChart, this.player, songId, this.difficulty, this.draft, this.$store.state.user.username)
             this.saved = true
           } else { // if there is the set difficulty for this song id
             this.duplicateChart = true
@@ -527,7 +527,7 @@ export default {
     overwriteChart: function () { // updates a danceChart with existing video Id in the database
       if (this.$refs.videoId.validate() && this.$refs.timing.validate() && this.$refs.songInfo.validate()) {
         let songId = this.dataManager.getSongIdByVideoId(this.songs, this.player.videoId)
-        this.dataManager.overwriteChart(this.danceChart, this.songs[songId].charts[this.difficulty])
+        this.dataManager.overwriteChart(this.danceChart, this.songs[songId].charts[this.difficulty], songId, this.difficulty, this.draft, this.$store.state.user.username)
         this.duplicateChart = false
         this.saved = true
       } else {
