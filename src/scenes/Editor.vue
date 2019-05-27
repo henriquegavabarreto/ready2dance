@@ -87,7 +87,8 @@
                                 :key="dif"
                                 small
                                 @click="selectSong(name, chart.id)"
-                                :class="selectedChartId === chart.id ? 'blue lighten' : ''">{{dif}}</v-btn>
+                                :class="selectedChartId === chart.id ? 'blue lighten' : ''"
+                                >{{dif}}</v-btn>
                             </div>
                           </v-list-tile-content>
                         </v-list-tile>
@@ -113,7 +114,7 @@
                          v-model="difficulty"
                          style="max-width: 150px; margin-right: 10px;"
                        ></v-select>
-                       <v-checkbox color="blue" label="draft" v-model="draft" value="draft"></v-checkbox>
+                       <v-checkbox color="blue" label="draft" v-model="draft"></v-checkbox>
                       <v-btn dark @click="saveToFirebase" class="pt-0">Save Chart</v-btn>
                     </v-card-actions>
                     <v-snackbar
@@ -527,7 +528,7 @@ export default {
     overwriteChart: function () { // updates a danceChart with existing video Id in the database
       if (this.$refs.videoId.validate() && this.$refs.timing.validate() && this.$refs.songInfo.validate()) {
         let songId = this.dataManager.getSongIdByVideoId(this.songs, this.player.videoId)
-        this.dataManager.overwriteChart(this.danceChart, this.songs[songId].charts[this.difficulty], songId, this.difficulty, this.draft, this.$store.state.user.username)
+        this.dataManager.overwriteChart(this.danceChart, this.songs[songId].charts[this.difficulty].id, songId, this.difficulty, this.draft, this.$store.state.user.username)
         this.duplicateChart = false
         this.saved = true
       } else {
@@ -583,7 +584,7 @@ export default {
     },
     deleteChart: function (songId, chartId) { // removes selected chart from the database
       if (chartId !== '') {
-        let key = Object.keys(this.songs[songId].charts).find(key => this.songs[songId].charts[key] === chartId)
+        let key = Object.keys(this.songs[songId].charts).find(key => this.songs[songId].charts[key].id === chartId)
         if (Object.keys(this.songs[songId].charts).length === 1) {
           firebase.database.ref(`charts/${chartId}`).remove()
           firebase.database.ref(`songs/${songId}`).remove()

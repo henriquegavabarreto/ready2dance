@@ -212,7 +212,8 @@
                 <v-btn
                   small
                   @click="selectChart(chart.id, dif)"
-                  :class="selectedChart === chart.id ? 'blue lighten' : ''">{{dif}}</v-btn>
+                  :class="selectedChart === chart.id ? 'blue lighten' : ''"
+                  :disabled="chart.draft">{{dif}}<span v-if="chart.draft">(SOON)</span></v-btn>
               </div>
               <v-spacer></v-spacer>
               <v-btn class="ml-5"
