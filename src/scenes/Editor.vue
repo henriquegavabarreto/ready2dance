@@ -46,7 +46,7 @@
         <v-tabs-items v-model="tabs" style="height: 698px;">
           <v-tab-item>
             <v-container pb-0>
-              <v-layout row wrap>
+              <v-layout row wrap style="height: 670px;" class="scroll-y">
                 <v-flex xs12>
                   <v-card>
                     <v-card-title primary-title>
@@ -58,7 +58,7 @@
                       </v-form>
                       <v-tooltip right>
                         <template v-slot:activator="{ on }">
-                          <v-btn fab dark small v-on="on" @click="loadVideoById">
+                          <v-btn fab dark small v-on="on" @click="loadVideoById"  class="mb-4 ml-3">
                             <v-icon>forward</v-icon>
                           </v-btn>
                         </template>
@@ -113,12 +113,19 @@
                          v-model="difficulty"
                          style="max-width: 150px; margin-right: 10px;"
                        ></v-select>
+                       <v-checkbox label="draft" v-model="draft" value="draft"></v-checkbox>
                       <v-btn dark @click="saveToFirebase" class="pt-0">Save Chart</v-btn>
                     </v-card-actions>
-                    <v-alert class="yellow black--text" :value="duplicateChart" style="max-height: 50px">
-                      There is already a dance chart for this video. Do you want to overwrite it?
-                      <v-btn dark small @click="duplicateChart = !duplicateChart">cancel</v-btn><v-btn dark small @click="overwriteChart">overwrite</v-btn>
-                    </v-alert>
+                    <v-snackbar
+                      v-model="duplicateChart"
+                      class="black--text"
+                      left
+                      color="yellow"
+                      :timeout="0"
+                    >
+                    This action will overwrite the existing version of this chart. Do you want do continue?
+                    <v-btn dark small @click="overwriteChart">YES</v-btn><v-btn dark small @click="duplicateChart = !duplicateChart">NO</v-btn>
+                    </v-snackbar>
                     <v-snackbar
                       v-model="saved"
                       left
@@ -325,6 +332,7 @@ export default {
       tabs: null,
       difficulties: [ 'easy', 'medium', 'hard' ],
       difficulty: '',
+      draft: true,
       player: null,
       editorApp: null,
       ticker: null,
