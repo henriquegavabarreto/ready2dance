@@ -34,9 +34,9 @@ export default {
     'results': Results,
     'home': Home
   },
-  created () {
+  beforeCreate () {
+    this.$store.dispatch('onStateChange')
     this.$store.dispatch('updateSongs')
-    // load the net before going to the game, according to settings
     this.$store.dispatch('loadNet', 0.5)
   },
   methods: {

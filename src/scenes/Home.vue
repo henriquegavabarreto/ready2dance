@@ -40,7 +40,7 @@
           <h4>Therefore...</h4>
           <p>Your hardware can affect the gameplay, so make sure to use hardware acceleration on Chrome's settings and allow this website do use your webcam.</p>
           <p>The better your camera and your GPU, the better the movement detection can be, you just need to change that in the settings.</p>
-          <p>I hope you all enjoy my little experiment!</p>
+          <p>I hope you all enjoy this little experiment!</p>
           <br>
           <p class="text-sm-right">Created using Vue.js, Vuetify, Tensorflow's PoseNet, pixi.js and the youtube API by <a target="blank" href="https://github.com/henriquegavabarreto/">Henrique Barreto</a>.</p>
         </v-card-text>

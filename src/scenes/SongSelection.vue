@@ -6,20 +6,24 @@
       icons-and-text
     >
       <v-text-field
+        style="max-width: 550px;"
         prepend-icon="search"
         label="Search"
         v-model="search"
         placeholder="Search by Song Title or Artist"
         solo-inverted
-        class="mx-3"
+        class="mx-3 mt-2"
         flat
       ></v-text-field>
+      <h3 class="ml-5" v-if="$store.state.user !== null">Hello, {{$store.state.user.username}}!</h3>
+      <h3 class="ml-5" v-else>Hello, Guest!</h3>
+      <v-spacer></v-spacer>
       <v-btn @click="toggleSettings"><v-icon left>settings</v-icon><span>Settings</span></v-btn>
       <div v-if="$store.state.user !== null">
         <v-btn v-if="$store.state.user.type === 'admin'" @click="manageUsers = true"><v-icon left>assignment_ind</v-icon><span>Users</span></v-btn>
         <v-btn v-if="$store.state.user.type === 'admin' || $store.state.user.type === 'editor'" @click="goToEditor"><v-icon left>edit</v-icon>EDITOR</v-btn>
       </div>
-      <v-btn @click="logout"><v-icon left>exit_to_app</v-icon>LOGOUT</v-btn>
+      <v-btn @click="logout"><v-icon left>exit_to_app</v-icon>SIGN OUT</v-btn>
     </v-toolbar>
     <v-dialog
     v-model="manageUsers"

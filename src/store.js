@@ -10,6 +10,7 @@ Vue.use(posenet)
 export default new Vuex.Store({
   state: {
     user: null,
+    signInState: null,
     net: null,
     songs: null,
     songScores: 'Select a song!',
@@ -84,6 +85,9 @@ export default new Vuex.Store({
     },
     changeSongScores: (state, data) => {
       state.songScores = data
+    },
+    changeState: (state, data) => {
+      state.signInState = state
     }
   },
   actions: {
@@ -108,6 +112,20 @@ export default new Vuex.Store({
         let sortedScores = Object.entries(scores).sort((a, b) => b[1] - a[1])
         context.commit('changeSongScores', sortedScores)
       }, (err) => { console.log(err) })
+    },
+    onStateChange: context => {
+      firebase.auth.onAuthStateChanged((userState) => {
+        if (userState) {
+          context.commit('goToSongSelection')
+          firebase.database.ref(`users/${userState.uid}`).once('value').then((value) => {
+            context.commit('changeUser', value.val())
+            context.commit('changeState', userState)
+          })
+        } else {
+          context.commit('changeState', userState)
+          context.commit('goToHome')
+        }
+      })
     }
   }
 })
