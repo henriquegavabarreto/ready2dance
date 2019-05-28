@@ -27,7 +27,8 @@
             SCORE BOARD
           </v-card-title>
           <v-divider></v-divider>
-          <h2 class="mt-3 mb-3 text-sm-center">Your ranking: # {{userPlace}} </h2>
+          <h2 v-if="$store.state.user !== null" class="mt-3 mb-3 text-sm-center">Your ranking: # {{userPlace}}</h2>
+          <h2 else class="mt-3 mb-3 text-sm-center">Register to have your next scores on the scoreboard!</h2>
           <v-divider></v-divider>
           <v-card-text>
             <table class="scroll-y" style="width: 600px; max-height: 400px;">
@@ -46,6 +47,14 @@
             </table>
           </v-card-text>
         </v-card>
+        <v-card dark style="height: 600px; width: 600px;" v-else>
+          <v-card-title primary-title class="display-3 font-weight-black">
+            SCORE BOARD
+          </v-card-title>
+          <v-divider></v-divider>
+          <h2 class="mt-3 mb-3 text-sm-center">{{$store.state.songScores}}</h2>
+          <v-divider></v-divider>
+        </v-card>
       </v-flex>
     </v-layout>
   </div>
@@ -55,6 +64,7 @@
 export default {
   methods: {
     goToSongSelection: function () {
+      this.$store.commit('changeSongScores', 'Select a song!')
       this.$store.commit('goToSongSelection')
     },
     playAgain: function () {
@@ -66,13 +76,17 @@ export default {
       return this.$store.state.results
     },
     userPlace: function () {
-      let place = 1
-      this.$store.state.songScores.forEach((score, i) => {
-        if (score[0] === this.$store.state.user.username) {
-          place = i + 1
-        }
-      })
-      return place
+      if (this.$store.state.user !== null) {
+        let place = 1
+        this.$store.state.songScores.forEach((score, i) => {
+          if (score[0] === this.$store.state.user.username) {
+            place = i + 1
+          }
+        })
+        return place
+      } else {
+        return null
+      }
     }
   }
 }

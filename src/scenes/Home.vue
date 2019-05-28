@@ -14,6 +14,9 @@
         <v-flex class="text-xs-center mt-3" xs12>
           <v-btn large dark @click="toggleRegisterModal">register</v-btn>
         </v-flex>
+        <v-flex class="text-xs-center mt-3" xs12>
+          <v-btn large dark @click="enterAsGuest">Enter as Guest</v-btn>
+        </v-flex>
       </v-layout>
     </v-container>
     <v-footer color="blue darken-1">
@@ -211,6 +214,14 @@ export default {
         this.loading = false
         console.log(err)
       })
+    },
+    enterAsGuest: function () {
+      this.loading = true
+      firebase.auth.signInAnonymously().then(() => {
+        this.loading = false
+        this.$store.commit('changeUser', null)
+        this.$store.commit('goToSongSelection')
+      }).catch((err) => { console.log(err) })
     }
   },
   computed: {

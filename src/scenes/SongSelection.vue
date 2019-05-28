@@ -15,8 +15,10 @@
         flat
       ></v-text-field>
       <v-btn @click="toggleSettings"><v-icon left>settings</v-icon><span>Settings</span></v-btn>
-      <v-btn v-if="$store.state.user.type === 'admin'" @click="manageUsers = true"><v-icon left>assignment_ind</v-icon><span>Users</span></v-btn>
-      <v-btn v-if="$store.state.user.type !== 'user'" @click="goToEditor"><v-icon left>edit</v-icon>EDITOR</v-btn>
+      <div v-if="$store.state.user !== null">
+        <v-btn v-if="$store.state.user.type === 'admin'" @click="manageUsers = true"><v-icon left>assignment_ind</v-icon><span>Users</span></v-btn>
+        <v-btn v-if="$store.state.user.type === 'admin' || $store.state.user.type === 'editor'" @click="goToEditor"><v-icon left>edit</v-icon>EDITOR</v-btn>
+      </div>
       <v-btn @click="logout"><v-icon left>exit_to_app</v-icon>LOGOUT</v-btn>
     </v-toolbar>
     <v-dialog
@@ -282,9 +284,13 @@ export default {
     }
   },
   created () {
-    firebase.database.ref('users').on('value', (data) => {
-      this.users = data.val()
-    })
+    if (this.$store.state.user !== null) {
+      if (this.$store.state.user.type === 'admin') {
+        firebase.database.ref('users').on('value', (data) => {
+          this.users = data.val()
+        })
+      }
+    }
     this.options.showAnimation = this.$store.state.gameOptions.showAnimation
     this.options.showWebcam = this.$store.state.gameOptions.showWebcam
     this.options.latency = this.$store.state.gameOptions.latency
