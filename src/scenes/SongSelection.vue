@@ -12,7 +12,7 @@
         v-model="search"
         placeholder="Search by Song Title or Artist"
         solo-inverted
-        class="mx-3 mt-2"
+        class="mt-2"
         flat
       ></v-text-field>
       <h3 class="ml-5" v-if="$store.state.user !== null">Hello, {{$store.state.user.username}}!</h3>
@@ -207,28 +207,33 @@
             </v-container>
           </v-card>
         </v-flex>
-        <v-flex xs6 v-if="selectedSong">
-          <v-card style="width: 800px; border-radius: 10px;" class="blue-grey lighten-5">
-            <v-card-title primary-title>
-              <div class="mr-5">
-                <h3 class="headline mb-1">{{selectedSong.title}} {{filteredSongs.title}}</h3>
-                <div class="subheading">{{selectedSong.artist}}</div>
+        <v-flex xs5 v-if="selectedSong">
+          <v-card style="width: 700px; border-radius: 10px;" class="blue-grey lighten-5 text-xs-center">
+            <v-card-title primary-title class="justify-center yellow pb-1">
+              <div>
+                <h3 class="display-1 mb-1">{{selectedSong.title}} {{filteredSongs.title}}</h3>
+                <div class="headline">{{selectedSong.artist}}</div>
               </div>
-              <div v-for="(chart, dif) in songCharts" :key="dif">
+            </v-card-title>
+            <v-divider></v-divider>
+            <v-card-text style="display: inline;" class="justify-center pl-0">
+              <div style="display: inline;" v-for="(chart, dif) in songCharts" :key="dif">
                 <v-btn
-                  small
+                  large
                   @click="selectChart(chart.id, dif)"
                   :class="selectedChart === chart.id ? 'blue lighten' : ''"
                   :disabled="chart.draft">{{dif}}<span v-if="chart.draft">(SOON)</span></v-btn>
               </div>
               <v-spacer></v-spacer>
-              <v-btn class="ml-5"
+              <v-btn
+                style="width: 370px;"
+                class="ml-4"
                 :disabled="selectedChart === ''"
                 @click="goToGame"><v-icon>play_arrow</v-icon></v-btn>
-            </v-card-title>
+            </v-card-text>
           </v-card>
-          <v-card v-show="selectedSong !== {}" style="width: 800px; height: 542px; border-radius: 10px;" class="mt-3 blue-grey lighten-5">
-            <v-card-title class="display-2" primary-title>
+          <v-card v-show="selectedSong !== {}" style="width: 700px; height: 428px; border-radius: 10px;" class="mt-3 blue-grey lighten-5">
+            <v-card-title class="headline" primary-title>
               SCORE BOARD
             </v-card-title>
             <v-divider></v-divider>

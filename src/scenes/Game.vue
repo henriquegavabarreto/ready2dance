@@ -92,7 +92,7 @@ export default {
         leftHand: []
       },
       promiseArray: [],
-      cameraLatency: 0 // Camera latency and posenet configuration should be in $store and changeable on a menu in song selection
+      cameraLatency: 0
     }
   },
   created () {
@@ -162,9 +162,7 @@ export default {
               })
 
               if (rightHit.length > 0) {
-                // add track for hold and motion
                 if (rightHandMove[0] === 'S') {
-                  // let rightFeedback = this.containers.feedback.getChildAt(parseInt(rightHandMove[1]) - 1)
                   if (rightHit[0] === 0) {
                     rightHitType = 'perfect'
                     this.perfect++
@@ -207,7 +205,6 @@ export default {
               }
 
               if (leftHit.length > 0) {
-                // add track for hold and motion
                 if (leftHandMove[0] === 'S') {
                   if (leftHit[0] === 0) {
                     leftHitType = 'perfect'
@@ -423,6 +420,7 @@ export default {
         miss: this.miss,
         maxCombo: this.maxCombo,
         score: this.score,
+        maxPoints: this.maxPoints,
         report: this.report
       })
     },
@@ -446,6 +444,22 @@ export default {
           newChart.push(move)
         })
         return newChart
+      }
+    },
+    maxPoints () {
+      if (this.moves === []) {
+        return 0
+      } else {
+        let points = 0
+        this.moves.forEach(move => {
+          if (move[2].length === 3 || move[2][0] === 'S') {
+            points += 1000
+          }
+          if (move[3].length === 3 || move[3][0] === 'S') {
+            points += 1000
+          }
+        })
+        return points
       }
     },
     videoStart () {

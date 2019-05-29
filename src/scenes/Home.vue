@@ -9,17 +9,17 @@
           Ready 2 Dance
         </v-flex>
         <v-flex class="text-xs-center mt-5" xs12>
-          <v-btn large dark @click="toggleLoginModal">log in</v-btn>
+          <v-btn style="width: 200px;" large dark @click="toggleLoginModal">log in</v-btn>
         </v-flex>
         <v-flex class="text-xs-center mt-3" xs12>
-          <v-btn large dark @click="toggleRegisterModal">register</v-btn>
+          <v-btn style="width: 200px;" large dark @click="toggleRegisterModal">register</v-btn>
         </v-flex>
         <v-flex class="text-xs-center mt-3" xs12>
-          <v-btn large dark @click="enterAsGuest">Enter as Guest</v-btn>
+          <v-btn style="width: 200px;" large dark @click="enterAsGuest">Enter as Guest</v-btn>
         </v-flex>
       </v-layout>
     </v-container>
-    <v-footer color="blue darken-1">
+    <v-footer dark>
       <h2 class="ml-5">⬇⬇⬇⬇⬇</h2>
       <v-spacer></v-spacer>
       <h2>What is this about?</h2>
@@ -46,7 +46,7 @@
         </v-card-text>
       </v-card>
     </v-container>
-    <v-footer class="blue darken-1">
+    <v-footer dark>
       <v-spacer></v-spacer>
       <div class="mr-3">
         © 2019, READY2DANCE

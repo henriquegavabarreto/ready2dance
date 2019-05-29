@@ -8,22 +8,32 @@
           </v-card-title>
           <v-divider class="mb-3"></v-divider>
           <v-card-text class="display-1 font-weight-medium mb-4">
-            <p>Perfect: {{results.perfect}}</p>
-            <p>Awesome: {{results.awesome}}</p>
-            <p>Good: {{results.good}}</p>
-            <p>Max Combo: {{results.maxCombo}}</p>
-            <p>Miss: {{results.miss}}</p>
-            <p>Score: {{results.score}}</p>
+            <v-layout row wrap>
+              <v-flex xs6>
+                <p>Perfect: {{results.perfect}}</p>
+                <p>Awesome: {{results.awesome}}</p>
+                <p>Good: {{results.good}}</p>
+                <p>Max Combo: {{results.maxCombo}}</p>
+                <p>Miss: {{results.miss}}</p>
+                <p>Score: {{results.score}}</p>
+              </v-flex>
+              <v-flex class="text-xs-center mt-5" xs6>
+                <p>Grade:</p>
+                <div style="width: 85px; height: 85px; border-radius: 15px; margin-left: 33%;" class="blue">
+                  <p class="pt-2 display-3">{{grade}}</p>
+                </div>
+              </v-flex>
+            </v-layout>
           </v-card-text>
-          <v-card-actions>
-            <v-btn @click="goToSongSelection">BACK TO SONG SELECTION</v-btn>
-            <v-btn @click="playAgain">PLAY AGAIN</v-btn>
+          <v-card-actions icons-and-text class="justify-center">
+            <v-btn class="mr-3" @click="goToSongSelection"><v-icon left>exit_to_app</v-icon>BACK TO SONG SELECTION</v-btn>
+            <v-btn class="ml-3" @click="playAgain"><v-icon left>play_arrow</v-icon><span>PLAY AGAIN</span></v-btn>
           </v-card-actions>
         </v-card>
       </v-flex>
       <v-flex xs5>
         <v-card dark style="height: 600px; width: 600px;" v-if="typeof $store.state.songScores !== 'string'">
-          <v-card-title primary-title class="display-3 font-weight-black">
+          <v-card-title primary-title class="display-3 font-weight-black justify-center">
             SCORE BOARD
           </v-card-title>
           <v-divider></v-divider>
@@ -87,6 +97,26 @@ export default {
       } else {
         return null
       }
+    },
+    grade: function () {
+      let grade = ''
+      let rate = this.results.score / this.results.maxPoints
+      if (rate === 1) {
+        grade = 'SS'
+      } else if (rate >= 0.95 && rate < 1) {
+        grade = 'S'
+      } else if (rate < 0.95 && rate >= 0.9) {
+        grade = 'A'
+      } else if (rate < 0.9 && rate >= 0.7) {
+        grade = 'B'
+      } else if (rate < 0.7 && rate >= 0.5) {
+        grade = 'C'
+      } else if (rate < 0.5 && rate >= 0.2) {
+        grade = 'D'
+      } else if (rate < 0.2 && rate >= 0) {
+        grade = 'F'
+      }
+      return grade
     }
   }
 }

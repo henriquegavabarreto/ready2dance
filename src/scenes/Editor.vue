@@ -87,7 +87,7 @@
                                 :key="dif"
                                 small
                                 @click="selectSong(name, chart.id)"
-                                :class="selectedChartId === chart.id ? 'blue lighten' : ''"
+                                :class="[selectedChartId === chart.id ? 'darken-1' : '', chart.draft ? 'yellow lighten-4' : 'green lighten-4']"
                                 >{{dif}}</v-btn>
                             </div>
                           </v-list-tile-content>
