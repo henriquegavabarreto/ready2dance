@@ -1,50 +1,68 @@
 <template>
   <div>
-    <v-container fluid justify-center align-center id="background">
-      <v-layout row wrap align-center justify-center>
-        <v-flex class="display-1 font-weight-thin mb-2 mt-5 text-xs-center" xs12>
-          Get
+    <v-container fluid class="pa-0 ma-0">
+      <v-layout row wrap>
+        <v-flex xs12>
+          <v-container fluid justify-center align-center id="background">
+            <v-layout row wrap align-center justify-center style="height: 85vh;">
+              <v-flex class="display-1 font-weight-thin mb-0 text-xs-center" xs12>
+                Get
+              </v-flex>
+              <v-flex class="display-4 font-weight-medium text-xs-center" xs12>
+                Ready 2 Dance
+              </v-flex>
+              <v-flex style="display: block;" class="text-xs-center mt-1" xs12>
+                <v-layout row wrap>
+                  <v-flex xs12>
+                    <v-btn style="min-width: 15vw;" large dark @click="toggleLoginModal">log in</v-btn>
+                  </v-flex>
+                  <v-flex xs12>
+                    <v-btn style="min-width: 15vw;" large dark @click="toggleRegisterModal">register</v-btn>
+                  </v-flex>
+                  <v-flex xs12>
+                    <v-btn style="min-width: 15vw;" large dark @click="enterAsGuest">Enter as Guest</v-btn>
+                  </v-flex>
+                </v-layout>
+              </v-flex>
+            </v-layout>
+          </v-container>
         </v-flex>
-        <v-flex class="display-4 font-weight-medium mb-5 text-xs-center" xs12>
-          Ready 2 Dance
+        <v-flex xs12>
+          <v-container fluid class="pa-0 ma-0">
+            <v-layout row wrap class="pa-0 ma-0">
+              <v-flex dark class="black white--text px-0 mx-0 text-xs-center" xs12>
+                <h2><span>⬇⬇⬇</span><span> What is this about? </span><span>⬇⬇⬇</span></h2>
+              </v-flex>
+            </v-layout>
+          </v-container>
         </v-flex>
-        <v-flex class="text-xs-center mt-5" xs12>
-          <v-btn style="width: 200px;" large dark @click="toggleLoginModal">log in</v-btn>
-        </v-flex>
-        <v-flex class="text-xs-center mt-3" xs12>
-          <v-btn style="width: 200px;" large dark @click="toggleRegisterModal">register</v-btn>
-        </v-flex>
-        <v-flex class="text-xs-center mt-3" xs12>
-          <v-btn style="width: 200px;" large dark @click="enterAsGuest">Enter as Guest</v-btn>
+        <v-flex xs12>
+          <v-container fluid id="about">
+            <v-layout row wrap>
+              <v-flex xs12>
+                <v-card>
+                  <v-card-title class="black white--text headline font-weight-bold" primary-title>
+                    What is "Ready 2 Dance"?
+                  </v-card-title>
+                  <v-card-text class="title font-weight-regular blue-grey lighten-5">
+                    <p>Ready 2 Dance is an online rhythm dance game based on the japanese synchronized dance <a target="_blank" href="https://en.wikipedia.org/wiki/Para_Para">ParaPara</a> (<a target="_blank" href="https://ja.wikipedia.org/wiki/%E3%83%91%E3%83%A9%E3%83%91%E3%83%A9">パラパラ</a>).</p>
+                    <p>The website uses your webcam to check how accurate are your moves compared to the dance routine. If you have your hands in the correct place and at the correct time, you score points!</p>
+                    <p>Right now we have {{numberOfSongs}} routines available for playing! And this number will continue to grow!</p>
+                    <p>You can play this game in any Operational System, preferably using Google Chrome's latest version. No need to install anything else.</p>
+                    <p>No streaming of your webcam leaves the browser. No servers involved on this. =) All the movement checking happens in your own computer using <a target="_blank" href="https://www.npmjs.com/package/@tensorflow-models/posenet">PoseNet</a>.</p>
+                    <p>Because of that, your hardware can affect the gameplay.</p>
+                    <p>The better your camera and your GPU, the better the movement detection can be, you just need to change that in the settings.</p>
+                    <p>Make sure to use hardware acceleration on Chrome's settings and allow this website do use your webcam.</p>
+                    <p>I hope you all enjoy this little experiment!</p>
+                    <br>
+                    <p class="text-sm-right">Created using Vue.js, Vuetify, Tensorflow's PoseNet, pixi.js and the youtube API by <a target="blank" href="https://github.com/henriquegavabarreto/">Henrique Barreto</a>.</p>
+                  </v-card-text>
+                </v-card>
+              </v-flex>
+            </v-layout>
+          </v-container>
         </v-flex>
       </v-layout>
-    </v-container>
-    <v-footer dark>
-      <h2 class="ml-5">⬇⬇⬇⬇⬇</h2>
-      <v-spacer></v-spacer>
-      <h2>What is this about?</h2>
-      <v-spacer></v-spacer>
-      <h2 class="mr-5">⬇⬇⬇⬇⬇</h2>
-    </v-footer>
-    <v-container fluid id="about">
-      <v-card>
-        <v-card-title class="black white--text title" primary-title>
-          What is "Ready 2 Dance"?
-        </v-card-title>
-        <v-card-text class="subheading blue-grey lighten-5">
-          <p>Ready 2 Dance is an online rhythm dance game based on the japanese synchronized dance <a target="_blank" href="https://en.wikipedia.org/wiki/Para_Para">ParaPara</a> (<a target="_blank" href="https://ja.wikipedia.org/wiki/%E3%83%91%E3%83%A9%E3%83%91%E3%83%A9">パラパラ</a>).</p>
-          <p>The website uses your webcam to check how accurate are your moves compared to the dance routine. If you have your hands in the correct place and at the correct time, you score points!</p>
-          <p>Right now we have {{numberOfSongs}} routines available for playing! And this number will continue to grow!</p>
-          <p>You can play this game in any Operational System, preferably using Google Chrome's latest version. No need to install anything else.</p>
-          <p>No streaming of your webcam leaves the browser. No servers involved on this. =) All the movement checking happens in your own computer using <a target="_blank" href="https://www.npmjs.com/package/@tensorflow-models/posenet">PoseNet</a>.</p>
-          <h4>Therefore...</h4>
-          <p>Your hardware can affect the gameplay, so make sure to use hardware acceleration on Chrome's settings and allow this website do use your webcam.</p>
-          <p>The better your camera and your GPU, the better the movement detection can be, you just need to change that in the settings.</p>
-          <p>I hope you all enjoy this little experiment!</p>
-          <br>
-          <p class="text-sm-right">Created using Vue.js, Vuetify, Tensorflow's PoseNet, pixi.js and the youtube API by <a target="blank" href="https://github.com/henriquegavabarreto/">Henrique Barreto</a>.</p>
-        </v-card-text>
-      </v-card>
     </v-container>
     <v-footer dark>
       <v-spacer></v-spacer>
@@ -247,12 +265,9 @@ export default {
     /* background: linear-gradient(90deg, #FC466B 0%, #3F5EFB 100%); */
     background: rgb(255,250,0);
     background: linear-gradient(-153deg, rgba(255,250,0,1) 0%, rgba(0,251,255,1) 50%, rgba(254,0,255,1) 100%);
-    height: 92vh;
   }
+
   p {
-    margin-top: 30px;
-  }
-  h4 {
-    margin-top: 30px;
+    margin-top: 3.5vh;
   }
 </style>

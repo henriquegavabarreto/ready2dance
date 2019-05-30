@@ -1,6 +1,6 @@
 <template>
   <div>
-    <video id="videoStream" style="width: 100px; height: 100px; position: fixed; left: 10px; bottom: 10px;" :style="displayWebcam">
+    <video id="videoStream" style="width: 100px; height: 100px; position: fixed; left: 10px; bottom: 10px; border: 2px solid black;" :style="displayWebcam">
     </video>
     <v-container fluid class="pa-0">
       <v-layout row nowrap class="ma-0" style="background-color: black;">
@@ -27,7 +27,8 @@
           </ul>
         </li>
       </ul>
-      <ul style="list-style-type: none;">
+      <v-spacer></v-spacer>
+      <ul style="list-style-type: none;" class="mr-2">
         <li><h3>Status:</h3></li>
         <li>
           <ul style="columns: 2; -webkit-columns: 2; -moz-columns: 2; list-style-type: none; border: 2px solid white; border-radius: 5px;" class="pl-3 pr-3">

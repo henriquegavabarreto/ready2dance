@@ -1,12 +1,11 @@
 <template>
-  <div style="background-color: black; height: 765px;">
+  <div style="background-color: black;">
     <v-toolbar
-      color="primary"
-      dark
+    dark
       icons-and-text
     >
       <v-text-field
-        style="max-width: 550px;"
+        style="max-width: 40vw;"
         prepend-icon="search"
         label="Search"
         v-model="search"
@@ -173,7 +172,7 @@
     <v-container mx-0>
       <v-layout row wrap justify-space-between>
         <v-flex xs5>
-          <v-card style="width: 550px; border-radius: 10px;" class="blue-grey lighten-5">
+          <v-card style="width: 40vw; border-radius: 10px;" class="blue-grey lighten-5">
             <v-card-title>
               <v-icon
                 large
@@ -184,7 +183,7 @@
               </v-icon>
               <span class="display-1">Select a Song</span>
             </v-card-title>
-            <v-container fluid grid-list-lg style="height: 580px;" class="scroll-y">
+            <v-container fluid grid-list-lg style="height: 75vh;" class="scroll-y">
               <v-layout row wrap>
                 <v-flex
                 xs12
@@ -194,11 +193,11 @@
                   <v-card
                     style="border-radius: 15px;"
                     hover
-                    :class="selectedSong.title === song.title ? 'blue lighten' : ''">
+                    :class="selectedSong.title === song.title ? 'pink darken-1 white--text' : ''">
                     <v-card-title primary-title>
                       <div>
-                        <h3 class="headline mb-0">{{song.title}}</h3>
-                        <div>{{song.artist}}</div>
+                        <h3 class="headline mb-0 font-weight-bold">{{song.title}}</h3>
+                        <div class="font-weight-medium">{{song.artist}}</div>
                       </div>
                     </v-card-title>
                   </v-card>
@@ -208,11 +207,11 @@
           </v-card>
         </v-flex>
         <v-flex xs5 v-if="selectedSong">
-          <v-card style="width: 700px; border-radius: 10px;" class="blue-grey lighten-5 text-xs-center">
-            <v-card-title primary-title class="justify-center yellow pb-1">
+          <v-card style="width: 50vw; border-radius: 10px;" class="blue-grey lighten-5 text-xs-center">
+            <v-card-title primary-title class="justify-center cyan pb-1">
               <div>
-                <h3 class="display-1 mb-1">{{selectedSong.title}} {{filteredSongs.title}}</h3>
-                <div class="headline">{{selectedSong.artist}}</div>
+                <h3 class="display-1 mb-1 font-weight-bold">{{selectedSong.title}} {{filteredSongs.title}}</h3>
+                <div class="headline font-weight-medium">{{selectedSong.artist}}</div>
               </div>
             </v-card-title>
             <v-divider></v-divider>
@@ -226,22 +225,22 @@
               </div>
               <v-spacer></v-spacer>
               <v-btn
-                style="width: 370px;"
+                style="width: 25vw;"
                 class="ml-4"
                 :disabled="selectedChart === ''"
                 @click="goToGame"><v-icon>play_arrow</v-icon></v-btn>
             </v-card-text>
           </v-card>
-          <v-card v-show="selectedSong !== {}" style="width: 700px; height: 428px; border-radius: 10px;" class="mt-3 blue-grey lighten-5">
-            <v-card-title class="headline" primary-title>
+          <v-card v-show="selectedSong !== {}" style="width: 50vw; height: 55vh; border-radius: 10px;" class="mt-3 blue-grey lighten-5">
+            <v-card-title class="headline justify-center yellow darken-1 font-weight-bold" primary-title>
               SCORE BOARD
             </v-card-title>
             <v-divider></v-divider>
-            <v-card-text v-if="typeof $store.state.songScores === 'string'">
+            <v-card-text v-if="typeof $store.state.songScores === 'string'" class="headline text-xs-center">
               {{$store.state.songScores}}
             </v-card-text>
             <v-card-text v-else>
-              <table class="scroll-y" style="width: 600px; max-height: 400px;">
+              <table class="scroll-y" style="width: 40vw; max-height: 45vh;">
                 <thead class="headline">
                   <th>Rank</th>
                   <th>Player</th>

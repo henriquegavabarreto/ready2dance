@@ -2,25 +2,50 @@
   <div style="background-color:black; height:765px;">
     <v-layout row wrap justify-space-around class="pt-5">
       <v-flex xs5>
-        <v-card dark style="height: 600px; width: 600px;">
-          <v-card-title primary-title class="display-3 font-weight-black">
+        <v-card dark style="height: 690px; width: 600px; border-radius: 10px;">
+          <v-card-title primary-title class="display-3 font-weight-bold justify-center cyan darken-1 black--text">
             RESULTS
           </v-card-title>
-          <v-divider class="mb-3"></v-divider>
+          <v-divider></v-divider>
+          <div class="text-xs-center headline font-weight-medium mb-3 mt-3">
+            {{$store.state.selectedSong.title}} - {{$store.state.selectedSong.artist}}<br/>{{$store.state.selectedDifficulty.toUpperCase()}}
+          </div>
+          <v-divider></v-divider>
           <v-card-text class="display-1 font-weight-medium mb-4">
-            <v-layout row wrap>
+            <v-layout row nowrap>
               <v-flex xs6>
-                <p>Perfect: {{results.perfect}}</p>
-                <p>Awesome: {{results.awesome}}</p>
-                <p>Good: {{results.good}}</p>
-                <p>Max Combo: {{results.maxCombo}}</p>
-                <p>Miss: {{results.miss}}</p>
-                <p>Score: {{results.score}}</p>
+                <table class="pt-3 ml-3" style="width: 390px;">
+                  <tbody>
+                    <tr>
+                      <td>PERFECT</td>
+                      <td>{{results.perfect}}</td>
+                    </tr>
+                    <tr>
+                      <td>AWESOME</td>
+                      <td>{{results.awesome}}</td>
+                    </tr>
+                    <tr>
+                      <td>GOOD</td>
+                      <td>{{results.good}}</td>
+                    </tr>
+                    <tr>
+                      <td>MISS</td>
+                      <td>{{results.miss}}</td>
+                    </tr>
+                    <tr>
+                      <td>MAX COMBO</td>
+                      <td>{{results.maxCombo}}</td>
+                    </tr>
+                    <tr>
+                      <td>SCORE</td>
+                      <td>{{results.score}}</td>
+                    </tr>
+                  </tbody>
+                </table>
               </v-flex>
-              <v-flex class="text-xs-center mt-5" xs6>
-                <p>Grade:</p>
-                <div style="width: 85px; height: 85px; border-radius: 15px; margin-left: 33%;" class="blue">
-                  <p class="pt-2 display-3">{{grade}}</p>
+              <v-flex class="text-xs-center mt-5 ml-5 pl-4 pt-3" xs6>
+                <div style="width: 125px; height: 125px; border-radius: 15px; margin-left: 33%;" :class="[gradeColor]">
+                  <p class="pt-2 display-4 font-weight-bold">{{grade}}</p>
                 </div>
               </v-flex>
             </v-layout>
@@ -32,8 +57,8 @@
         </v-card>
       </v-flex>
       <v-flex xs5>
-        <v-card dark style="height: 600px; width: 600px;" v-if="typeof $store.state.songScores !== 'string'">
-          <v-card-title primary-title class="display-3 font-weight-black justify-center">
+        <v-card dark style="height: 690px; width: 600px; border-radius: 10px;" v-if="typeof $store.state.songScores !== 'string'">
+          <v-card-title primary-title class="display-3 font-weight-bold justify-center yellow darken-1 black--text">
             SCORE BOARD
           </v-card-title>
           <v-divider></v-divider>
@@ -57,8 +82,8 @@
             </table>
           </v-card-text>
         </v-card>
-        <v-card dark style="height: 600px; width: 600px;" v-else>
-          <v-card-title primary-title class="display-3 font-weight-black">
+        <v-card dark style="height: 690px; width: 600px; border-radius: 10px;" v-else>
+          <v-card-title primary-title class="display-3 font-weight-bold justify-center yellow darken-1 black--text">
             SCORE BOARD
           </v-card-title>
           <v-divider></v-divider>
@@ -117,6 +142,30 @@ export default {
         grade = 'F'
       }
       return grade
+    },
+    gradeColor: function () {
+      let cl = ''
+      switch (this.grade) {
+        case 'S':
+          cl = 'red darken-2'
+          break
+        case 'A':
+          cl = 'orange darken-2'
+          break
+        case 'B':
+          cl = 'yellow darken-2'
+          break
+        case 'C':
+          cl = 'green darken-2'
+          break
+        case 'D':
+          cl = 'cyan darken-2'
+          break
+        case 'F':
+          cl = 'black'
+          break
+      }
+      return cl + ' mt-5'
     }
   }
 }
@@ -127,5 +176,6 @@ export default {
   }
   td {
     padding-bottom: 15px;
+    vertical-align: middle;
   }
 </style>
