@@ -1,44 +1,59 @@
 <template>
-  <div>
-    <video id="videoStream" style="z-index: 4; width: 100px; height: 100px; position: fixed; left: 10px; bottom: 10px; border: 2px solid black;" :style="displayWebcam">
-    </video>
-    <v-container style="height: 85vh;" fluid class="pa-0">
-      <v-layout style="height: 85vh;" row wrap class="black" justify-center align-center>
-        <v-flex sm12 md6 id="player" :style="noCanvas" class="text-xs-center"></v-flex>
-        <v-flex sm12 md6 id="canvas" v-if="gameOptions.showAnimation" class="text-xs-center"></v-flex>
+  <div style="height: 100vh;" class="black">
+    <v-container fluid class="pa-0">
+      <v-layout row wrap class="black" justify-center align-center style="height: 100vh;">
+        <v-flex md12 lg6 order-xs3 order-md3 order-lg1 id="canvas" v-if="gameOptions.showAnimation" class="text-xs-center"></v-flex>
+        <v-flex md12 lg6 order-xs1 order-md1 order-lg2 id="player" :style="noCanvas" class="text-xs-center"></v-flex>
+        <v-flex xs12 order-xs2 order-md2 order-lg3 class="white--text">
+          <v-layout row wrap justify-center align-center>
+            <v-flex hidden-xs-only shrink :style="displayWebcam">
+              <video id="videoStream" style="width: 100px; height: 100px; border: 2px solid black;">
+              </video>
+            </v-flex>
+            <v-flex hidden-xs-only grow>
+              <ul style="list-style-type: none;">
+                <li><h3>Score</h3></li>
+                <li>
+                  <ul style="list-style-type: none; border: 2px solid white; border-radius: 5px;" class="pa-3">
+                    <li>{{displayScore}}</li>
+                  </ul>
+                </li>
+              </ul>
+            </v-flex>
+            <v-flex hidden-xs-only xs3>
+              <ul style="list-style-type: none;">
+                <li><h3>You're listening to</h3></li>
+                <li>
+                  <ul style="list-style-type: none; border: 2px solid white; border-radius: 5px;" class="pa-3">
+                    <li>{{song.title}}</li>
+                    <li>{{song.artist}}</li>
+                  </ul>
+                </li>
+              </ul>
+            </v-flex>
+            <v-flex xs4 hidden-sm-and-down>
+              <ul style="list-style-type: none;">
+                <li><h3>Status</h3></li>
+                <li>
+                  <ul style="columns: 2; -webkit-columns: 2; -moz-columns: 2; list-style-type: none; border: 2px solid white; border-radius: 5px;" class="pl-3 pr-3">
+                  <li>
+                    <ul>
+                      <li>PERFECT: {{perfect}}</li>
+                      <li>AWESOME: {{awesome}}</li>
+                      <li>GOOD: {{good}}</li>
+                      <li>MISS: {{miss}}</li>
+                      <li>COMBO: {{combo}}</li>
+                      <li>MAXCOMBO: {{maxCombo}}</li>
+                    </ul>
+                  </li>
+                  </ul>
+                </li>
+              </ul>
+            </v-flex>
+          </v-layout>
+        </v-flex>
       </v-layout>
     </v-container>
-    <v-footer style="height: 15vh;" color="dark-gray">
-      <h1 id="score" style="border: 2px solid white; border-radius: 5px; margin-left: 120px;" class="pl-3 pr-3">SCORE: {{displayScore}}</h1>
-      <v-spacer></v-spacer>
-      <ul style="list-style-type: none;">
-        <li><h3>You're listening to:</h3></li>
-        <li>
-          <ul style="list-style-type: none; border: 2px solid white; border-radius: 5px;" class="pa-3">
-            <li>{{song.title}}</li>
-            <li>{{song.artist}}</li>
-          </ul>
-        </li>
-      </ul>
-      <v-spacer></v-spacer>
-      <ul style="list-style-type: none;" class="mr-2">
-        <li><h3>Status:</h3></li>
-        <li>
-          <ul style="columns: 2; -webkit-columns: 2; -moz-columns: 2; list-style-type: none; border: 2px solid white; border-radius: 5px;" class="pl-3 pr-3">
-          <li>
-            <ul>
-              <li>PERFECT: {{perfect}}</li>
-              <li>AWESOME: {{awesome}}</li>
-              <li>GOOD: {{good}}</li>
-              <li>MISS: {{miss}}</li>
-              <li>COMBO: {{combo}}</li>
-              <li>MAXCOMBO: {{maxCombo}}</li>
-            </ul>
-          </li>
-          </ul>
-        </li>
-      </ul>
-    </v-footer>
   </div>
 </template>
 
@@ -107,6 +122,12 @@ export default {
       this.ticker.add(() => {
         this.cueManager.drawDynamicCues(this.moves, this.textures.cues)
       })
+      window.addEventListener('resize', () => {
+        window.onresize = (event) => {
+          this.resize()
+        }
+      })
+      this.resize()
     }
     this.cameraLatency = (this.gameOptions.latency / this.songManager.tempo) * 4 // measured in quarterBeat => should be in the $store
     this.ticker.add(() => {
@@ -422,6 +443,29 @@ export default {
       this.stream.srcObject.getVideoTracks().forEach((track) => {
         track.stop()
       })
+    },
+    resize: function () {
+      let ratio = pixiConfig.width / pixiConfig.height
+      let w
+      let h
+      if (window.innerWidth / window.innerHeight >= ratio) {
+        w = window.innerHeight * ratio
+        h = window.innerHeight
+      } else {
+        w = window.innerWidth
+        h = window.innerWidth / ratio
+      }
+
+      if (this.$vuetify.breakpoint.lgAndUp) {
+        this.app.view.style.width = w / 1.5 + 'px'
+        this.app.view.style.height = h / 1.5 + 'px'
+      } else if (this.$vuetify.breakpoint.md || this.$vuetify.breakpoint.sm) {
+        this.app.view.style.width = w / 2.5 + 'px'
+        this.app.view.style.height = h / 2.5 + 'px'
+      } else {
+        this.app.view.style.width = w / 1.3 + 'px'
+        this.app.view.style.height = h / 1.3 + 'px'
+      }
     }
   },
   computed: {
@@ -491,14 +535,9 @@ export default {
 }
 </script>
 <style scoped>
-  li {
-    font-size: 20px;
+  html, body {
+    min-height: 100vh;
   }
-
-  #score {
-    font-size: 60px;
-  }
-
   video {
     transform: scaleX(-1);
   }

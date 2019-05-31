@@ -194,11 +194,11 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-    <v-content>
-      <v-container fluid>
+    <v-content style="min-height: 100vh;">
+      <v-container fluid fill-height>
         <v-layout row wrap>
           <v-flex sm12 md6>
-            <v-card style="border-radius: 10px;" class="blue-grey lighten-5">
+            <v-card style="max-height: 100%; border-radius: 10px;" class="blue-grey lighten-5">
               <v-card-title>
                 <v-icon
                   large
@@ -209,7 +209,7 @@
                 </v-icon>
                 <span class="display-1">Select a Song</span>
               </v-card-title>
-              <v-container fluid grid-list-lg class="scroll-y">
+              <v-container style="max-height: 75vh;" fluid grid-list-lg class="scroll-y">
                 <v-layout row wrap>
                   <v-flex
                   xs12
@@ -442,6 +442,9 @@ export default {
 }
 </script>
 <style scoped>
+  html, body {
+    min-height: 100vh;
+  }
   th {
     padding-bottom: 25px;
   }
@@ -456,6 +459,5 @@ export default {
     background: linear-gradient(140deg, rgba(139,0,232,1) 0%, rgba(211,146,255,1) 30%, rgba(255,255,255,1) 46%, rgba(255,255,255,1) 53%, rgba(255,146,146,1) 70%, rgba(255,29,29,1) 100%); */
     background: rgb(3,3,3);
     background: linear-gradient(140deg, rgba(3,3,3,1) 0%, rgba(139,0,232,1) 6%, rgba(211,146,255,1) 12%, rgba(139,0,232,1) 18%, rgba(0,0,0,1) 46%, rgba(0,0,0,1) 55% ,rgba(29,240,255,1) 82%, rgba(146,250,255,1) 92%, rgba(29,240,255,1) 96%, rgba(0,0,0,1) 100%);
-    min-height: 100%;
   }
 </style>
