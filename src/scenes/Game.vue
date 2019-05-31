@@ -1,21 +1,14 @@
 <template>
   <div>
-    <video id="videoStream" style="width: 100px; height: 100px; position: fixed; left: 10px; bottom: 10px; border: 2px solid black;" :style="displayWebcam">
+    <video id="videoStream" style="z-index: 4; width: 100px; height: 100px; position: fixed; left: 10px; bottom: 10px; border: 2px solid black;" :style="displayWebcam">
     </video>
-    <v-container fluid class="pa-0">
-      <v-layout row nowrap class="ma-0" style="background-color: black;">
-        <v-flex v-if="gameOptions.showAnimation" xs6 id="canvas">
-        </v-flex>
-        <v-flex xs6 style="background-color: black;" :style="noCanvas" class="text-xs-center">
-          <v-container fluid class="pa-0 ma-0">
-            <v-layout row wrap justify-center align-center class="pa-0 mt-5">
-              <v-flex xs12 id="player" style="width: 720px;" class="mt-5 text-xs-center"></v-flex>
-            </v-layout>
-          </v-container>
-        </v-flex>
+    <v-container style="height: 85vh;" fluid class="pa-0">
+      <v-layout style="height: 85vh;" row wrap class="black" justify-center align-center>
+        <v-flex sm12 md6 id="player" :style="noCanvas" class="text-xs-center"></v-flex>
+        <v-flex sm12 md6 id="canvas" v-if="gameOptions.showAnimation" class="text-xs-center"></v-flex>
       </v-layout>
     </v-container>
-    <v-footer height="120" color="dark-gray">
+    <v-footer style="height: 15vh;" color="dark-gray">
       <h1 id="score" style="border: 2px solid white; border-radius: 5px; margin-left: 120px;" class="pl-3 pr-3">SCORE: {{displayScore}}</h1>
       <v-spacer></v-spacer>
       <ul style="list-style-type: none;">

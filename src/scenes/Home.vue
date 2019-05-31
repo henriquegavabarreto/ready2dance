@@ -1,15 +1,13 @@
 <template>
   <div>
-    <v-container fluid class="pa-0 ma-0">
+    <v-container fluid class="pa-0 ma-0" id="background">
       <v-layout row wrap>
         <v-flex xs12>
-          <v-container fluid justify-center align-center id="background">
-            <v-layout row wrap align-center justify-center style="height: 85vh;">
-              <v-flex class="display-1 font-weight-thin mb-0 text-xs-center" xs12>
-                Get
-              </v-flex>
-              <v-flex class="display-4 font-weight-medium text-xs-center" xs12>
-                Ready 2 Dance
+          <v-container fluid justify-center align-center>
+            <v-layout row wrap align-center justify-center style="min-height: 88.5vh;">
+              <v-flex class="text-xs-center" xs12>
+                <span class="display-1 font-weight-thin mb-0 text-xs-center">Get</span><br>
+                <span class="display-4 font-weight-medium text-xs-center">Ready 2 Dance</span>
               </v-flex>
               <v-flex style="display: block;" class="text-xs-center mt-1" xs12>
                 <v-layout row wrap>
@@ -27,17 +25,17 @@
             </v-layout>
           </v-container>
         </v-flex>
-        <v-flex xs12>
-          <v-container fluid class="pa-0 ma-0">
-            <v-layout row wrap class="pa-0 ma-0">
-              <v-flex dark class="black white--text px-0 mx-0 text-xs-center" xs12>
+        <v-flex class="mt-2" xs12>
+          <v-container fluid class="pa-0">
+            <v-layout row wrap class="pa-0">
+              <v-flex dark class="black white--text px-0 text-xs-center" xs12>
                 <h2><span>⬇⬇⬇</span><span> What is this about? </span><span>⬇⬇⬇</span></h2>
               </v-flex>
             </v-layout>
           </v-container>
         </v-flex>
         <v-flex xs12>
-          <v-container fluid id="about">
+          <v-container fluid>
             <v-layout row wrap>
               <v-flex xs12>
                 <v-card>
@@ -258,13 +256,6 @@ export default {
     /* background: linear-gradient(90deg, #FC466B 0%, #3F5EFB 100%); */
     background: rgb(255,250,0);
     background: linear-gradient(333deg, rgba(255,250,0,1) 0%, rgba(0,251,255,1) 50%, rgba(254,0,255,1) 100%);
-    height: 96vh;
-  }
-
-  #about {
-    /* background: linear-gradient(90deg, #FC466B 0%, #3F5EFB 100%); */
-    background: rgb(255,250,0);
-    background: linear-gradient(-153deg, rgba(255,250,0,1) 0%, rgba(0,251,255,1) 50%, rgba(254,0,255,1) 100%);
   }
 
   p {

@@ -1,8 +1,9 @@
 <template>
-  <div style="background-color: black;">
+  <div id="background">
     <v-toolbar
-    dark
+      dark
       icons-and-text
+      app
     >
       <v-text-field
         style="max-width: 40vw;"
@@ -17,23 +18,47 @@
       <h3 class="ml-5" v-if="$store.state.user !== null">Hello, {{$store.state.user.username}}!</h3>
       <h3 class="ml-5" v-else>Hello, Guest!</h3>
       <v-spacer></v-spacer>
-      <v-btn @click="toggleSettings"><v-icon left>settings</v-icon><span>Settings</span></v-btn>
-      <div v-if="$store.state.user !== null">
-        <v-btn v-if="$store.state.user.type === 'admin'" @click="manageUsers = true"><v-icon left>assignment_ind</v-icon><span>Users</span></v-btn>
-        <v-btn v-if="$store.state.user.type === 'admin' || $store.state.user.type === 'editor'" @click="goToEditor"><v-icon left>edit</v-icon>EDITOR</v-btn>
-      </div>
-      <v-btn @click="logout"><v-icon left>exit_to_app</v-icon>SIGN OUT</v-btn>
+      <v-menu bottom left>
+        <template v-slot:activator="{ on }">
+          <v-btn
+            dark
+            icon
+            v-on="on"
+          >
+            <v-icon>more_vert</v-icon>
+          </v-btn>
+        </template>
+
+        <v-list class="py-0">
+          <v-list-tile @click="toggleSettings">
+            <v-list-tile-title><v-icon left>settings</v-icon><span>Settings</span></v-list-tile-title>
+          </v-list-tile>
+        </v-list>
+        <v-list class="py-0" v-if="$store.state.user !== null">
+          <v-list-tile v-if="$store.state.user.type === 'admin'" @click="manageUsers = true">
+            <v-list-tile-title><v-icon left>assignment_ind</v-icon><span>Users</span></v-list-tile-title>
+          </v-list-tile>
+          <v-list-tile v-if="$store.state.user.type === 'admin' || $store.state.user.type === 'editor'" @click="goToEditor">
+            <v-list-tile-title><v-icon left>edit</v-icon><span>Editor</span></v-list-tile-title>
+          </v-list-tile>
+        </v-list>
+        <v-list class="py-0">
+          <v-list-tile @click="logout">
+            <v-list-tile-title><v-icon left>exit_to_app</v-icon><span>Sign Out</span></v-list-tile-title>
+          </v-list-tile>
+        </v-list>
+      </v-menu>
     </v-toolbar>
     <v-dialog
-    v-model="manageUsers"
-    max-width="500"
-    min-height="500"
+      v-model="manageUsers"
+      max-width="400"
+      min-height="500"
     >
       <v-card>
         <v-card-title class="headline">Manage Users</v-card-title>
 
         <v-card-text>
-          <v-list dense two-line style="max-height: 400px; max-width: 400px;" class="scroll-y blue lighten-5">
+          <v-list dense two-line style="max-height: 40vh; max-width: 40vw;" class="scroll-y blue lighten-5">
             <v-list-tile
               v-for="(user, name) in users"
               :key="name"
@@ -169,96 +194,104 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-    <v-container mx-0>
-      <v-layout row wrap justify-space-between>
-        <v-flex xs5>
-          <v-card style="width: 40vw; border-radius: 10px;" class="blue-grey lighten-5">
-            <v-card-title>
-              <v-icon
-                large
-                left
-                color="black"
-              >
-                queue_music
-              </v-icon>
-              <span class="display-1">Select a Song</span>
-            </v-card-title>
-            <v-container fluid grid-list-lg style="height: 75vh;" class="scroll-y">
-              <v-layout row wrap>
-                <v-flex
-                xs12
-                v-for="song in filteredSongs"
-                :key="song.videoId"
-                @click="selectSong(song)">
-                  <v-card
-                    style="border-radius: 15px;"
-                    hover
-                    :class="selectedSong.title === song.title ? 'pink darken-1 white--text' : ''">
-                    <v-card-title primary-title>
-                      <div>
-                        <h3 class="headline mb-0 font-weight-bold">{{song.title}}</h3>
-                        <div class="font-weight-medium">{{song.artist}}</div>
-                      </div>
-                    </v-card-title>
-                  </v-card>
-                </v-flex>
-              </v-layout>
-            </v-container>
-          </v-card>
-        </v-flex>
-        <v-flex xs5 v-if="selectedSong">
-          <v-card style="width: 50vw; border-radius: 10px;" class="blue-grey lighten-5 text-xs-center">
-            <v-card-title primary-title class="justify-center cyan pb-1">
-              <div>
-                <h3 class="display-1 mb-1 font-weight-bold">{{selectedSong.title}} {{filteredSongs.title}}</h3>
-                <div class="headline font-weight-medium">{{selectedSong.artist}}</div>
-              </div>
-            </v-card-title>
-            <v-divider></v-divider>
-            <v-card-text style="display: inline;" class="justify-center pl-0">
-              <div style="display: inline;" v-for="(chart, dif) in songCharts" :key="dif">
-                <v-btn
+    <v-content>
+      <v-container fluid>
+        <v-layout row wrap>
+          <v-flex sm12 md6>
+            <v-card style="border-radius: 10px;" class="blue-grey lighten-5">
+              <v-card-title>
+                <v-icon
                   large
-                  @click="selectChart(chart.id, dif)"
-                  :class="selectedChart === chart.id ? 'blue lighten' : ''"
-                  :disabled="chart.draft">{{dif}}<span v-if="chart.draft">(SOON)</span></v-btn>
-              </div>
-              <v-spacer></v-spacer>
-              <v-btn
-                style="width: 25vw;"
-                class="ml-4"
-                :disabled="selectedChart === ''"
-                @click="goToGame"><v-icon>play_arrow</v-icon></v-btn>
-            </v-card-text>
-          </v-card>
-          <v-card v-show="selectedSong !== {}" style="width: 50vw; height: 55vh; border-radius: 10px;" class="mt-3 blue-grey lighten-5">
-            <v-card-title class="headline justify-center yellow darken-1 font-weight-bold" primary-title>
-              SCORE BOARD
-            </v-card-title>
-            <v-divider></v-divider>
-            <v-card-text v-if="typeof $store.state.songScores === 'string'" class="headline text-xs-center">
-              {{$store.state.songScores}}
-            </v-card-text>
-            <v-card-text v-else>
-              <table class="scroll-y" style="width: 40vw; max-height: 45vh;">
-                <thead class="headline">
-                  <th>Rank</th>
-                  <th>Player</th>
-                  <th>Score</th>
-                </thead>
-                <tbody>
-                  <tr v-for="(score, index) in $store.state.songScores" :key="index" class="title text-sm-center">
-                    <td>{{index + 1}}</td>
-                    <td>{{score[0]}}</td>
-                    <td>{{score[1]}}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </v-card-text>
-          </v-card>
-        </v-flex>
-      </v-layout>
-    </v-container>
+                  left
+                  color="black"
+                >
+                  queue_music
+                </v-icon>
+                <span class="display-1">Select a Song</span>
+              </v-card-title>
+              <v-container fluid grid-list-lg class="scroll-y">
+                <v-layout row wrap>
+                  <v-flex
+                  xs12
+                  v-for="song in filteredSongs"
+                  :key="song.videoId"
+                  @click="selectSong(song)">
+                    <v-card
+                      style="border-radius: 15px;"
+                      hover
+                      :class="selectedSong.title === song.title ? 'pink darken-1 white--text' : ''">
+                      <v-card-title primary-title>
+                        <div>
+                          <h3 class="headline mb-0 font-weight-bold">{{song.title}}</h3>
+                          <div class="font-weight-medium">{{song.artist}}</div>
+                        </div>
+                      </v-card-title>
+                    </v-card>
+                  </v-flex>
+                </v-layout>
+              </v-container>
+            </v-card>
+          </v-flex>
+          <v-flex sm12 md6 :class="!$vuetify.breakpoint.smAndDown ? 'pl-3' : 'pt-3'" v-show="selectedSong.title">
+            <v-layout row wrap>
+              <v-flex xs12>
+                <v-card style="border-radius: 10px;" class="blue-grey lighten-5 text-xs-center">
+                  <v-card-title primary-title class="justify-center cyan pb-1">
+                    <div>
+                      <h3 class="display-1 mb-1 font-weight-bold">{{selectedSong.title}} {{filteredSongs.title}}</h3>
+                      <div class="headline font-weight-medium">{{selectedSong.artist}}</div>
+                    </div>
+                  </v-card-title>
+                  <v-divider></v-divider>
+                  <v-card-text style="display: inline;" class="justify-center pl-0">
+                    <div style="display: inline;" v-for="(chart, dif) in songCharts" :key="dif">
+                      <v-btn
+                        large
+                        @click="selectChart(chart.id, dif)"
+                        :class="selectedChart === chart.id ? 'blue lighten' : ''"
+                        :disabled="chart.draft">{{dif}}<span v-if="chart.draft">(SOON)</span></v-btn>
+                    </div>
+                    <v-spacer></v-spacer>
+                    <v-btn
+                      style="width: 25vw;"
+                      class="ml-4"
+                      :disabled="selectedChart === ''"
+                      @click="goToGame"><v-icon>play_arrow</v-icon></v-btn>
+                  </v-card-text>
+                </v-card>
+              </v-flex>
+              <v-flex xs12>
+                <v-card style="border-radius: 10px;" class="mt-3 blue-grey lighten-5">
+                  <v-card-title class="headline justify-center yellow darken-1 font-weight-bold" primary-title>
+                    SCORE BOARD
+                  </v-card-title>
+                  <v-divider></v-divider>
+                  <v-card-text v-if="typeof $store.state.songScores === 'string'" class="headline text-xs-center">
+                    {{$store.state.songScores}}
+                  </v-card-text>
+                  <v-card-text v-else>
+                    <table class="scroll-y" style="width: 40vw; max-height: 45vh;">
+                      <thead class="headline">
+                        <th>Rank</th>
+                        <th>Player</th>
+                        <th>Score</th>
+                      </thead>
+                      <tbody>
+                        <tr v-for="(score, index) in $store.state.songScores" :key="index" class="title text-sm-center">
+                          <td>{{index + 1}}</td>
+                          <td>{{score[0]}}</td>
+                          <td>{{score[1]}}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </v-card-text>
+                </v-card>
+              </v-flex>
+            </v-layout>
+          </v-flex>
+        </v-layout>
+      </v-container>
+    </v-content>
   </div>
 </template>
 
@@ -315,6 +348,8 @@ export default {
       this.selectedSong = song
       this.$store.commit('selectSong', song)
       this.$store.commit('changeSongScores', 'Select a difficulty')
+      // if (this.$vuetify.breakpoint)
+      // console.log(this.$vuetify.breakpoint)
     },
     goToGame: function () { // goes to the game after the chart is loaded
       if (this.selectedSong !== {} && this.selectedChart !== '') {
@@ -412,5 +447,15 @@ export default {
   }
   td {
     padding-bottom: 15px;
+  }
+  #background {
+    /* background: linear-gradient(90deg, #FC466B 0%, #3F5EFB 100%); */
+    /* background: rgb(255,250,0);
+    background: linear-gradient(333deg, rgba(255,250,0,1) 0%, rgba(0,251,255,1) 50%, rgba(254,0,255,1) 100%); */
+    /* background: rgb(139,0,232);
+    background: linear-gradient(140deg, rgba(139,0,232,1) 0%, rgba(211,146,255,1) 30%, rgba(255,255,255,1) 46%, rgba(255,255,255,1) 53%, rgba(255,146,146,1) 70%, rgba(255,29,29,1) 100%); */
+    background: rgb(3,3,3);
+    background: linear-gradient(140deg, rgba(3,3,3,1) 0%, rgba(139,0,232,1) 6%, rgba(211,146,255,1) 12%, rgba(139,0,232,1) 18%, rgba(0,0,0,1) 46%, rgba(0,0,0,1) 55% ,rgba(29,240,255,1) 82%, rgba(146,250,255,1) 92%, rgba(29,240,255,1) 96%, rgba(0,0,0,1) 100%);
+    min-height: 100%;
   }
 </style>
