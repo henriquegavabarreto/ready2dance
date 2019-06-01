@@ -57,7 +57,7 @@
 </template>
 
 <script>
-import getUserMedia from 'getusermedia'
+// import getUserMedia from 'getusermedia'
 import playerConfig from '../tools/game/config/youtube-player'
 import gameConfig from '../tools/game/config/game-config'
 import grid from '../tools/game/config/grid'
@@ -308,36 +308,38 @@ export default {
     })
 
     this.player.setVolume(0)
-    this.player.load(this.$store.state.selectedChart.videoId, false)
 
-    getUserMedia({ video: { width: 300, height: 300 }, audio: false }, (err, stream) => {
-      if (err) {
-        console.log(err)
-        this.player.stop()
-        this.player.destroy()
-        if (this.gameOptions.showAnimation) {
-          for (let texture in this.textures) {
-            this.textures[texture].destroy()
-          }
-          for (let container in this.containers) {
-            this.containers[container].destroy(true)
-          }
-          this.app.destroy()
-        }
-        this.ticker.stop()
-        this.ticker.destroy()
-        this.stopCapture()
-        this.$store.commit('somethingWentWrong')
-        this.$store.commit('goToSongSelection')
-      } else {
-        this.stream = document.getElementById('videoStream')
-        this.stream.width = 300
-        this.stream.height = 300
-        this.stream.srcObject = stream
-        this.stream.play()
-        this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride)
-      }
-    })
+    this.createCapture()
+
+    // getUserMedia({ video: { width: 300, height: 300 }, audio: false }, (err, stream) => {
+    //   if (err) {
+    //     console.log(err)
+    //     this.player.stop()
+    //     this.player.destroy()
+    //     if (this.gameOptions.showAnimation) {
+    //       for (let texture in this.textures) {
+    //         this.textures[texture].destroy()
+    //       }
+    //       for (let container in this.containers) {
+    //         this.containers[container].destroy(true)
+    //       }
+    //       this.app.destroy()
+    //     }
+    //     this.ticker.stop()
+    //     this.ticker.destroy()
+    //     this.stopCapture()
+    //     this.$store.commit('somethingWentWrong')
+    //     this.$store.commit('goToSongSelection')
+    //   } else {
+    //     this.player.load(this.$store.state.selectedChart.videoId, false)
+    //     this.stream = document.getElementById('videoStream')
+    //     this.stream.width = 300
+    //     this.stream.height = 300
+    //     this.stream.srcObject = stream
+    //     this.stream.play()
+    //     this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride)
+    //   }
+    // })
   },
   methods: {
     goToResults: function () {
@@ -469,6 +471,62 @@ export default {
         this.app.view.style.width = w / 1.3 + 'px'
         this.app.view.style.height = h / 1.3 + 'px'
       }
+    },
+    createCapture: function () {
+      let constraints = {
+        audio: false,
+        video: {
+          frameRate: 30,
+          facingMode: 'user',
+          width: 300,
+          height: 300
+        }
+      }
+
+      navigator.mediaDevices.getUserMedia(constraints)
+        .then((stream) => {
+          this.player.load(this.$store.state.selectedChart.videoId, false)
+          this.stream = document.getElementById('videoStream')
+          this.stream.srcObject = stream
+          this.stream.onloadedmetadata = (e) => {
+            this.stream.width = 300
+            this.stream.height = 300
+            this.stream.play()
+            this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride)
+          }
+        })
+        .catch((err) => {
+          this.player.stop()
+          this.player.destroy()
+          if (this.gameOptions.showAnimation) {
+            for (let texture in this.textures) {
+              this.textures[texture].destroy()
+            }
+            for (let container in this.containers) {
+              this.containers[container].destroy(true)
+            }
+            this.app.destroy()
+          }
+          this.ticker.stop()
+          this.ticker.destroy()
+          this.$store.commit('somethingWentWrong')
+          this.$store.commit('goToSongSelection')
+
+          if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+            console.log('Are you sure you have a camera? Check your device and your system preferences to make sure your camera is anabled and reload this page.')
+          } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+            console.log('Are you using your camera elsewhere? Come back here when your camera is not being used')
+          } else if (err.name === 'OverconstrainedError' || err.name === 'ConstraintNotSatisfiedError') {
+            console.log('The camera you have is not supported... Check this website using another device.')
+          } else if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+            console.log('This website needs permission to use your camera. Make sure you hit allowed when asked or check your settings and try again')
+          } else if (err.name === 'TypeError' || err.name === 'TypeError') {
+            console.log('Oops... Something went wrong when we tried to access you camera...')
+          } else {
+            console.log('Something went wrong... Check if you have a camera, if it\'s working and that this website can use it. Check your settings and try again')
+          }
+          console.log(err.name, err.message)
+        })
     }
   },
   computed: {
