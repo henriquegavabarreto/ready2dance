@@ -90,7 +90,7 @@
           Settings
         </v-toolbar>
 
-        <v-card-text class="blue-grey lighten-5">
+        <v-card-text class="blue-grey lighten-4">
           <h3>Animations</h3>
           <v-checkbox
             color="blue"
@@ -198,8 +198,8 @@
       <v-container fluid fill-height>
         <v-layout row wrap>
           <v-flex sm12 md6>
-            <v-card style="max-height: 100%; border-radius: 10px;" class="blue-grey lighten-5">
-              <v-card-title>
+            <v-card style="max-height: 100%; border-radius: 10px;" class="blue-grey lighten-4">
+              <v-card-title class="justify-center teal lighten-2">
                 <v-icon
                   large
                   left
@@ -207,8 +207,9 @@
                 >
                   queue_music
                 </v-icon>
-                <span class="display-1">Select a Song</span>
+                <span class="display-1 font-weight-medium">Select a Song</span>
               </v-card-title>
+              <v-divider></v-divider>
               <v-container style="max-height: 75vh;" fluid grid-list-lg class="scroll-y">
                 <v-layout row wrap>
                   <v-flex
@@ -234,8 +235,8 @@
           </v-flex>
           <v-flex sm12 md6 :class="!$vuetify.breakpoint.smAndDown ? 'pl-3' : 'pt-3'" v-show="selectedSong.title">
             <v-layout row wrap>
-              <v-flex xs12>
-                <v-card style="border-radius: 10px;" class="blue-grey lighten-5 text-xs-center">
+              <v-flex xs12 id="currentlySelected">
+                <v-card style="border-radius: 10px;" class="blue-grey lighten-4 text-xs-center">
                   <v-card-title primary-title class="justify-center cyan pb-1">
                     <div>
                       <h3 class="display-1 mb-1 font-weight-bold">{{selectedSong.title}} {{filteredSongs.title}}</h3>
@@ -261,7 +262,7 @@
                 </v-card>
               </v-flex>
               <v-flex xs12>
-                <v-card style="border-radius: 10px;" class="mt-3 blue-grey lighten-5">
+                <v-card style="border-radius: 10px;" class="mt-3 blue-grey lighten-4">
                   <v-card-title class="headline justify-center yellow darken-1 font-weight-bold" primary-title>
                     SCORE BOARD
                   </v-card-title>
@@ -269,8 +270,8 @@
                   <v-card-text v-if="typeof $store.state.songScores === 'string'" class="headline text-xs-center">
                     {{$store.state.songScores}}
                   </v-card-text>
-                  <v-card-text v-else>
-                    <table class="scroll-y" style="width: 40vw; max-height: 45vh;">
+                  <v-card-text style="max-height: 45.8vh;" class="scroll-y" v-else>
+                    <table style="width: 100%; text-align: center;">
                       <thead class="headline">
                         <th>Rank</th>
                         <th>Player</th>
@@ -348,8 +349,7 @@ export default {
       this.selectedSong = song
       this.$store.commit('selectSong', song)
       this.$store.commit('changeSongScores', 'Select a difficulty')
-      // if (this.$vuetify.breakpoint)
-      // console.log(this.$vuetify.breakpoint)
+      if (this.$vuetify.breakpoint.xs) document.getElementById('currentlySelected').scrollIntoView()
     },
     goToGame: function () { // goes to the game after the chart is loaded
       if (this.selectedSong !== {} && this.selectedChart !== '') {

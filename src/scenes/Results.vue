@@ -1,97 +1,102 @@
 <template>
-  <div style="background-color:black; height:765px;">
-    <v-layout row wrap justify-space-around class="pt-5">
-      <v-flex xs5>
-        <v-card dark style="height: 690px; width: 600px; border-radius: 10px;">
-          <v-card-title primary-title class="display-3 font-weight-bold justify-center cyan darken-1 black--text">
-            RESULTS
-          </v-card-title>
-          <v-divider></v-divider>
-          <div class="text-xs-center headline font-weight-medium mb-3 mt-3">
-            {{$store.state.selectedSong.title}} - {{$store.state.selectedSong.artist}}<br/>{{$store.state.selectedDifficulty.toUpperCase()}}
-          </div>
-          <v-divider></v-divider>
-          <v-card-text class="display-1 font-weight-medium mb-4">
-            <v-layout row nowrap>
-              <v-flex xs6>
-                <table class="pt-3 ml-3" style="width: 390px;">
-                  <tbody>
-                    <tr>
-                      <td>PERFECT</td>
-                      <td>{{results.perfect}}</td>
-                    </tr>
-                    <tr>
-                      <td>AWESOME</td>
-                      <td>{{results.awesome}}</td>
-                    </tr>
-                    <tr>
-                      <td>GOOD</td>
-                      <td>{{results.good}}</td>
-                    </tr>
-                    <tr>
-                      <td>MISS</td>
-                      <td>{{results.miss}}</td>
-                    </tr>
-                    <tr>
-                      <td>MAX COMBO</td>
-                      <td>{{results.maxCombo}}</td>
-                    </tr>
-                    <tr>
-                      <td>SCORE</td>
-                      <td>{{results.score}}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </v-flex>
-              <v-flex class="text-xs-center mt-5 ml-5 pl-4 pt-3" xs6>
-                <div style="width: 125px; height: 125px; border-radius: 15px; margin-left: 33%;" :class="[gradeColor]">
-                  <p class="pt-2 display-4 font-weight-bold">{{grade}}</p>
-                </div>
-              </v-flex>
-            </v-layout>
-          </v-card-text>
-          <v-card-actions icons-and-text class="justify-center">
-            <v-btn class="mr-3" @click="goToSongSelection"><v-icon left>exit_to_app</v-icon>BACK TO SONG SELECTION</v-btn>
-            <v-btn class="ml-3" @click="playAgain"><v-icon left>play_arrow</v-icon><span>PLAY AGAIN</span></v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-flex>
-      <v-flex xs5>
-        <v-card dark style="height: 690px; width: 600px; border-radius: 10px;" v-if="typeof $store.state.songScores !== 'string'">
-          <v-card-title primary-title class="display-3 font-weight-bold justify-center yellow darken-1 black--text">
-            SCORE BOARD
-          </v-card-title>
-          <v-divider></v-divider>
-          <h2 v-if="$store.state.user !== null" class="mt-3 mb-3 text-sm-center">Your ranking: # {{userPlace}}</h2>
-          <h2 else class="mt-3 mb-3 text-sm-center">Register to have your next scores on the scoreboard!</h2>
-          <v-divider></v-divider>
-          <v-card-text>
-            <table class="scroll-y" style="width: 600px; max-height: 400px;">
-              <thead class="headline">
-                <th>Rank</th>
-                <th>Player</th>
-                <th>Score</th>
-              </thead>
-              <tbody>
-                <tr v-for="(score, index) in $store.state.songScores" :key="index" class="title text-sm-center">
-                  <td>{{index + 1}}</td>
-                  <td>{{score[0]}}</td>
-                  <td>{{score[1]}}</td>
-                </tr>
-              </tbody>
-            </table>
-          </v-card-text>
-        </v-card>
-        <v-card dark style="height: 690px; width: 600px; border-radius: 10px;" v-else>
-          <v-card-title primary-title class="display-3 font-weight-bold justify-center yellow darken-1 black--text">
-            SCORE BOARD
-          </v-card-title>
-          <v-divider></v-divider>
-          <h2 class="mt-3 mb-3 text-sm-center">{{$store.state.songScores}}</h2>
-          <v-divider></v-divider>
-        </v-card>
-      </v-flex>
-    </v-layout>
+  <div style="min-height: 100vh; min-width: 100%;" id="background">
+    <v-container fluid>
+      <v-layout row wrap>
+        <v-flex xs12 md6>
+          <v-card dark style="border-radius: 10px;">
+            <v-card-title primary-title class="display-3 font-weight-bold justify-center cyan lighten-1 black--text">
+              RESULTS
+            </v-card-title>
+            <v-divider></v-divider>
+            <div class="text-xs-center headline font-weight-medium mb-3 mt-3">
+              {{$store.state.selectedSong.title}} - {{$store.state.selectedSong.artist}}<br/>{{$store.state.selectedDifficulty.toUpperCase()}}
+            </div>
+            <v-divider></v-divider>
+            <v-card-text :class="!$vuetify.breakpoint.xs ? 'display-1 font-weight-medium' : 'headline'">
+              <v-layout row wrap justify-center align-center>
+                <v-flex xs12 sm6>
+                  <table>
+                    <tbody>
+                      <tr>
+                        <td>PERFECT</td>
+                        <td class="resultNumbers">{{results.perfect}}</td>
+                      </tr>
+                      <tr>
+                        <td>AWESOME</td>
+                        <td class="resultNumbers">{{results.awesome}}</td>
+                      </tr>
+                      <tr>
+                        <td>GOOD</td>
+                        <td class="resultNumbers">{{results.good}}</td>
+                      </tr>
+                      <tr>
+                        <td>MISS</td>
+                        <td class="resultNumbers">{{results.miss}}</td>
+                      </tr>
+                      <tr>
+                        <td>MAX COMBO</td>
+                        <td class="resultNumbers">{{results.maxCombo}}</td>
+                      </tr>
+                      <tr>
+                        <td>SCORE</td>
+                        <td class="resultNumbers">{{results.score}}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </v-flex>
+                <v-flex class="text-xs-center" xs12 sm6>
+                  <v-layout row wrap justify-center align-center>
+                    <v-flex xs12 style="max-width: 125px; max-height: 125px; border-radius: 15px;" :class="[gradeColor]">
+                      <p class="pt-2 display-4 font-weight-bold">{{grade}}</p>
+                    </v-flex>
+                  </v-layout>
+                </v-flex>
+              </v-layout>
+            </v-card-text>
+            <v-card-actions icons-and-text class="justify-center">
+              <v-btn @click="goToSongSelection"><v-icon :class="!$vuetify.breakpoint.xs ? 'v-icon--left' : 'v-icon--center'">queue_music</v-icon><span class="hidden-xs-only">BACK TO SONG SELECTION</span></v-btn>
+              <v-btn @click="playAgain"><v-icon :class="!$vuetify.breakpoint.xs ? 'v-icon--left' : 'v-icon--center'">replay</v-icon><span class="hidden-xs-only">PLAY AGAIN</span></v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-flex>
+        <v-flex xs12 md6 :class="!$vuetify.breakpoint.smAndDown ? 'pl-3' : 'pt-3'">
+          <v-card dark style="border-radius: 10px;" v-if="typeof $store.state.songScores !== 'string'">
+
+            <v-card-title primary-title class="display-3 font-weight-bold justify-center yellow darken-1 black--text">
+              SCORE BOARD
+            </v-card-title>
+            <v-divider></v-divider>
+            <h2 v-if="$store.state.user !== null" class="mt-3 mb-3 text-sm-center">Your ranking: # {{userPlace}}</h2>
+            <h2 v-else class="mt-3 mb-3 text-sm-center">Register to have your next scores on the scoreboard!</h2>
+            <v-divider></v-divider>
+            <v-card-text class="scroll-y" style="max-height: 61vh;">
+              <table style="width: 100%; text-align: center;">
+                <thead class="headline">
+                  <th>Rank</th>
+                  <th>Player</th>
+                  <th>Score</th>
+                </thead>
+                <tbody>
+                  <tr v-for="(score, index) in $store.state.songScores" :key="index" class="title text-sm-center">
+                    <td>{{index + 1}}</td>
+                    <td>{{score[0]}}</td>
+                    <td>{{score[1]}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </v-card-text>
+          </v-card>
+          <v-card dark style="height: 40vh; width: 100%; border-radius: 10px;" v-else>
+            <v-card-title primary-title class="display-3 font-weight-bold justify-center yellow darken-1 black--text">
+              SCORE BOARD
+            </v-card-title>
+            <v-divider></v-divider>
+            <h2 class="mt-3 mb-3 text-sm-center">{{$store.state.songScores}}</h2>
+            <v-divider></v-divider>
+          </v-card>
+        </v-flex>
+      </v-layout>
+    </v-container>
   </div>
 </template>
 
@@ -171,11 +176,23 @@ export default {
 }
 </script>
 <style scoped>
+  #background {
+    /* background: linear-gradient(90deg, #FC466B 0%, #3F5EFB 100%); */
+    /* background: rgb(255,250,0);
+    background: linear-gradient(333deg, rgba(255,250,0,1) 0%, rgba(0,251,255,1) 50%, rgba(254,0,255,1) 100%); */
+    /* background: rgb(139,0,232);
+    background: linear-gradient(140deg, rgba(139,0,232,1) 0%, rgba(211,146,255,1) 30%, rgba(255,255,255,1) 46%, rgba(255,255,255,1) 53%, rgba(255,146,146,1) 70%, rgba(255,29,29,1) 100%); */
+    background: rgb(3,3,3);
+    background: linear-gradient(40deg, rgba(3,3,3,1) 0%, rgba(139,0,232,1) 6%, rgba(211,146,255,1) 12%, rgba(139,0,232,1) 18%, rgba(0,0,0,1) 46%, rgba(0,0,0,1) 55% ,rgba(29,240,255,1) 82%, rgba(146,250,255,1) 92%, rgba(29,240,255,1) 96%, rgba(0,0,0,1) 100%);
+  }
   th {
     padding-bottom: 25px;
   }
   td {
     padding-bottom: 15px;
     vertical-align: middle;
+  }
+  .resultNumbers {
+    text-align: right;
   }
 </style>

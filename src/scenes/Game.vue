@@ -25,8 +25,7 @@
                 <li><h3>You're listening to</h3></li>
                 <li>
                   <ul style="list-style-type: none; border: 2px solid white; border-radius: 5px;" class="pa-3">
-                    <li>{{song.title}}</li>
-                    <li>{{song.artist}}</li>
+                    <li>{{song.title}} / {{song.artist}}</li>
                   </ul>
                 </li>
               </ul>
@@ -122,11 +121,7 @@ export default {
       this.ticker.add(() => {
         this.cueManager.drawDynamicCues(this.moves, this.textures.cues)
       })
-      window.addEventListener('resize', () => {
-        window.onresize = (event) => {
-          this.resize()
-        }
-      })
+      window.addEventListener('resize', this.resizeWindow())
       this.resize()
     }
     this.cameraLatency = (this.gameOptions.latency / this.songManager.tempo) * 4 // measured in quarterBeat => should be in the $store
@@ -361,6 +356,9 @@ export default {
       this.ticker.destroy()
       this.stopCapture()
 
+      window.removeEventListener('resize', this.resizeWindow)
+      window.onresize = null
+
       if (this.$store.state.user !== null) { // if the user is not anonymous
         for (let song in this.$store.state.songs) {
           if (this.$store.state.selectedSong.videoId === this.$store.state.songs[song].videoId) {
@@ -443,6 +441,11 @@ export default {
       this.stream.srcObject.getVideoTracks().forEach((track) => {
         track.stop()
       })
+    },
+    resizeWindow: function () {
+      window.onresize = (event) => {
+        this.resize()
+      }
     },
     resize: function () {
       let ratio = pixiConfig.width / pixiConfig.height
