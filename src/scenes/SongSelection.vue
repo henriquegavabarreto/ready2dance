@@ -55,31 +55,45 @@
       min-height="500"
     >
       <v-card>
-        <v-card-title class="headline">Manage Users</v-card-title>
+        <v-toolbar flat class="cyan headline font-weight-medium">
+          Manage Users
+        </v-toolbar>
 
-        <v-card-text>
-          <v-list dense two-line style="max-height: 40vh; max-width: 40vw;" class="scroll-y blue lighten-5">
-            <v-list-tile
-              v-for="(user, name) in users"
-              :key="name"
-              :class="selectedUser === name ? 'blue lighten' : ''"
-              @click="selectedUser = name"
-            >
-              <v-list-tile-content>
-                <v-list-tile-title>{{user.username}}</v-list-tile-title>
-                <v-list-tile-sub-title>{{user.type}}</v-list-tile-sub-title>
-              </v-list-tile-content>
-            </v-list-tile>
-          </v-list>
+        <v-card-text class="mb-0 pb-0">
+          <v-text-field
+            label="username"
+            outline
+            v-model="usernameToChange"
+          ></v-text-field>
         </v-card-text>
-
+        <v-card-text class="mt-0 pt-0 subheading font-weight-medium">
+          Change user status to:
+        </v-card-text>
         <v-card-actions>
-          <v-btn @click="changeUserStatus('user')">user</v-btn>
-          <v-btn @click="changeUserStatus('editor')">editor</v-btn>
-          <v-btn @click="changeUserStatus('admin')">admin</v-btn>
+          <v-btn small @click="changeUserStatus('user')">user</v-btn>
+          <v-btn small @click="changeUserStatus('editor')">editor</v-btn>
+          <v-btn small @click="changeUserStatus('admin')">admin</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-snackbar
+      v-model="usernameNotFound"
+      class="black--text"
+      color="yellow"
+      :timeout="4000"
+    >
+    There is no user with this username.
+    <v-btn dark small @click="usernameNotFound = !usernameNotFound">CLOSE</v-btn>
+    </v-snackbar>
+    <v-snackbar
+      v-model="userStatusChanged"
+      class="black--text"
+      color="green"
+      :timeout="4000"
+    >
+      User Status Changed.
+    <v-btn dark small @click="userStatusChanged = !userStatusChanged">CLOSE</v-btn>
+    </v-snackbar>
     <v-dialog
       v-model="settings"
       max-width="500"
@@ -319,20 +333,21 @@ export default {
         speed: 1
       },
       loading: false,
+      usernameToChange: '',
+      usernameNotFound: false,
+      userStatusChanged: false,
       username: '',
       manageUsers: false,
       selectedUser: '',
       users: null
     }
   },
-  created () {
-    if (this.$store.state.user !== null) {
-      if (this.$store.state.user.type === 'admin') {
-        firebase.database.ref('users').on('value', (data) => {
-          this.users = data.val()
-        })
-      }
+  beforeCreate () {
+    if (this.$store.state.songs === null) {
+      this.$store.dispatch('loadSongs')
     }
+  },
+  created () {
     this.options.showAnimation = this.$store.state.gameOptions.showAnimation
     this.options.showWebcam = this.$store.state.gameOptions.showWebcam
     this.options.latency = this.$store.state.gameOptions.latency
@@ -395,18 +410,17 @@ export default {
       }).catch((err) => { console.log(err) })
     },
     changeUserStatus: function (status) {
-      firebase.database.ref('users').once('value').then((value) => {
-        let users = value.val()
-        for (let user in users) {
-          if (user === this.selectedUser) {
-            firebase.database.ref(`users/${user}`).update({
-              type: status
-            })
-            return
-          }
+      firebase.database.ref('users').orderByChild('username').equalTo(`${this.usernameToChange}`).once('value', snapshot => {
+        if (snapshot.val() !== null) {
+          firebase.database.ref('users/' + Object.keys(snapshot.val())[0]).update({
+            type: status
+          }).then(() => {
+            this.userStatusChanged = true
+            this.manageUsers = false
+          })
+        } else {
+          this.usernameNotFound = true
         }
-      }).catch((err) => {
-        console.log(err)
       })
     }
   },

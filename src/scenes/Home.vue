@@ -18,7 +18,7 @@
                     <v-btn style="min-width: 15vw;" large dark @click="toggleRegisterModal">register</v-btn>
                   </v-flex>
                   <v-flex xs12>
-                    <v-btn style="min-width: 15vw;" large dark @click="enterAsGuest">Enter as Guest</v-btn>
+                    <v-btn style="min-width: 15vw;" :loading="loadingGuest" large dark @click="enterAsGuest">Enter as Guest</v-btn>
                   </v-flex>
                 </v-layout>
               </v-flex>
@@ -145,6 +145,7 @@ export default {
       password: '',
       username: '',
       loading: false,
+      loadingGuest: false,
       error: null,
       usernameRules: [ v => (!!/^[a-z0-9_-]/g.test(v) && v.length > 3 && v.length < 17) || 'Alphanumeric lowercase only. Can include _ and – having a length of 4 to 16 characters.' ],
       emailRules: [ v => !!/^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/g.test(v) || 'Enter a valid e-mail address.' ],
@@ -161,9 +162,8 @@ export default {
     registerNewUser: function () {
       if (this.$refs.register.validate()) {
         this.loading = true
-        firebase.database.ref('users').once('value').then((value) => { // check for users in the database
-          let users = value.val()
-          if (users === null) { // if there are no users
+        firebase.database.ref('users').orderByChild('username').equalTo(`${this.username}`).once('value', snapshot => {
+          if (snapshot.val() === null) { // if there is no user with the chosen username create a new one
             firebase.auth.createUserWithEmailAndPassword(this.email, this.password).then((result) => { // create new user
               let user = {
                 username: this.username,
@@ -183,36 +183,9 @@ export default {
               this.error = err.message
               console.log(err)
             })
-          } else { // if there are users
-            let taken = false
-            for (let user in users) {
-              if (users[user].username === this.username) {
-                this.loading = false
-                this.error = 'Username not available, please choose another one.'
-                taken = true
-                return
-              }
-            }
-            if (!taken) {
-              firebase.auth.createUserWithEmailAndPassword(this.email, this.password).then((result) => { // create new user
-                let user = { // set new user in the database
-                  username: this.username,
-                  type: 'user'
-                }
-                firebase.database.ref(`users/${result.user.uid}`).set(user).then(() => {
-                  this.$store.commit('changeUser', user)
-                  this.$store.commit('goToSongSelection')
-                }).catch((err) => {
-                  this.loading = false
-                  this.error = err.message
-                  console.log(err)
-                })
-              }).catch((err) => {
-                this.loading = false
-                this.error = err.message
-                console.log(err)
-              })
-            }
+          } else {
+            this.loading = false
+            this.error = 'Username not available, please choose another one.'
           }
         })
       }
@@ -232,9 +205,9 @@ export default {
       })
     },
     enterAsGuest: function () {
-      this.loading = true
+      this.loadingGuest = true
       firebase.auth.signInAnonymously().then(() => {
-        this.loading = false
+        this.loadingGuest = false
         this.$store.commit('changeUser', null)
         this.$store.commit('goToSongSelection')
       }).catch((err) => { console.log(err) })

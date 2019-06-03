@@ -487,6 +487,9 @@ export default {
         .then((stream) => {
           this.player.load(this.$store.state.selectedChart.videoId, false)
           this.stream = document.getElementById('videoStream')
+          this.stream.setAttribute('autoplay', '')
+          this.stream.setAttribute('muted', '')
+          this.stream.setAttribute('playsinline', '')
           this.stream.srcObject = stream
           this.stream.onloadedmetadata = (e) => {
             this.stream.width = 300

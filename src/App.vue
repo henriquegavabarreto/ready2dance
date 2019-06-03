@@ -24,6 +24,7 @@ import SongSelection from './scenes/SongSelection'
 import Game from './scenes/Game'
 import Results from './scenes/Results'
 import Home from './scenes/Home'
+import ErrorPage from './scenes/ErrorPage'
 
 export default {
   name: 'App',
@@ -32,11 +33,11 @@ export default {
     'song-selection': SongSelection,
     'game': Game,
     'results': Results,
-    'home': Home
+    'home': Home,
+    'error': ErrorPage
   },
   beforeCreate () {
     this.$store.dispatch('onStateChange')
-    this.$store.dispatch('updateSongs')
     this.$store.dispatch('loadNet', 0.5)
   },
   methods: {

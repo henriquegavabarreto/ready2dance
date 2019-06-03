@@ -44,7 +44,7 @@ export default new Vuex.Store({
     selectDifficulty: (state, data) => {
       state.selectedDifficulty = data
     },
-    updateSongs: (state, data) => {
+    loadSongs: (state, data) => {
       state.songs = data
     },
     goToHome: state => {
@@ -61,6 +61,9 @@ export default new Vuex.Store({
     },
     goToResults: state => {
       state.currentScene = 'results'
+    },
+    goToError: state => {
+      state.currentScene = 'error'
     },
     changeSelectedChart: (state, data) => {
       state.selectedChart = data
@@ -91,9 +94,9 @@ export default new Vuex.Store({
     }
   },
   actions: {
-    updateSongs: context => {
-      firebase.database.ref('songs').on('value', (data) => {
-        context.commit('updateSongs', data.val())
+    loadSongs: context => {
+      firebase.database.ref('songs').once('value', (data) => {
+        context.commit('loadSongs', data.val())
       }, (err) => { console.log(err) })
     },
     changeSelectedChart: (context, payload) => {
@@ -104,14 +107,17 @@ export default new Vuex.Store({
     loadNet: (context, payload) => {
       posenet.load(payload).then((data) => {
         context.commit('loadNet', data)
-      }).catch((err) => console.log(err))
+      }).catch((err) => {
+        context.commit('goToError')
+        console.log(err)
+      })
     },
     updateSongScores: (context, payload) => {
-      firebase.database.ref(`scores/${payload}`).on('value', (data) => {
+      firebase.database.ref(`scores/${payload}`).once('value', (data) => {
         let scores = data.val()
         let sortedScores = Object.entries(scores).sort((a, b) => b[1] - a[1])
         context.commit('changeSongScores', sortedScores)
-      }, (err) => { console.log(err) })
+      }, (err) => console.log(err))
     },
     onStateChange: context => {
       firebase.auth.onAuthStateChanged((userState) => {
