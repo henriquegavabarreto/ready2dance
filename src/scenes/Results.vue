@@ -117,7 +117,7 @@ export default {
     },
     userPlace: function () {
       if (this.$store.state.user !== null) {
-        let place = 1
+        let place = 0
         this.$store.state.songScores.forEach((score, i) => {
           if (score[0] === this.$store.state.user.username) {
             place = i + 1
@@ -177,11 +177,6 @@ export default {
 </script>
 <style scoped>
   #background {
-    /* background: linear-gradient(90deg, #FC466B 0%, #3F5EFB 100%); */
-    /* background: rgb(255,250,0);
-    background: linear-gradient(333deg, rgba(255,250,0,1) 0%, rgba(0,251,255,1) 50%, rgba(254,0,255,1) 100%); */
-    /* background: rgb(139,0,232);
-    background: linear-gradient(140deg, rgba(139,0,232,1) 0%, rgba(211,146,255,1) 30%, rgba(255,255,255,1) 46%, rgba(255,255,255,1) 53%, rgba(255,146,146,1) 70%, rgba(255,29,29,1) 100%); */
     background: rgb(3,3,3);
     background: linear-gradient(40deg, rgba(3,3,3,1) 0%, rgba(139,0,232,1) 6%, rgba(211,146,255,1) 12%, rgba(139,0,232,1) 18%, rgba(0,0,0,1) 46%, rgba(0,0,0,1) 55% ,rgba(29,240,255,1) 82%, rgba(146,250,255,1) 92%, rgba(29,240,255,1) 96%, rgba(0,0,0,1) 100%);
   }

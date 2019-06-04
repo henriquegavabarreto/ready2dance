@@ -44,8 +44,17 @@ export default new Vuex.Store({
     selectDifficulty: (state, data) => {
       state.selectedDifficulty = data
     },
-    loadSongs: (state, data) => {
-      state.songs = data
+    addSong: (state, data) => {
+      if (state.songs === null) {
+        state.songs = {}
+      }
+      state.songs[data.key] = data.val
+    },
+    changeSong: (state, data) => {
+      state.songs[data.key] = data.val
+    },
+    removeSong: (state, data) => {
+      delete state.songs[data.key]
     },
     goToHome: state => {
       state.currentScene = 'home'
@@ -95,9 +104,27 @@ export default new Vuex.Store({
   },
   actions: {
     loadSongs: context => {
-      firebase.database.ref('songs').once('value', (data) => {
-        context.commit('loadSongs', data.val())
-      }, (err) => { console.log(err) })
+      firebase.database.ref('songs').orderByChild('title').on('child_added', (data) => {
+        let values = {
+          key: data.key,
+          val: data.val()
+        }
+        context.commit('addSong', values)
+      })
+      firebase.database.ref('songs').on('child_changed', (data) => {
+        let values = {
+          key: data.key,
+          val: data.val()
+        }
+        context.commit('changeSong', values)
+      })
+      firebase.database.ref('songs').on('child_removed', (data) => {
+        let values = {
+          key: data.key,
+          val: data.val()
+        }
+        context.commit('removeSong', values)
+      })
     },
     changeSelectedChart: (context, payload) => {
       return firebase.database.ref(`charts/${payload}`).once('value', (data) => {
@@ -113,7 +140,7 @@ export default new Vuex.Store({
       })
     },
     updateSongScores: (context, payload) => {
-      firebase.database.ref(`scores/${payload}`).once('value', (data) => {
+      firebase.database.ref(`scores/${payload}`).orderByValue().limitToLast(50).once('value', (data) => {
         let scores = data.val()
         let sortedScores = Object.entries(scores).sort((a, b) => b[1] - a[1])
         context.commit('changeSongScores', sortedScores)

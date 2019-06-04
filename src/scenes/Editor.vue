@@ -350,6 +350,7 @@ export default {
       missingInfo: false,
       charts: null,
       existingChart: false,
+      songs: null,
       settings: { offset: '0', videoStart: '0', videoEnd: '0', bpm: '150', title: '', artist: '' },
       timingRules: [ v => !!/\d*(\.)?\d+$/g.test(v) || 'input must be a valid number.' ],
       songInfoRules: [ v => !!v || 'Required.' ],
@@ -357,6 +358,7 @@ export default {
     }
   },
   created () { // creates pixi app, a ticker for the game graphics and stops the shared ticker, that will be started only when necessary (dealing with selection)
+    this.updateSongs()
     this.editorApp = new PIXI.Application(pixiConfig)
     this.ticker = new PIXI.ticker.Ticker()
   },
@@ -510,7 +512,6 @@ export default {
       if (this.$refs.videoId.validate() && this.$refs.timing.validate() && this.$refs.songInfo.validate() && this.difficulties.indexOf(this.difficulty) !== -1) {
         let songId = this.dataManager.getSongIdByVideoId(this.songs, this.player.videoId)
         if (songId === '') { // if there is no song with this videoId
-          // should dataManager return a promise so we can toggle saved from here?
           this.dataManager.saveNewSong(this.danceChart, this.player, this.difficulty, this.draft, this.$store.state.user.username)
           this.saved = true
         } else {
@@ -521,6 +522,7 @@ export default {
             this.duplicateChart = true
           }
         }
+        setTimeout(() => { this.updateSongs() }, 1000)
       } else {
         this.missingInfo = true
       }
@@ -531,6 +533,7 @@ export default {
         this.dataManager.overwriteChart(this.danceChart, this.songs[songId].charts[this.difficulty].id, songId, this.difficulty, this.draft, this.$store.state.user.username)
         this.duplicateChart = false
         this.saved = true
+        setTimeout(() => { this.updateSongs() }, 1000)
       } else {
         this.missingInfo = true
       }
@@ -550,27 +553,21 @@ export default {
     },
     loadChart: function (songId, chartId) { // pulls chart info from the database and applies to the danceChart and settings tab
       if (chartId !== '') {
-        let p1 = firebase.database.ref(`charts/${chartId}`).once('value')
-        let p2 = firebase.database.ref(`songs/${songId}`).once('value')
+        let loadedChart = {}
+        firebase.database.ref(`charts/${chartId}`).once('value', (data) => {
+          let value = data.val()
+          loadedChart.offset = value.offset
+          loadedChart.moves = value.moves
+          loadedChart.videoEnd = value.videoEnd
+          loadedChart.videoStart = value.videoStart
+          loadedChart.videoId = value.videoId
+          loadedChart.bpm = value.bpm
 
-        Promise.all([p1, p2]).then((values) => {
-          let loadedChart = {}
-          values.forEach((value, i) => {
-            value = value.val()
-            if (value.hasOwnProperty('bpm')) { // from chart node in the database
-              loadedChart.offset = value.offset
-              loadedChart.moves = value.moves
-              loadedChart.videoEnd = value.videoEnd
-              loadedChart.videoStart = value.videoStart
-              loadedChart.videoId = value.videoId
-              loadedChart.bpm = value.bpm
-            } else { // from song node in the database
-              loadedChart.title = value.title
-              loadedChart.artist = value.artist
-              this.danceChart.songId = songId
-              this.danceChart.chartId = chartId
-            }
-          })
+          loadedChart.title = this.$store.state.songs[songId].title
+          loadedChart.artist = this.$store.state.songs[songId].artist
+          this.danceChart.songId = songId
+          this.danceChart.chartId = chartId
+        }).then(() => {
           this.dataManager.updateChartAndSettings(this.danceChart, this.settings, loadedChart)
           this.dataManager.updateManagers(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.cueManager)
           this.noteManager.redraw(this.danceChart, this.containers, this.textures)
@@ -593,9 +590,9 @@ export default {
           firebase.database.ref(`songs/${songId}/charts/${key}`).remove()
         }
       }
+      setTimeout(() => { this.updateSongs() }, 1000)
     },
     goToSongSelection: function () { // goes back to song selection Scene
-      // TODO : proper way to destroy all created pixi objects
       this.player.stop()
       this.player.destroy()
       for (let texture in this.textures) {
@@ -611,10 +608,8 @@ export default {
       this.ticker.destroy()
       this.editorApp.destroy()
       this.$store.commit('goToSongSelection')
-    }
-  },
-  computed: { // All songs from database
-    songs: function () { // return songs with sorted difficulty
+    },
+    updateSongs: function () {
       let sortedDif = {}
       for (let song in this.$store.state.songs) {
         let info = this.$store.state.songs[song]
@@ -623,8 +618,10 @@ export default {
         info.charts = Object.fromEntries(sortedChart)
         sortedDif[song] = info
       }
-      return sortedDif
-    },
+      this.songs = sortedDif
+    }
+  },
+  computed: {
     selectedSong: function () { // changes the selected song from the list
       return this.$store.state.selectedSong
     },
