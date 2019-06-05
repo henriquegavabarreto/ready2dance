@@ -47,7 +47,7 @@ export default class CueManager {
     if (this.movesToDraw.length > 0) {
       for (let i = this.movesToDraw.length - 1; i >= 0; i--) {
         let proportion = ((this.config.advanceSpawn / this.speed) - (this.movesToDraw[i][0] - this.songManager.currentQuarterBeat)) / (this.config.advanceSpawn / this.speed)
-        if (proportion > 1) {
+        if (proportion >= 1) {
           this.movesToDraw.splice(1, i)
         } else {
           let leftHand = this.movesToDraw[i][2]

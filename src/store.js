@@ -48,13 +48,16 @@ export default new Vuex.Store({
       if (state.songs === null) {
         state.songs = {}
       }
-      state.songs[data.key] = data.val
+      Vue.set(state.songs, data.key, data.val)
+      // state.songs[data.key] = data.val
     },
     changeSong: (state, data) => {
-      state.songs[data.key] = data.val
+      // state.songs[data.key] = data.val
+      Vue.set(state.songs, data.key, data.val)
     },
     removeSong: (state, data) => {
-      delete state.songs[data.key]
+      // delete state.songs[data.key]
+      Vue.delete(state.songs, data.key)
     },
     goToHome: state => {
       state.currentScene = 'home'

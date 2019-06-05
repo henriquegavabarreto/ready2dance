@@ -264,7 +264,7 @@
                         large
                         @click="selectChart(chart.id, dif)"
                         :class="selectedChart === chart.id ? 'blue lighten' : ''"
-                        :disabled="chart.draft">{{dif}}<span v-if="chart.draft">(SOON)</span></v-btn>
+                        :disabled="chart.draft && ($store.state.user === null || $store.state.user.type === 'user')">{{dif}}<span v-if="chart.draft">(SOON)</span></v-btn>
                     </div>
                     <v-spacer></v-spacer>
                     <v-btn

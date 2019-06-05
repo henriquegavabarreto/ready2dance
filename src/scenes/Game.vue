@@ -2,7 +2,13 @@
   <div style="height: 100vh;" class="black">
     <v-container fluid class="pa-0">
       <v-layout row wrap class="black" justify-center align-center style="height: 100vh;">
-        <v-flex md12 lg6 order-xs3 order-md3 order-lg1 id="canvas" v-if="gameOptions.showAnimation" class="text-xs-center"></v-flex>
+        <v-flex md12 lg6 order-xs3 order-md3 order-lg1 v-if="gameOptions.showAnimation" class="text-xs-center">
+          <v-layout row wrap style="position: relative;">
+            <span v-if="noPose" class="noPoseWarning">MAKE SURE YOU ARE FAR ENOUGH FROM THE CAMERA</span>
+            <v-flex xs12 id="canvas">
+            </v-flex>
+          </v-layout>
+        </v-flex>
         <v-flex md12 lg6 order-xs1 order-md1 order-lg2 id="player" :style="noCanvas" class="text-xs-center"></v-flex>
         <v-flex xs12 order-xs2 order-md2 order-lg3 class="white--text">
           <v-layout row wrap justify-center align-center>
@@ -12,9 +18,9 @@
             </v-flex>
             <v-flex hidden-xs-only grow>
               <ul style="list-style-type: none;">
-                <li><h3>Score</h3></li>
+                <li><h3 class="title">Score</h3></li>
                 <li>
-                  <ul style="list-style-type: none; border: 2px solid white; border-radius: 5px;" class="pa-3">
+                  <ul style="list-style-type: none; border: 2px solid white; border-radius: 5px;" class="pa-3 headline">
                     <li>{{displayScore}}</li>
                   </ul>
                 </li>
@@ -22,15 +28,15 @@
             </v-flex>
             <v-flex hidden-xs-only xs3>
               <ul style="list-style-type: none;">
-                <li><h3>You're listening to</h3></li>
+                <li><h3 class="title">Song</h3></li>
                 <li>
-                  <ul style="list-style-type: none; border: 2px solid white; border-radius: 5px;" class="pa-3">
+                  <ul style="list-style-type: none; border: 2px solid white; border-radius: 5px;" class="pa-3 headline">
                     <li>{{song.title}} / {{song.artist}}</li>
                   </ul>
                 </li>
               </ul>
             </v-flex>
-            <v-flex xs4 hidden-sm-and-down>
+            <v-flex xs4 hidden-sm-and-down class="title">
               <ul style="list-style-type: none;">
                 <li><h3>Status</h3></li>
                 <li>
@@ -100,7 +106,8 @@ export default {
         leftHand: []
       },
       promiseArray: [],
-      cameraLatency: 0
+      cameraLatency: 0,
+      noPose: false
     }
   },
   created () {
@@ -144,30 +151,36 @@ export default {
               values.forEach((pose, i) => {
                 let rightHandDetected = false
                 let leftHandDetected = false
-                if (leftHandMove !== 'X') {
-                  if (leftHandMove[0] === 'S') { // evaluate Sharp move
-                    leftHandDetected = detectionManager.detect('L', leftHandMove[1], pose)
-                  } else if (leftHandMove[0] === 'H' && leftHandMove.length > 2) { // evaluate Hold move
-                    if (leftHandMove[2] === 'S') this.holdingLeft = true // if it is the first of a hold, holding left is true
-                    leftHandDetected = detectionManager.detect('L', leftHandMove[1], pose)
-                  } else if (leftHandMove[0] === 'M' && leftHandMove.length > 2) { // evaluate Motion move
-                    if (leftHandMove[2] === 'S') this.holdingLeft = true // if it is the first of a motion, holding left is true
-                    leftHandDetected = detectionManager.detect('L', leftHandMove[1], pose)
-                  }
-                  if (leftHandDetected) leftHit.push(i)
-                }
 
-                if (rightHandMove !== 'X') {
-                  if (rightHandMove[0] === 'S') { // evaluate Sharp move
-                    rightHandDetected = detectionManager.detect('R', rightHandMove[1], pose)
-                  } else if (rightHandMove[0] === 'H' && rightHandMove.length > 2) { // evaluate Hold move
-                    if (rightHandMove[2] === 'S') this.holdingRight = true // if it is the first of a hold, holding right is true
-                    rightHandDetected = detectionManager.detect('R', rightHandMove[1], pose)
-                  } else if (rightHandMove[0] === 'M' && rightHandMove.length > 2) { // evaluate Motion move
-                    if (rightHandMove[2] === 'S') this.holdingRight = true // if it is the first of a motion, holding right is true
-                    rightHandDetected = detectionManager.detect('R', rightHandMove[1], pose)
+                if (pose.score > 0.6) { // set a minimum confidence for poses. Less than 0.6 shall not pass!
+                  this.noPose = false
+                  if (leftHandMove !== 'X') {
+                    if (leftHandMove[0] === 'S') { // evaluate Sharp move
+                      leftHandDetected = detectionManager.detect('L', leftHandMove[1], pose)
+                    } else if (leftHandMove[0] === 'H' && leftHandMove.length > 2) { // evaluate Hold move
+                      if (leftHandMove[2] === 'S') this.holdingLeft = true // if it is the first of a hold, holding left is true
+                      leftHandDetected = detectionManager.detect('L', leftHandMove[1], pose)
+                    } else if (leftHandMove[0] === 'M' && leftHandMove.length > 2) { // evaluate Motion move
+                      if (leftHandMove[2] === 'S') this.holdingLeft = true // if it is the first of a motion, holding left is true
+                      leftHandDetected = detectionManager.detect('L', leftHandMove[1], pose)
+                    }
+                    if (leftHandDetected) leftHit.push(i)
                   }
-                  if (rightHandDetected) rightHit.push(i)
+
+                  if (rightHandMove !== 'X') {
+                    if (rightHandMove[0] === 'S') { // evaluate Sharp move
+                      rightHandDetected = detectionManager.detect('R', rightHandMove[1], pose)
+                    } else if (rightHandMove[0] === 'H' && rightHandMove.length > 2) { // evaluate Hold move
+                      if (rightHandMove[2] === 'S') this.holdingRight = true // if it is the first of a hold, holding right is true
+                      rightHandDetected = detectionManager.detect('R', rightHandMove[1], pose)
+                    } else if (rightHandMove[0] === 'M' && rightHandMove.length > 2) { // evaluate Motion move
+                      if (rightHandMove[2] === 'S') this.holdingRight = true // if it is the first of a motion, holding right is true
+                      rightHandDetected = detectionManager.detect('R', rightHandMove[1], pose)
+                    }
+                    if (rightHandDetected) rightHit.push(i)
+                  }
+                } else {
+                  this.noPose = true
                 }
               })
 
@@ -363,7 +376,7 @@ export default {
 
       if (this.$store.state.user !== null) { // if the user is not anonymous
         for (let song in this.$store.state.songs) {
-          if (this.$store.state.selectedSong.videoId === this.$store.state.songs[song].videoId) {
+          if (this.$store.state.selectedSong.videoId === this.$store.state.songs[song].videoId && this.$store.state.songs[song].charts[this.$store.state.selectedDifficulty].draft !== true) {
             if (!this.$store.state.songs[song].hasOwnProperty('scores')) { // if there are no scores for this song
               firebase.database.ref('scores').push({
                 [this.$store.state.user.username]: this.score
@@ -462,8 +475,8 @@ export default {
         this.app.view.style.width = w / 1.5 + 'px'
         this.app.view.style.height = h / 1.5 + 'px'
       } else if (this.$vuetify.breakpoint.md || this.$vuetify.breakpoint.sm) {
-        this.app.view.style.width = w / 2.5 + 'px'
-        this.app.view.style.height = h / 2.5 + 'px'
+        this.app.view.style.width = w / 2.8 + 'px'
+        this.app.view.style.height = h / 2.8 + 'px'
       } else {
         this.app.view.style.width = w / 1.3 + 'px'
         this.app.view.style.height = h / 1.3 + 'px'
@@ -601,5 +614,12 @@ export default {
   }
   video {
     transform: scaleX(-1);
+  }
+  .noPoseWarning {
+    position: absolute;
+    top: 40%;
+    z-index: 5;
+    color: white;
+    font-size: 30px;
   }
 </style>

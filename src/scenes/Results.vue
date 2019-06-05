@@ -3,7 +3,7 @@
     <v-container fluid>
       <v-layout row wrap>
         <v-flex xs12 md6>
-          <v-card dark style="border-radius: 10px;">
+          <v-card dark style="border-radius: 10px; min-height: 90vh;">
             <v-card-title primary-title class="display-3 font-weight-bold justify-center cyan lighten-1 black--text">
               RESULTS
             </v-card-title>
@@ -18,33 +18,33 @@
                   <table>
                     <tbody>
                       <tr>
-                        <td>PERFECT</td>
                         <td class="resultNumbers">{{results.perfect}}</td>
+                        <td>PERFECT</td>
                       </tr>
                       <tr>
-                        <td>AWESOME</td>
                         <td class="resultNumbers">{{results.awesome}}</td>
+                        <td>AWESOME</td>
                       </tr>
                       <tr>
-                        <td>GOOD</td>
                         <td class="resultNumbers">{{results.good}}</td>
+                        <td>GOOD</td>
                       </tr>
                       <tr>
-                        <td>MISS</td>
                         <td class="resultNumbers">{{results.miss}}</td>
+                        <td>MISS</td>
                       </tr>
                       <tr>
-                        <td>MAX COMBO</td>
                         <td class="resultNumbers">{{results.maxCombo}}</td>
+                        <td>MAX COMBO</td>
                       </tr>
                       <tr>
-                        <td>SCORE</td>
-                        <td class="resultNumbers">{{results.score}}</td>
+                        <td style="padding-top: 30px;">SCORE</td>
+                        <td class="resultNumbers score" style="padding-top: 30px;">{{results.score}}</td>
                       </tr>
                     </tbody>
                   </table>
                 </v-flex>
-                <v-flex class="text-xs-center" xs12 sm6>
+                <v-flex class="text-xs-center" xs12 sm3>
                   <v-layout row wrap justify-center align-center>
                     <v-flex xs12 style="max-width: 125px; max-height: 125px; border-radius: 15px;" :class="[gradeColor]">
                       <p class="pt-2 display-4 font-weight-bold">{{grade}}</p>
@@ -60,15 +60,16 @@
           </v-card>
         </v-flex>
         <v-flex xs12 md6 :class="!$vuetify.breakpoint.smAndDown ? 'pl-3' : 'pt-3'">
-          <v-card dark style="border-radius: 10px;" v-if="typeof $store.state.songScores !== 'string'">
+          <v-card dark style="border-radius: 10px; min-height: 90vh;" v-if="typeof $store.state.songScores !== 'string'">
 
             <v-card-title primary-title class="display-3 font-weight-bold justify-center yellow darken-1 black--text">
               SCORE BOARD
             </v-card-title>
             <v-divider></v-divider>
-            <h2 v-if="$store.state.user !== null" class="mt-3 mb-3 text-sm-center">Your ranking: # {{userPlace}}</h2>
-            <h2 v-else class="mt-3 mb-3 text-sm-center">Register to have your next scores on the scoreboard!</h2>
-            <v-divider></v-divider>
+            <span v-if="$store.state.user === null">
+              <h2 class="mt-3 mb-3 text-sm-center">Register and try to get a place on the scoreboard!</h2>
+              <v-divider></v-divider>
+            </span>
             <v-card-text class="scroll-y" style="max-height: 61vh;">
               <table style="width: 100%; text-align: center;">
                 <thead class="headline">
@@ -77,7 +78,7 @@
                   <th>Score</th>
                 </thead>
                 <tbody>
-                  <tr v-for="(score, index) in $store.state.songScores" :key="index" class="title text-sm-center">
+                  <tr v-for="(score, index) in $store.state.songScores" :key="index" :class="[($store.state.user !== null) && (score[0] === $store.state.user.username) ? 'pink lighten-1' : '', 'title']">
                     <td>{{index + 1}}</td>
                     <td>{{score[0]}}</td>
                     <td>{{score[1]}}</td>
@@ -86,7 +87,7 @@
               </table>
             </v-card-text>
           </v-card>
-          <v-card dark style="height: 40vh; width: 100%; border-radius: 10px;" v-else>
+          <v-card dark style="min-height: 40vh; width: 100%; border-radius: 10px;" v-else>
             <v-card-title primary-title class="display-3 font-weight-bold justify-center yellow darken-1 black--text">
               SCORE BOARD
             </v-card-title>
@@ -180,14 +181,23 @@ export default {
     background: rgb(3,3,3);
     background: linear-gradient(40deg, rgba(3,3,3,1) 0%, rgba(139,0,232,1) 6%, rgba(211,146,255,1) 12%, rgba(139,0,232,1) 18%, rgba(0,0,0,1) 46%, rgba(0,0,0,1) 55% ,rgba(29,240,255,1) 82%, rgba(146,250,255,1) 92%, rgba(29,240,255,1) 96%, rgba(0,0,0,1) 100%);
   }
+  table {
+    border-collapse: collapse;
+  }
   th {
-    padding-bottom: 25px;
+    padding-bottom: 20px;
   }
   td {
-    padding-bottom: 15px;
+    border: none;
+    padding-top: 10px;
+    padding-bottom: 10px;
     vertical-align: middle;
   }
   .resultNumbers {
     text-align: right;
+    padding-right: 30px;
+  }
+  .score {
+    padding-right: 0;
   }
 </style>

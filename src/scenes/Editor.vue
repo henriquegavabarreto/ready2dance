@@ -350,7 +350,6 @@ export default {
       missingInfo: false,
       charts: null,
       existingChart: false,
-      songs: null,
       settings: { offset: '0', videoStart: '0', videoEnd: '0', bpm: '150', title: '', artist: '' },
       timingRules: [ v => !!/\d*(\.)?\d+$/g.test(v) || 'input must be a valid number.' ],
       songInfoRules: [ v => !!v || 'Required.' ],
@@ -358,7 +357,6 @@ export default {
     }
   },
   created () { // creates pixi app, a ticker for the game graphics and stops the shared ticker, that will be started only when necessary (dealing with selection)
-    this.updateSongs()
     this.editorApp = new PIXI.Application(pixiConfig)
     this.ticker = new PIXI.ticker.Ticker()
   },
@@ -522,7 +520,6 @@ export default {
             this.duplicateChart = true
           }
         }
-        setTimeout(() => { this.updateSongs() }, 1000)
       } else {
         this.missingInfo = true
       }
@@ -533,7 +530,6 @@ export default {
         this.dataManager.overwriteChart(this.danceChart, this.songs[songId].charts[this.difficulty].id, songId, this.difficulty, this.draft, this.$store.state.user.username)
         this.duplicateChart = false
         this.saved = true
-        setTimeout(() => { this.updateSongs() }, 1000)
       } else {
         this.missingInfo = true
       }
@@ -590,7 +586,6 @@ export default {
           firebase.database.ref(`songs/${songId}/charts/${key}`).remove()
         }
       }
-      setTimeout(() => { this.updateSongs() }, 1000)
     },
     goToSongSelection: function () { // goes back to song selection Scene
       this.player.stop()
@@ -608,8 +603,10 @@ export default {
       this.ticker.destroy()
       this.editorApp.destroy()
       this.$store.commit('goToSongSelection')
-    },
-    updateSongs: function () {
+    }
+  },
+  computed: {
+    songs: function () {
       let sortedDif = {}
       for (let song in this.$store.state.songs) {
         let info = this.$store.state.songs[song]
@@ -618,10 +615,8 @@ export default {
         info.charts = Object.fromEntries(sortedChart)
         sortedDif[song] = info
       }
-      this.songs = sortedDif
-    }
-  },
-  computed: {
+      return sortedDif
+    },
     selectedSong: function () { // changes the selected song from the list
       return this.$store.state.selectedSong
     },
