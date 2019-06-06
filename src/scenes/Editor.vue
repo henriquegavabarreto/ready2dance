@@ -1,8 +1,8 @@
 <template>
-  <v-container fluid class="ma-0 pa-0">
-    <v-layout wrap>
-      <v-flex xs12 md6>
-        <v-toolbar dark flat tabs width="720">
+  <v-container fluid class="ma-0 pa-0" style="overflow: hidden;">
+    <v-layout wrap justify-center align-center class="black">
+      <v-flex xs12 md6 class="white" style="min-height: 100vh; max-height: 100vh;">
+        <v-toolbar dark flat tabs>
           <v-tooltip bottom>
           <template v-slot:activator="{ on }">
             <v-btn fab small v-on="on" @click="goToSongSelection">
@@ -43,10 +43,10 @@
             </v-tabs>
         </v-toolbar>
 
-        <v-tabs-items v-model="tabs" style="height: 698px;">
+        <v-tabs-items v-model="tabs">
           <v-tab-item>
-            <v-container pb-0>
-              <v-layout row wrap style="height: 670px;" class="scroll-y">
+            <v-container fluid>
+              <v-layout row wrap class="scroll-y">
                 <v-flex xs12>
                   <v-card>
                     <v-card-title primary-title>
@@ -96,7 +96,7 @@
                     </v-card-text>
                     <v-card-actions>
                       <v-btn dark @click="loadChart(selectedSong, selectedChartId)">Load</v-btn>
-                      <v-btn dark v-if="$store.state.user.type === 'admin'" color="red" @click="deleteChart(selectedSong, selectedChartId)">Delete</v-btn>
+                      <v-btn dark v-if="$store.state.user.type === 'admin'" color="red" @click="deleteChart = true">Delete</v-btn>
                     </v-card-actions>
                   </v-card>
                 </v-flex>
@@ -126,6 +126,16 @@
                     >
                     This action will overwrite the existing version of this chart. Do you want do continue?
                     <v-btn dark small @click="overwriteChart">YES</v-btn><v-btn dark small @click="duplicateChart = !duplicateChart">NO</v-btn>
+                    </v-snackbar>
+                    <v-snackbar
+                      v-model="deleteChart"
+                      class="black--text"
+                      left
+                      color="yellow"
+                      :timeout="0"
+                    >
+                    This action will delete the selected chart. Do you want do continue?
+                    <v-btn dark small @click="deleteSelectedChart(selectedSong, selectedChartId)">YES</v-btn><v-btn dark small @click="deleteChart = !deleteChart">NO</v-btn>
                     </v-snackbar>
                     <v-snackbar
                       v-model="saved"
@@ -291,8 +301,8 @@
           </v-tab-item>
         </v-tabs-items>
       </v-flex>
-      <v-flex xs12 md6 style="background-color: black;">
-        <div id="player" style="width: 720px;">
+      <v-flex xs12 md6>
+        <div id="player">
         </div>
       </v-flex>
     </v-layout>
@@ -346,6 +356,7 @@ export default {
       dataManager: dataManager,
       selectingArea: false,
       duplicateChart: false,
+      deleteChart: false,
       saved: false,
       missingInfo: false,
       charts: null,
@@ -383,6 +394,9 @@ export default {
       this.cueManager.holdsToDraw = []
       this.cueManager.movesToDraw = []
     })
+
+    window.addEventListener('resize', this.resizeWindow())
+    this.resize()
   },
   methods: {
     moveToNextQuarterBeat: function () {
@@ -575,7 +589,7 @@ export default {
         }).catch(err => console.log(err))
       }
     },
-    deleteChart: function (songId, chartId) { // removes selected chart from the database
+    deleteSelectedChart: function (songId, chartId) { // removes selected chart from the database
       if (chartId !== '') {
         let key = Object.keys(this.songs[songId].charts).find(key => this.songs[songId].charts[key].id === chartId)
         if (Object.keys(this.songs[songId].charts).length === 1) {
@@ -585,6 +599,7 @@ export default {
           firebase.database.ref(`charts/${chartId}`).remove()
           firebase.database.ref(`songs/${songId}/charts/${key}`).remove()
         }
+        this.deleteChart = false
       }
     },
     goToSongSelection: function () { // goes back to song selection Scene
@@ -602,7 +617,33 @@ export default {
       this.ticker.stop()
       this.ticker.destroy()
       this.editorApp.destroy()
+      window.removeEventListener('resize', this.resizeWindow)
+      window.onresize = null
       this.$store.commit('goToSongSelection')
+    },
+    resizeWindow: function () {
+      window.onresize = (event) => {
+        this.resize()
+      }
+    },
+    resize: function () {
+      let ratio = pixiConfig.width / pixiConfig.height
+      let w
+      let h
+      if (this.$vuetify.breakpoint.mdAndUp) {
+        w = (window.innerWidth) / 2
+        h = (window.innerWidth / ratio) / 2
+      } else {
+        if (window.innerWidth / window.innerHeight >= ratio) {
+          w = window.innerHeight * ratio
+          h = window.innerHeight
+        } else {
+          w = window.innerWidth
+          h = window.innerWidth / ratio
+        }
+      }
+      this.editorApp.view.style.width = w + 'px'
+      this.editorApp.view.style.height = h + 'px'
     }
   },
   computed: {

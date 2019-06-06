@@ -4,19 +4,20 @@
       <v-layout row wrap class="black" justify-center align-center style="height: 100vh;">
         <v-flex md12 lg6 order-xs3 order-md3 order-lg1 v-if="gameOptions.showAnimation" class="text-xs-center">
           <v-layout row wrap style="position: relative;">
-            <span v-if="noPose" class="noPoseWarning">MAKE SURE YOU ARE FAR ENOUGH FROM THE CAMERA</span>
+            <span v-if="noPose" class="noPoseWarning" :style="$vuetify.breakpoint.md ? 'left: 10%;' : ''">MAKE SURE YOU ARE FAR ENOUGH FROM THE CAMERA</span>
             <v-flex xs12 id="canvas">
             </v-flex>
           </v-layout>
         </v-flex>
-        <v-flex md12 lg6 order-xs1 order-md1 order-lg2 id="player" :style="noCanvas" class="text-xs-center"></v-flex>
+        <v-flex id="player" :class="gameOptions.showAnimation ? 'md12 lg6 order-xs1 order-md1 order-lg2 text-xs-center' : 'xs12 text-xs-center'"></v-flex>
+        <span v-if="noPose && !gameOptions.showAnimation" style="color: white; font-size: 30px;">MAKE SURE YOU ARE FAR ENOUGH FROM THE CAMERA</span>
         <v-flex xs12 order-xs2 order-md2 order-lg3 class="white--text">
           <v-layout row wrap justify-center align-center>
             <v-flex hidden-xs-only shrink :style="displayWebcam">
-              <video id="videoStream" style="width: 100px; height: 100px; border: 2px solid black;">
+              <video hidden-xs-only id="videoStream" style="width: 100px; height: 100px; border: 2px solid black;">
               </video>
             </v-flex>
-            <v-flex hidden-xs-only grow>
+            <v-flex grow>
               <ul style="list-style-type: none;">
                 <li><h3 class="title">Score</h3></li>
                 <li>
@@ -592,18 +593,6 @@ export default {
       } else {
         return { display: 'none' }
       }
-    },
-    noCanvas () {
-      if (this.gameOptions.showAnimation === true) {
-        return {}
-      } else {
-        return {
-          height: '640px',
-          width: '100%',
-          marginLeft: '25%',
-          padding: '0'
-        }
-      }
     }
   }
 }
@@ -617,7 +606,7 @@ export default {
   }
   .noPoseWarning {
     position: absolute;
-    top: 40%;
+    top: 30%;
     z-index: 5;
     color: white;
     font-size: 30px;

@@ -96,15 +96,14 @@
     </v-snackbar>
     <v-dialog
       v-model="settings"
-      max-width="500"
-      min-height="500"
+      max-width="30%"
     >
       <v-card>
         <v-toolbar flat class="cyan headline">
           Settings
         </v-toolbar>
 
-        <v-card-text class="blue-grey lighten-4">
+        <v-card-text>
           <h3>Animations</h3>
           <v-checkbox
             color="blue"
@@ -136,7 +135,7 @@
           </v-checkbox>
           <v-text-field
             outline
-            label="Camera Latency"
+            label="Camera Latency in seconds"
             v-model="options.latency"
             hint="ex: 0.32"
           ></v-text-field>

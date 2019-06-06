@@ -92,7 +92,7 @@ export default class CueManager {
 
   setCurrentIndex (danceChart) { // set the current index to be checked
     if (danceChart.moves.length > 0) {
-      let beat = this.songManager.nearestBeat
+      let beat = this.songManager.currentQuarterBeat
       let beatArray = []
 
       danceChart.moves.forEach((move) => {
@@ -103,8 +103,13 @@ export default class CueManager {
         return (Math.abs(curr - beat) < Math.abs(prev - beat) ? curr : prev)
       })
 
-      this.index = beatArray.indexOf(closest)
-      this.holdIndex = beatArray.indexOf(closest)
+      if (closest >= beat) {
+        this.index = beatArray.indexOf(closest)
+        this.holdIndex = beatArray.indexOf(closest)
+      } else {
+        this.index = beatArray.indexOf(closest) + 1
+        this.holdIndex = beatArray.indexOf(closest) + 1
+      }
     } else {
       this.index = 0
       this.holdIndex = 0
