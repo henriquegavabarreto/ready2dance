@@ -1,7 +1,7 @@
 <template>
   <v-container fluid class="ma-0 pa-0" style="overflow: hidden;">
-    <v-layout wrap justify-center align-center class="black">
-      <v-flex xs12 md6 class="white" style="min-height: 100vh; max-height: 100vh;">
+    <v-layout wrap justify-center align-center id="background">
+      <v-flex xs12 md6 class="white" style="min-height: 100vh; max-height: 100vh;" id="background">
         <v-toolbar dark flat tabs>
           <v-tooltip bottom>
           <template v-slot:activator="{ on }">
@@ -17,6 +17,7 @@
               color="transparent"
               icons-and-text
               height="60"
+              show-arrows
               v-model="tabs"
             >
               <v-tabs-slider color="yellow"></v-tabs-slider>
@@ -45,14 +46,20 @@
 
         <v-tabs-items v-model="tabs">
           <v-tab-item>
-            <v-container fluid>
+            <v-container fluid class="scroll-y">
               <v-layout row wrap class="scroll-y">
                 <v-flex xs12>
-                  <v-card>
-                    <v-card-title primary-title>
+                  <v-card style="border-radius: 10px;">
+                    <v-card-title class="justify-center yellow darken-1 headline font-weight-medium pt-2 pb-2">
+                      <v-icon
+                        left
+                        color="black"
+                      >
+                      video_library
+                      </v-icon>
                       Load Video
                     </v-card-title>
-                    <v-card-actions>
+                    <v-card-actions class="justify-center pb-0 mb-0">
                       <v-form ref="videoId">
                         <v-text-field box label="Video ID" prepend-inner-icon="movie" v-model="danceChart.videoId" :rules="songIdRules"></v-text-field>
                       </v-form>
@@ -68,33 +75,45 @@
                   </v-card>
                 </v-flex>
                 <v-flex xs12>
-                  <v-card>
-                    <v-card-title primary-title>
+                  <v-card class="mt-2" style="border-radius: 10px;">
+                    <v-card-title class="justify-center yellow darken-1 headline font-weight-medium pt-2 pb-2">
+                      <v-icon
+                        left
+                        color="black"
+                      >
+                        queue_music
+                      </v-icon>
                       Load Chart
                     </v-card-title>
-                    <v-card-text>
-                      <v-list dense three-line style="max-height: 200px; max-width: 400px;" class="scroll-y blue lighten-5">
-                        <v-list-tile
-                          v-for="(song, name) in songs"
-                          :key="song.chartId"
-                        >
-                          <v-list-tile-content>
-                            <v-list-tile-title>{{song.title}}</v-list-tile-title>
-                            <v-list-tile-sub-title>{{song.artist}}</v-list-tile-sub-title>
-                            <div >
-                              <v-btn
-                                v-for="(chart, dif) in song.charts"
-                                :key="dif"
-                                small
-                                @click="selectSong(name, chart.id)"
-                                :class="[selectedChartId === chart.id ? 'darken-1' : '', chart.draft ? 'yellow lighten-4' : 'green lighten-4']"
-                                >{{dif}}</v-btn>
-                            </div>
-                          </v-list-tile-content>
-                        </v-list-tile>
-                      </v-list>
+                    <v-card-text class="ma-0 pa-0">
+                      <v-container fluid class="ma-0 pa-0">
+                        <v-layout row wrap justify-space-between class="scroll-y ma-0 pa-3" style="max-height: 240px;">
+                          <v-flex xs5 class="ma-1"
+                            v-for="(song, name) in songs"
+                            :key="song.chartId">
+                            <v-card style="border-radius: 10px;" class="blue-grey lighten-5">
+                              <v-card-title class="title font-weight-bold pb-1">
+                                  {{song.title}}
+                              </v-card-title>
+                              <v-card-text class="pt-0 mt-0 body-2 pb-1">
+                                {{song.artist}}
+                              </v-card-text>
+                              <v-card-actions class="ma-0">
+                                <v-btn
+                                  v-for="(chart, dif) in song.charts"
+                                  :key="dif"
+                                  @click="selectSong(name, chart.id)"
+                                  :class="[selectedChartId === chart.id ? 'darken-1' : '', chart.draft ? 'yellow lighten-4 font-weight-bold' : 'green lighten-4 font-weight-bold']"
+                                  small
+                                  style="min-width: 0; width: 75px;"
+                                  >{{dif}}</v-btn>
+                              </v-card-actions>
+                            </v-card>
+                          </v-flex>
+                        </v-layout>
+                      </v-container>
                     </v-card-text>
-                    <v-card-actions>
+                    <v-card-actions class="justify-space-around">
                       <v-btn dark @click="loadChart(selectedSong, selectedChartId)">Load</v-btn>
                       <v-btn dark v-if="$store.state.user.type === 'admin'" color="red" @click="deleteChart = true">Delete</v-btn>
                     </v-card-actions>
@@ -102,20 +121,37 @@
                 </v-flex>
 
                 <v-flex xs12>
-                  <v-card>
-                    <v-card-title primary-title>
+                  <v-card style="border-radius: 10px;" class="mt-2">
+                    <v-card-title class="justify-center yellow darken-1 headline font-weight-medium pt-2 pb-2">
+                      <v-icon
+                        left
+                        color="black"
+                      >
+                      done_outline
+                      </v-icon>
                       Save Chart
                     </v-card-title>
-                    <v-card-actions>
-                      <v-select
-                         :items="difficulties"
-                         label="Difficulty"
-                         outline
-                         v-model="difficulty"
-                         style="max-width: 150px; margin-right: 10px;"
-                       ></v-select>
-                       <v-checkbox color="blue" label="draft" v-model="draft"></v-checkbox>
-                      <v-btn dark @click="saveToFirebase" class="pt-0">Save Chart</v-btn>
+                    <v-card-actions class="pb-0 mb-0">
+                      <v-layout row wrap justify-space-between align-center>
+                        <v-flex xs4>
+                          <v-select
+                             color="white"
+                             :items="difficulties"
+                             label="Difficulty"
+                             outline
+                             v-model="difficulty"
+                             style="max-width: 150px; margin-right: 10px;"
+                           ></v-select>
+                        </v-flex>
+                        <v-flex xs4>
+                          <v-checkbox class="ml-5" color="blue" v-model="draft">
+                            <template v-slot:label><span class="font-weight-bold">draft</span></template>
+                          </v-checkbox>
+                        </v-flex>
+                        <v-flex xs4>
+                          <v-btn dark @click="saveToFirebase" class="pt-0">Save Chart</v-btn>
+                        </v-flex>
+                      </v-layout>
                     </v-card-actions>
                     <v-snackbar
                       v-model="duplicateChart"
@@ -155,10 +191,9 @@
                     <v-snackbar
                       v-model="missingInfo"
                       left
-                      warning
-                      :timeout="3000"
+                      :timeout="5000"
                     >
-                    <v-icon dark left>warning</v-icon>
+                    <v-icon color="yellow" left>warning</v-icon>
                       Can't save if any information is missing. Check all fields.
                       <v-btn
                         flat
@@ -170,7 +205,6 @@
                     <v-snackbar
                       v-model="existingChart"
                       left
-                      warning
                       :timeout="3000"
                     >
                     <v-icon dark left>warning</v-icon>
@@ -189,11 +223,85 @@
           </v-tab-item>
 
           <v-tab-item>
-            <v-container pt-5 pl-5>
-              <v-layout row wrap justify-space-between>
-                <v-flex xs6 justify-start>
-                  <v-form ref="timing">
-                    <v-layout row wrap pl-2>
+            <v-container fluid>
+              <v-layout row wrap justify-space-around>
+                <v-flex xs5>
+                  <v-card style="border-radius: 10px;">
+                    <v-card-title class="justify-center yellow darken-1 headline font-weight-medium pt-2 pb-2">
+                      <v-icon
+                        left
+                        color="black"
+                      >
+                        timer
+                      </v-icon>
+                      Timing
+                    </v-card-title>
+                    <v-form ref="timing">
+                      <v-card-text>
+                        <v-text-field box label="Video Starting Point" prepend-inner-icon="movie" :placeholder="settings.videoStart" v-model="settings.videoStart" :rules="timingRules">
+                          <template v-slot:append-outer>
+                            <v-tooltip right>
+                              <template v-slot:activator="{ on }">
+                                <v-btn fab dark small v-on="on" @click="settings.videoStart = player.getCurrentTime().toString()">
+                                  <v-icon>schedule</v-icon>
+                                </v-btn>
+                              </template>
+                              <span class="body-2">Get Current Video Time</span>
+                            </v-tooltip>
+                          </template>
+                        </v-text-field>
+                        <v-text-field box label="Video Ending Point" prepend-inner-icon="movie" :placeholder="settings.videoEnd" v-model="settings.videoEnd" :rules="timingRules">
+                          <template v-slot:append-outer>
+                            <v-tooltip right>
+                              <template v-slot:activator="{ on }">
+                                <v-btn fab dark small v-on="on" @click="settings.videoEnd = player.getCurrentTime().toString()">
+                                  <v-icon>schedule</v-icon>
+                                </v-btn>
+                              </template>
+                              <span class="body-2">Get Current Video Time</span>
+                            </v-tooltip>
+                          </template>
+                        </v-text-field>
+                        <v-text-field box label="Song Offset" prepend-inner-icon="audiotrack" :placeholder="settings.offset" v-model="settings.offset" :rules="timingRules">
+                          <template v-slot:append-outer>
+                            <v-tooltip right>
+                              <template v-slot:activator="{ on }">
+                                <v-btn fab dark small v-on="on" @click="settings.offset = player.getCurrentTime().toString()">
+                                  <v-icon>schedule</v-icon>
+                                </v-btn>
+                              </template>
+                              <span class="body-2">Get Current Video Time</span>
+                            </v-tooltip>
+                          </template>
+                        </v-text-field>
+                        <v-text-field style="width: 74%;" box label="Song BPM" prepend-inner-icon="audiotrack" :placeholder="settings.bpm" v-model="settings.bpm" :rules="timingRules"></v-text-field>
+                      </v-card-text>
+                    </v-form>
+                  </v-card>
+                </v-flex>
+                <v-flex xs5>
+                  <v-card style="border-radius: 10px;">
+                    <v-card-title class="justify-center yellow darken-1 headline font-weight-medium pt-2 pb-2">
+                      <v-icon
+                        left
+                        color="black"
+                      >
+                        music_note
+                      </v-icon>
+                      Song
+                    </v-card-title>
+                    <v-form ref="songInfo">
+                      <v-card-text>
+                        <v-text-field box label="Title" prepend-inner-icon="audiotrack" :placeholder="settings.title" v-model="settings.title" :rules="songInfoRules" error--text="red"></v-text-field>
+                        <v-text-field box label="Artist" prepend-inner-icon="audiotrack" :placeholder="settings.artist" v-model="settings.artist" :rules="songInfoRules"></v-text-field>
+                      </v-card-text>
+                    </v-form>
+                  </v-card>
+                </v-flex>
+                <v-flex xs12>
+                  <v-btn block large class="mt-5" @click="saveInfo" :disabled="selectingArea">APPLY</v-btn>
+                </v-flex>
+                    <!-- <v-layout row wrap pl-2>
                       <v-flex xs12>
                         <v-card-title primary-title>
                           <h2>Timing</h2>
@@ -265,7 +373,7 @@
                   <v-flex xs12>
                     <v-btn dark block @click="saveInfo" :disabled="selectingArea">APPLY</v-btn>
                   </v-flex>
-                </v-layout>
+                </v-layout> -->
 
               </v-layout>
             </v-container>
@@ -301,7 +409,7 @@
           </v-tab-item>
         </v-tabs-items>
       </v-flex>
-      <v-flex xs12 md6>
+      <v-flex xs12 md6 class="text-xs-center">
         <div id="player">
         </div>
       </v-flex>
@@ -667,3 +775,9 @@ export default {
   }
 }
 </script>
+<style scoped>
+#background {
+  background: rgb(3,3,3);
+  background: linear-gradient(140deg, rgba(3,3,3,1) 0%, rgba(139,0,232,1) 6%, rgba(211,146,255,1) 12%, rgba(139,0,232,1) 18%, rgba(0,0,0,1) 46%, rgba(0,0,0,1) 55% ,rgba(29,240,255,1) 82%, rgba(146,250,255,1) 92%, rgba(29,240,255,1) 96%, rgba(0,0,0,1) 100%);
+}
+</style>

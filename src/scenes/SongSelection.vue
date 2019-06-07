@@ -54,7 +54,7 @@
       max-width="400"
       min-height="500"
     >
-      <v-card>
+      <v-card style="border-radius: 10px;">
         <v-toolbar flat class="cyan headline font-weight-medium">
           Manage Users
         </v-toolbar>
@@ -98,7 +98,7 @@
       v-model="settings"
       max-width="30%"
     >
-      <v-card>
+      <v-card style="border-radius: 10px;">
         <v-toolbar flat class="cyan headline">
           Settings
         </v-toolbar>
@@ -135,7 +135,7 @@
           </v-checkbox>
           <v-text-field
             outline
-            label="Camera Latency in seconds"
+            label="Camera Latency"
             v-model="options.latency"
             hint="ex: 0.32"
           ></v-text-field>
@@ -194,7 +194,7 @@
       width="300"
     >
       <v-card
-        color="primary"
+        style="border-radius: 10px;"
         dark
       >
         <v-card-text>
