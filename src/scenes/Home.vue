@@ -17,9 +17,6 @@
                   <v-flex xs12>
                     <v-btn style="min-width: 15vw;" large dark @click="toggleRegisterModal">register</v-btn>
                   </v-flex>
-                  <v-flex xs12>
-                    <v-btn style="min-width: 15vw;" :loading="loadingGuest" large dark @click="enterAsGuest">Enter as Guest</v-btn>
-                  </v-flex>
                 </v-layout>
               </v-flex>
             </v-layout>
@@ -44,13 +41,12 @@
                   </v-card-title>
                   <v-card-text class="title font-weight-regular blue-grey lighten-5">
                     <p>Ready 2 Dance is an online rhythm dance game based on the japanese synchronized dance <a target="_blank" href="https://en.wikipedia.org/wiki/Para_Para">ParaPara</a> (<a target="_blank" href="https://ja.wikipedia.org/wiki/%E3%83%91%E3%83%A9%E3%83%91%E3%83%A9">パラパラ</a>).</p>
-                    <p>The website uses your webcam to check how accurate are your moves compared to the dance routine. If you have your hands in the correct place and at the correct time, you score points!</p>
-                    <p>Right now we have {{numberOfSongs}} routines available for playing! And this number will continue to grow!</p>
-                    <p>You can play this game in any Operational System, preferably using Google Chrome's latest version. No need to install anything else.</p>
-                    <p>No streaming of your webcam leaves the browser. No servers involved on this. =) All the movement checking happens in your own computer using <a target="_blank" href="https://www.npmjs.com/package/@tensorflow-models/posenet">PoseNet</a>.</p>
-                    <p>Because of that, your hardware can affect the gameplay.</p>
-                    <p>The better your camera and your GPU, the better the movement detection can be, you just need to change that in the settings.</p>
-                    <p>Make sure to use hardware acceleration on Chrome's settings and allow this website do use your webcam.</p>
+                    <p>This website uses your webcam to check how accurate are your moves compared to the dance routine. If you have your hands in the correct place and at the correct time, you score points!</p>
+                    <p>You can play this game in any Operational System, but preferably using Google Chrome's latest version. No need to install anything else.</p>
+                    <p>No streaming of your webcam leaves the browser. No servers involved on this. All the movement checking happens in your own computer using <a target="_blank" href="https://www.npmjs.com/package/@tensorflow-models/posenet">PoseNet</a>.</p>
+                    <p>Because of that, your hardware can affect the gameplay. (As well as lighting conditions, background and the distance you are from the camera.)</p>
+                    <p>The better your camera and your GPU, the better the movement detection can be, you just need to change that in the settings. Make sure to use hardware acceleration on Chrome's settings and to allow this website do use your webcam.</p>
+                    <p>Don't forget to be aware of your surroundings and that this website can consume a lot of data (to download the PoseNet model and streaming youtube videos), so you may prefer to use this application using Wi-Fi.</p>
                     <p>I hope you all enjoy this little experiment!</p>
                     <br>
                     <p class="text-sm-right">Created using Vue.js, Vuetify, Tensorflow's PoseNet, pixi.js and the youtube API by <a target="blank" href="https://github.com/henriquegavabarreto/">Henrique Barreto</a>.</p>
@@ -71,9 +67,10 @@
     <v-layout row justify-center>
     <v-dialog v-model="registerModal" persistent max-width="600">
       <v-card
+        style="border-radius: 10px;"
         flat
       >
-      <v-toolbar dark color="black">
+      <v-toolbar dark class="cyan headline font-weight-medium">
         <v-toolbar-title>Register</v-toolbar-title>
       </v-toolbar>
       <v-card-text>
@@ -102,8 +99,8 @@
       </v-card>
     </v-dialog>
     <v-dialog v-model="loginModal" persistent max-width="600">
-      <v-card>
-        <v-toolbar dark color="black">
+      <v-card style="border-radius: 10px;">
+        <v-toolbar dark class="cyan headline font-weight-medium">
           <v-toolbar-title>Login</v-toolbar-title>
         </v-toolbar>
         <v-card-text>
@@ -172,7 +169,7 @@ export default {
               firebase.database.ref(`users/${result.user.uid}`).set(user).then(() => {
                 this.loading = false
                 this.$store.commit('changeUser', user)
-                this.$store.commit('goToSongSelection')
+                this.$store.commit('goToScene', 'song-selection')
               }).catch((err) => {
                 this.loading = false
                 this.error = err.message
@@ -196,30 +193,13 @@ export default {
         firebase.database.ref(`users/${result.user.uid}`).once('value').then((value) => {
           this.$store.commit('changeUser', value.val())
           this.loading = false
-          this.$store.commit('goToSongSelection')
+          this.$store.commit('goToScene', 'song-selection')
         })
       }).catch((err) => {
         this.error = err.message
         this.loading = false
         console.log(err)
       })
-    },
-    enterAsGuest: function () {
-      this.loadingGuest = true
-      firebase.auth.signInAnonymously().then(() => {
-        this.loadingGuest = false
-        this.$store.commit('changeUser', null)
-        this.$store.commit('goToSongSelection')
-      }).catch((err) => { console.log(err) })
-    }
-  },
-  computed: {
-    numberOfSongs: function () {
-      if (this.$store.state.songs) {
-        return Object.keys(this.$store.state.songs).length
-      } else {
-        return '?'
-      }
     }
   }
 }

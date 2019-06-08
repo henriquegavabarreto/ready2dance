@@ -106,10 +106,10 @@ export default {
   methods: {
     goToSongSelection: function () {
       this.$store.commit('changeSongScores', 'Select a song!')
-      this.$store.commit('goToSongSelection')
+      this.$store.commit('goToScene', 'song-selection')
     },
     playAgain: function () {
-      this.$store.commit('goToGame')
+      this.$store.commit('goToScene', 'game')
     }
   },
   computed: {

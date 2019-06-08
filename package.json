@@ -12,7 +12,6 @@
     "@tensorflow/tfjs": "^1.1.0",
     "core-js": "^2.6.5",
     "firebase": "^5.9.4",
-    "getusermedia": "^2.0.1",
     "pixi.js": "^4.8.7",
     "vue": "^2.6.10",
     "vuetify": "^1.5.5",

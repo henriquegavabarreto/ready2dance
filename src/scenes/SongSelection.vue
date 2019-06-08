@@ -55,9 +55,9 @@
       min-height="500"
     >
       <v-card style="border-radius: 10px;">
-        <v-toolbar flat class="cyan headline font-weight-medium">
+        <v-card-title class="cyan headline justify-center white--text font-weight-medium">
           Manage Users
-        </v-toolbar>
+        </v-card-title>
 
         <v-card-text class="mb-0 pb-0">
           <v-text-field
@@ -66,13 +66,13 @@
             v-model="usernameToChange"
           ></v-text-field>
         </v-card-text>
-        <v-card-text class="mt-0 pt-0 subheading font-weight-medium">
+        <v-card-text class="mt-0 pt-0 subheading font-weight-bold justify-center">
           Change user status to:
         </v-card-text>
-        <v-card-actions>
-          <v-btn small @click="changeUserStatus('user')">user</v-btn>
-          <v-btn small @click="changeUserStatus('editor')">editor</v-btn>
-          <v-btn small @click="changeUserStatus('admin')">admin</v-btn>
+        <v-card-actions class="justify-center">
+          <v-btn dark small @click="changeUserStatus('user')">user</v-btn>
+          <v-btn dark small @click="changeUserStatus('editor')">editor</v-btn>
+          <v-btn dark small @click="changeUserStatus('admin')">admin</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -99,9 +99,9 @@
       max-width="30%"
     >
       <v-card style="border-radius: 10px;">
-        <v-toolbar flat class="cyan headline">
+        <v-card-title class="cyan headline justify-center white--text font-weight-medium">
           Settings
-        </v-toolbar>
+        </v-card-title>
 
         <v-card-text>
           <h3>Animations</h3>
@@ -138,16 +138,18 @@
             label="Camera Latency"
             v-model="options.latency"
             hint="ex: 0.32"
-          ></v-text-field>
+          >
+          </v-text-field>
+          <a href="https://www.youtube.com/watch?v=WXud3F-Cuac"><p>Check out this video if you are having any trouble to find your camera's latency</p></a>
           <v-divider></v-divider>
-          <h3 class="mt-4">Change pose detection precision (advanced)</h3>
+          <h3 class="mt-4">Change pose detection precision <a href="https://www.npmjs.com/package/@tensorflow-models/posenet">(advanced)</a></h3>
           <v-select
             outline
             class="mt-4"
             :items="multipliers"
             v-model="options.multiplier"
             label="multiplier"
-            hint="The larger the value, more accurate at the cost of speed - defaults to 0.5"
+            hint="The larger the value, more accurate at the cost of speed - defaults to 0.5, which is recommended for mobiles"
           ></v-select>
           <v-select
             outline
@@ -211,7 +213,7 @@
       <v-container fluid fill-height>
         <v-layout row wrap>
           <v-flex sm12 md6>
-            <v-card style="max-height: 100%; border-radius: 10px;" class="blue-grey lighten-4">
+            <v-card style="max-height: 100%; border-radius: 10px;" class="blue-grey lighten-5">
               <v-card-title class="justify-center teal lighten-2">
                 <v-icon
                   large
@@ -233,7 +235,8 @@
                     <v-card
                       style="border-radius: 15px;"
                       hover
-                      :class="selectedSong.title === song.title ? 'pink darken-1 white--text' : ''">
+                      id="cardBackground"
+                      :class="selectedSong.title === song.title ? 'pink darken-1 white--text' : 'blue lighten-4'">
                       <v-card-title primary-title>
                         <div>
                           <h3 class="headline mb-0 font-weight-bold">{{song.title}}</h3>
@@ -249,7 +252,7 @@
           <v-flex sm12 md6 :class="!$vuetify.breakpoint.smAndDown ? 'pl-3' : 'pt-3'" v-show="selectedSong.title">
             <v-layout row wrap>
               <v-flex xs12 id="currentlySelected">
-                <v-card style="border-radius: 10px;" class="blue-grey lighten-4 text-xs-center">
+                <v-card style="border-radius: 10px;" class="blue-grey lighten-5 text-xs-center">
                   <v-card-title primary-title class="justify-center cyan pb-1">
                     <div>
                       <h3 class="display-1 mb-1 font-weight-bold">{{selectedSong.title}} {{filteredSongs.title}}</h3>
@@ -267,15 +270,15 @@
                     </div>
                     <v-spacer></v-spacer>
                     <v-btn
-                      style="width: 25vw;"
-                      class="ml-4"
+                      dark
+                      class="ml-4 lighten-2"
                       :disabled="selectedChart === ''"
-                      @click="goToGame"><v-icon>play_arrow</v-icon></v-btn>
+                      @click="goToGame"><v-icon left>play_arrow</v-icon>PLAY</v-btn>
                   </v-card-text>
                 </v-card>
               </v-flex>
               <v-flex xs12>
-                <v-card style="border-radius: 10px;" class="mt-3 blue-grey lighten-4">
+                <v-card style="border-radius: 10px;" class="mt-3 blue-grey lighten-5">
                   <v-card-title class="headline justify-center yellow darken-1 font-weight-bold" primary-title>
                     SCORE BOARD
                   </v-card-title>
@@ -350,14 +353,18 @@ export default {
     this.options.showAnimation = this.$store.state.gameOptions.showAnimation
     this.options.showWebcam = this.$store.state.gameOptions.showWebcam
     this.options.latency = this.$store.state.gameOptions.latency
-    this.options.multiplier = this.$store.state.gameOptions.multiplier
     this.options.speed = this.$store.state.gameOptions.speed
     this.options.outputStride = this.$store.state.gameOptions.outputStride
     this.options.imageScale = this.$store.state.gameOptions.imageScale
+    if (this.$store.state.gameOptions.multiplier === 0) {
+      this.options.multiplier = 0.5
+    } else {
+      this.options.multiplier = this.$store.state.gameOptions.multiplier
+    }
   },
   methods: {
     goToEditor: function () { // go to editor
-      this.$store.commit('goToEditor')
+      this.$store.commit('goToScene', 'editor')
     },
     selectSong: function (song) { // get song info from the list of filtered songs
       this.selectedSong = song
@@ -368,19 +375,25 @@ export default {
     goToGame: function () { // goes to the game after the chart is loaded
       if (this.selectedSong !== {} && this.selectedChart !== '') {
         this.loading = true
-        if (this.options.multiplier !== this.$store.state.gameOptions.multiplier) { // if there is a new multiplier
-          this.$store.dispatch('loadNet', this.options.multiplier).then(() => {
+        if (this.options.multiplier !== this.$store.state.gameOptions.multiplier) {
+          this.$store.dispatch('loadNet', this.options.multiplier).then(response => {
+            this.$store.commit('loadNet', response)
             this.$store.commit('changeOptions', this.options)
             this.$store.commit('selectSong', this.selectedSong)
             this.$store.dispatch('changeSelectedChart', this.selectedChart).then(() => {
-              this.$store.commit('goToGame')
+              this.$store.commit('goToScene', 'game')
             })
+          }, error => {
+            console.log(error)
+            this.$store.commit('changeWrongMessage', 'Due to a problem with PoseNet the game is not available right now. Please try it again later.')
+            this.$store.commit('somethingWentWrong')
+            this.store.commit('goToScene', 'error')
           })
-        } else { // if the multiplier is the same as in the store
+        } else {
           this.$store.commit('changeOptions', this.options)
           this.$store.commit('selectSong', this.selectedSong)
           this.$store.dispatch('changeSelectedChart', this.selectedChart).then(() => {
-            this.$store.commit('goToGame')
+            this.$store.commit('goToScene', 'game')
           })
         }
       }
@@ -405,7 +418,7 @@ export default {
     logout: function () {
       firebase.auth.signOut().then(() => {
         this.$store.commit('changeSongScores', 'Select a Song!')
-        this.$store.commit('goToHome')
+        this.$store.commit('goToScene', 'home')
       }).catch((err) => { console.log(err) })
     },
     changeUserStatus: function (status) {
@@ -467,5 +480,9 @@ export default {
   #background {
     background: rgb(3,3,3);
     background: linear-gradient(140deg, rgba(3,3,3,1) 0%, rgba(139,0,232,1) 6%, rgba(211,146,255,1) 12%, rgba(139,0,232,1) 18%, rgba(0,0,0,1) 46%, rgba(0,0,0,1) 55% ,rgba(29,240,255,1) 82%, rgba(146,250,255,1) 92%, rgba(29,240,255,1) 96%, rgba(0,0,0,1) 100%);
+  }
+  #cardBackground {
+    background: rgb(255,255,255);
+    background: linear-gradient(165deg, rgba(255,255,255,0) 64%, rgba(255,255,255,1) 75%, rgba(255,255,255,0) 85%);
   }
 </style>

@@ -46,7 +46,7 @@ export default {
     if (checkingHand.y < hipsY && checkingHand.y > nose.y) {
       middle = true
     }
-    if (checkingHand.y > stomach) {
+    if (checkingHand.y > stomach - 10) {
       bottom = true
     }
 

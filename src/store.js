@@ -15,6 +15,7 @@ export default new Vuex.Store({
     songs: null,
     songScores: 'Select a song!',
     somethingWentWrong: false,
+    wrongMessage: '',
     selectedSong: null,
     selectedChartId: null,
     selectedChart: null,
@@ -24,7 +25,7 @@ export default new Vuex.Store({
       showAnimation: true,
       showWebcam: true,
       latency: 0.32,
-      multiplier: 0.5,
+      multiplier: 0,
       outputStride: 16,
       imageScale: 0.5,
       speed: 1
@@ -49,33 +50,15 @@ export default new Vuex.Store({
         state.songs = {}
       }
       Vue.set(state.songs, data.key, data.val)
-      // state.songs[data.key] = data.val
     },
     changeSong: (state, data) => {
-      // state.songs[data.key] = data.val
       Vue.set(state.songs, data.key, data.val)
     },
     removeSong: (state, data) => {
-      // delete state.songs[data.key]
       Vue.delete(state.songs, data.key)
     },
-    goToHome: state => {
-      state.currentScene = 'home'
-    },
-    goToEditor: state => {
-      state.currentScene = 'editor'
-    },
-    goToSongSelection: state => {
-      state.currentScene = 'song-selection'
-    },
-    goToGame: state => {
-      state.currentScene = 'game'
-    },
-    goToResults: state => {
-      state.currentScene = 'results'
-    },
-    goToError: state => {
-      state.currentScene = 'error'
+    goToScene: (state, data) => {
+      state.currentScene = data
     },
     changeSelectedChart: (state, data) => {
       state.selectedChart = data
@@ -88,6 +71,9 @@ export default new Vuex.Store({
     },
     somethingWentWrong: state => {
       state.somethingWentWrong = !state.somethingWentWrong
+    },
+    changeWrongMessage: (state, data) => {
+      state.wrongMessage = data
     },
     changeOptions: (state, data) => {
       state.gameOptions.showAnimation = data.showAnimation
@@ -135,11 +121,12 @@ export default new Vuex.Store({
       }, (err) => { console.log(err) })
     },
     loadNet: (context, payload) => {
-      posenet.load(payload).then((data) => {
-        context.commit('loadNet', data)
-      }).catch((err) => {
-        context.commit('goToError')
-        console.log(err)
+      return new Promise((resolve, reject) => {
+        posenet.load(payload).then(response => {
+          resolve(response)
+        }, error => {
+          reject(error)
+        })
       })
     },
     updateSongScores: (context, payload) => {
@@ -152,14 +139,14 @@ export default new Vuex.Store({
     onStateChange: context => {
       firebase.auth.onAuthStateChanged((userState) => {
         if (userState) {
-          context.commit('goToSongSelection')
+          context.commit('goToScene', 'song-selection')
           firebase.database.ref(`users/${userState.uid}`).once('value').then((value) => {
             context.commit('changeUser', value.val())
             context.commit('changeState', userState)
           })
         } else {
           context.commit('changeState', userState)
-          context.commit('goToHome')
+          context.commit('goToScene', 'home')
         }
       })
     }

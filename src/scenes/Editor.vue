@@ -1,392 +1,318 @@
 <template>
-  <v-container fluid class="ma-0 pa-0" style="overflow: hidden;">
-    <v-layout wrap justify-center align-center id="background">
-      <v-flex xs12 md6 class="white" style="min-height: 100vh; max-height: 100vh;" id="background">
-        <v-toolbar dark flat tabs>
-          <v-tooltip bottom>
-          <template v-slot:activator="{ on }">
-            <v-btn fab small v-on="on" @click="goToSongSelection">
-              <v-icon>exit_to_app</v-icon>
-            </v-btn>
-          </template>
-          <span class="body-2">Back to Song Selection</span>
-          </v-tooltip>
+  <div style="min-height: 100vh;" id="background">
+    <v-container fluid class="ma-0 pa-0">
+      <v-layout row wrap justify-center>
+        <v-flex xs12 md6 style="height: 100%;">
+          <v-toolbar dark flat tabs>
+            <v-tooltip bottom>
+            <template v-slot:activator="{ on }">
+              <v-btn fab small v-on="on" @click="goToSongSelection">
+                <v-icon>exit_to_app</v-icon>
+              </v-btn>
+            </template>
+            <span class="body-2">Back to Song Selection</span>
+            </v-tooltip>
 
-            <v-tabs
-              centered
-              color="transparent"
-              icons-and-text
-              height="60"
-              show-arrows
-              v-model="tabs"
-            >
-              <v-tabs-slider color="yellow"></v-tabs-slider>
+              <v-tabs
+                centered
+                color="transparent"
+                icons-and-text
+                height="60"
+                show-arrows
+                v-model="tabs"
+              >
+                <v-tabs-slider color="yellow"></v-tabs-slider>
 
-              <v-tab>
-                Save/Load
-                <v-icon>video_library</v-icon>
-              </v-tab>
+                <v-tab>
+                  Save/Load
+                  <v-icon>video_library</v-icon>
+                </v-tab>
 
-              <v-tab>
-                Song Settings
-                <v-icon>audiotrack</v-icon>
-              </v-tab>
+                <v-tab>
+                  Song Settings
+                  <v-icon>audiotrack</v-icon>
+                </v-tab>
 
-              <v-tab>
-                About
-                <v-icon>info</v-icon>
-              </v-tab>
+                <v-tab>
+                  About
+                  <v-icon>info</v-icon>
+                </v-tab>
 
-              <v-tab>
-                Editor
-                <v-icon>edit</v-icon>
-              </v-tab>
-            </v-tabs>
-        </v-toolbar>
+                <v-tab>
+                  Editor
+                  <v-icon>edit</v-icon>
+                </v-tab>
+              </v-tabs>
+          </v-toolbar>
 
-        <v-tabs-items v-model="tabs">
-          <v-tab-item>
-            <v-container fluid class="scroll-y">
-              <v-layout row wrap class="scroll-y">
-                <v-flex xs12>
-                  <v-card style="border-radius: 10px;">
-                    <v-card-title class="justify-center yellow darken-1 headline font-weight-medium pt-2 pb-2">
-                      <v-icon
-                        left
-                        color="black"
-                      >
-                      video_library
-                      </v-icon>
-                      Load Video
-                    </v-card-title>
-                    <v-card-actions class="justify-center pb-0 mb-0">
-                      <v-form ref="videoId">
-                        <v-text-field box label="Video ID" prepend-inner-icon="movie" v-model="danceChart.videoId" :rules="songIdRules"></v-text-field>
-                      </v-form>
-                      <v-tooltip right>
-                        <template v-slot:activator="{ on }">
-                          <v-btn fab dark small v-on="on" @click="loadVideoById"  class="mb-4 ml-3">
-                            <v-icon>forward</v-icon>
-                          </v-btn>
-                        </template>
-                        <span class="body-2">Load Video</span>
-                      </v-tooltip>
-                    </v-card-actions>
-                  </v-card>
-                </v-flex>
-                <v-flex xs12>
-                  <v-card class="mt-2" style="border-radius: 10px;">
-                    <v-card-title class="justify-center yellow darken-1 headline font-weight-medium pt-2 pb-2">
-                      <v-icon
-                        left
-                        color="black"
-                      >
-                        queue_music
-                      </v-icon>
-                      Load Chart
-                    </v-card-title>
-                    <v-card-text class="ma-0 pa-0">
-                      <v-container fluid class="ma-0 pa-0">
-                        <v-layout row wrap justify-space-between class="scroll-y ma-0 pa-3" style="max-height: 240px;">
-                          <v-flex xs5 class="ma-1"
-                            v-for="(song, name) in songs"
-                            :key="song.chartId">
-                            <v-card style="border-radius: 10px;" class="blue-grey lighten-5">
-                              <v-card-title class="title font-weight-bold pb-1">
-                                  {{song.title}}
-                              </v-card-title>
-                              <v-card-text class="pt-0 mt-0 body-2 pb-1">
-                                {{song.artist}}
-                              </v-card-text>
-                              <v-card-actions class="ma-0">
-                                <v-btn
-                                  v-for="(chart, dif) in song.charts"
-                                  :key="dif"
-                                  @click="selectSong(name, chart.id)"
-                                  :class="[selectedChartId === chart.id ? 'darken-1' : '', chart.draft ? 'yellow lighten-4 font-weight-bold' : 'green lighten-4 font-weight-bold']"
-                                  small
-                                  style="min-width: 0; width: 75px;"
-                                  >{{dif}}</v-btn>
-                              </v-card-actions>
-                            </v-card>
+          <v-tabs-items v-model="tabs">
+            <v-tab-item>
+              <v-container fluid>
+                <v-layout row wrap class="scroll-y">
+                  <v-flex xs12>
+                    <v-card style="border-radius: 10px;">
+                      <v-card-title class="justify-center yellow darken-1 headline font-weight-medium pt-2 pb-2">
+                        <v-icon
+                          left
+                          color="black"
+                        >
+                        video_library
+                        </v-icon>
+                        Load Video
+                      </v-card-title>
+                      <v-card-actions class="justify-center pb-0 mb-0">
+                        <v-form ref="videoId">
+                          <v-text-field box label="Video ID" prepend-inner-icon="movie" v-model="danceChart.videoId" :rules="songIdRules"></v-text-field>
+                        </v-form>
+                        <v-tooltip right>
+                          <template v-slot:activator="{ on }">
+                            <v-btn fab dark small v-on="on" @click="loadVideoById"  class="mb-4 ml-3">
+                              <v-icon>forward</v-icon>
+                            </v-btn>
+                          </template>
+                          <span class="body-2">Load Video</span>
+                        </v-tooltip>
+                      </v-card-actions>
+                    </v-card>
+                  </v-flex>
+                  <v-flex xs12>
+                    <v-card class="mt-2" style="border-radius: 10px;">
+                      <v-card-title class="justify-center yellow darken-1 headline font-weight-medium pt-2 pb-2">
+                        <v-icon
+                          left
+                          color="black"
+                        >
+                          queue_music
+                        </v-icon>
+                        Load Chart
+                      </v-card-title>
+                      <v-card-text class="ma-0 pa-0">
+                        <v-container fluid class="ma-0 pa-0">
+                          <v-layout row wrap justify-space-between class="scroll-y ma-0 pa-3" style="max-height: 32vh;">
+                            <v-flex xs5 class="ma-1"
+                              v-for="(song, name) in songs"
+                              :key="song.chartId">
+                              <v-card style="border-radius: 10px;" class="blue-grey lighten-5">
+                                <v-card-title class="title font-weight-bold pb-1">
+                                    {{song.title}}
+                                </v-card-title>
+                                <v-card-text class="pt-0 mt-0 body-2 pb-1">
+                                  {{song.artist}}
+                                </v-card-text>
+                                <v-card-actions class="ma-0">
+                                  <v-btn
+                                    v-for="(chart, dif) in song.charts"
+                                    :key="dif"
+                                    @click="selectSong(name, chart.id)"
+                                    :class="[selectedChartId === chart.id ? 'darken-1' : '', chart.draft ? 'yellow lighten-4 font-weight-bold' : 'green lighten-4 font-weight-bold']"
+                                    small
+                                    style="min-width: 0; width: 75px;"
+                                    >{{dif}}</v-btn>
+                                </v-card-actions>
+                              </v-card>
+                            </v-flex>
+                          </v-layout>
+                        </v-container>
+                      </v-card-text>
+                      <v-card-actions class="justify-space-around">
+                        <v-btn dark @click="loadChart(selectedSong, selectedChartId)">Load</v-btn>
+                        <v-btn dark v-if="$store.state.user.type === 'admin'" color="red" @click="deleteChart = true">Delete</v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </v-flex>
+
+                  <v-flex xs12>
+                    <v-card style="border-radius: 10px;" class="mt-2">
+                      <v-card-title class="justify-center yellow darken-1 headline font-weight-medium pt-2 pb-2">
+                        <v-icon
+                          left
+                          color="black"
+                        >
+                        done_outline
+                        </v-icon>
+                        Save Chart
+                      </v-card-title>
+                      <v-card-actions class="pb-0 mb-0">
+                        <v-layout row wrap justify-space-between align-center>
+                          <v-flex xs4>
+                            <v-select
+                               color="white"
+                               :items="difficulties"
+                               label="Difficulty"
+                               outline
+                               v-model="difficulty"
+                               style="max-width: 150px; margin-right: 10px;"
+                             ></v-select>
+                          </v-flex>
+                          <v-flex xs4>
+                            <v-checkbox class="ml-5" color="blue" v-model="draft">
+                              <template v-slot:label><span class="font-weight-bold">draft</span></template>
+                            </v-checkbox>
+                          </v-flex>
+                          <v-flex xs4>
+                            <v-btn dark @click="saveToFirebase" class="pt-0">Save Chart</v-btn>
                           </v-flex>
                         </v-layout>
-                      </v-container>
-                    </v-card-text>
-                    <v-card-actions class="justify-space-around">
-                      <v-btn dark @click="loadChart(selectedSong, selectedChartId)">Load</v-btn>
-                      <v-btn dark v-if="$store.state.user.type === 'admin'" color="red" @click="deleteChart = true">Delete</v-btn>
-                    </v-card-actions>
-                  </v-card>
-                </v-flex>
-
-                <v-flex xs12>
-                  <v-card style="border-radius: 10px;" class="mt-2">
-                    <v-card-title class="justify-center yellow darken-1 headline font-weight-medium pt-2 pb-2">
-                      <v-icon
+                      </v-card-actions>
+                      <v-snackbar
+                        v-model="duplicateChart"
+                        class="black--text"
                         left
-                        color="black"
+                        color="yellow"
+                        :timeout="0"
                       >
-                      done_outline
-                      </v-icon>
-                      Save Chart
-                    </v-card-title>
-                    <v-card-actions class="pb-0 mb-0">
-                      <v-layout row wrap justify-space-between align-center>
-                        <v-flex xs4>
-                          <v-select
-                             color="white"
-                             :items="difficulties"
-                             label="Difficulty"
-                             outline
-                             v-model="difficulty"
-                             style="max-width: 150px; margin-right: 10px;"
-                           ></v-select>
-                        </v-flex>
-                        <v-flex xs4>
-                          <v-checkbox class="ml-5" color="blue" v-model="draft">
-                            <template v-slot:label><span class="font-weight-bold">draft</span></template>
-                          </v-checkbox>
-                        </v-flex>
-                        <v-flex xs4>
-                          <v-btn dark @click="saveToFirebase" class="pt-0">Save Chart</v-btn>
-                        </v-flex>
-                      </v-layout>
-                    </v-card-actions>
-                    <v-snackbar
-                      v-model="duplicateChart"
-                      class="black--text"
-                      left
-                      color="yellow"
-                      :timeout="0"
-                    >
-                    This action will overwrite the existing version of this chart. Do you want do continue?
-                    <v-btn dark small @click="overwriteChart">YES</v-btn><v-btn dark small @click="duplicateChart = !duplicateChart">NO</v-btn>
-                    </v-snackbar>
-                    <v-snackbar
-                      v-model="deleteChart"
-                      class="black--text"
-                      left
-                      color="yellow"
-                      :timeout="0"
-                    >
-                    This action will delete the selected chart. Do you want do continue?
-                    <v-btn dark small @click="deleteSelectedChart(selectedSong, selectedChartId)">YES</v-btn><v-btn dark small @click="deleteChart = !deleteChart">NO</v-btn>
-                    </v-snackbar>
-                    <v-snackbar
-                      v-model="saved"
-                      left
-                      color="green"
-                      :timeout="3000"
-                    >
-                    <v-icon dark>done_outline</v-icon>
-                      SAVED
-                      <v-btn
-                        flat
-                        @click="saved = false"
-                      >
-                      Close
-                      </v-btn>
-                    </v-snackbar>
-                    <v-snackbar
-                      v-model="missingInfo"
-                      left
-                      :timeout="5000"
-                    >
-                    <v-icon color="yellow" left>warning</v-icon>
-                      Can't save if any information is missing. Check all fields.
-                      <v-btn
-                        flat
-                        @click="missingInfo = false"
-                      >
-                      Close
-                      </v-btn>
-                    </v-snackbar>
-                    <v-snackbar
-                      v-model="existingChart"
-                      left
-                      :timeout="3000"
-                    >
-                    <v-icon dark left>warning</v-icon>
-                      There's a chart for this video already. It will be loaded.
-                      <v-btn
-                        flat
-                        @click="existingChart = false"
-                      >
-                      Close
-                      </v-btn>
-                    </v-snackbar>
-                  </v-card>
-                </v-flex>
-              </v-layout>
-            </v-container>
-          </v-tab-item>
-
-          <v-tab-item>
-            <v-container fluid>
-              <v-layout row wrap justify-space-around>
-                <v-flex xs5>
-                  <v-card style="border-radius: 10px;">
-                    <v-card-title class="justify-center yellow darken-1 headline font-weight-medium pt-2 pb-2">
-                      <v-icon
+                      This action will overwrite the existing version of this chart. Do you want do continue?
+                      <v-btn dark small @click="overwriteChart">YES</v-btn><v-btn dark small @click="duplicateChart = !duplicateChart">NO</v-btn>
+                      </v-snackbar>
+                      <v-snackbar
+                        v-model="deleteChart"
+                        class="black--text"
                         left
-                        color="black"
+                        color="yellow"
+                        :timeout="0"
                       >
-                        timer
-                      </v-icon>
-                      Timing
-                    </v-card-title>
-                    <v-form ref="timing">
-                      <v-card-text>
-                        <v-text-field box label="Video Starting Point" prepend-inner-icon="movie" :placeholder="settings.videoStart" v-model="settings.videoStart" :rules="timingRules">
-                          <template v-slot:append-outer>
-                            <v-tooltip right>
-                              <template v-slot:activator="{ on }">
-                                <v-btn fab dark small v-on="on" @click="settings.videoStart = player.getCurrentTime().toString()">
-                                  <v-icon>schedule</v-icon>
-                                </v-btn>
-                              </template>
-                              <span class="body-2">Get Current Video Time</span>
-                            </v-tooltip>
-                          </template>
-                        </v-text-field>
-                        <v-text-field box label="Video Ending Point" prepend-inner-icon="movie" :placeholder="settings.videoEnd" v-model="settings.videoEnd" :rules="timingRules">
-                          <template v-slot:append-outer>
-                            <v-tooltip right>
-                              <template v-slot:activator="{ on }">
-                                <v-btn fab dark small v-on="on" @click="settings.videoEnd = player.getCurrentTime().toString()">
-                                  <v-icon>schedule</v-icon>
-                                </v-btn>
-                              </template>
-                              <span class="body-2">Get Current Video Time</span>
-                            </v-tooltip>
-                          </template>
-                        </v-text-field>
-                        <v-text-field box label="Song Offset" prepend-inner-icon="audiotrack" :placeholder="settings.offset" v-model="settings.offset" :rules="timingRules">
-                          <template v-slot:append-outer>
-                            <v-tooltip right>
-                              <template v-slot:activator="{ on }">
-                                <v-btn fab dark small v-on="on" @click="settings.offset = player.getCurrentTime().toString()">
-                                  <v-icon>schedule</v-icon>
-                                </v-btn>
-                              </template>
-                              <span class="body-2">Get Current Video Time</span>
-                            </v-tooltip>
-                          </template>
-                        </v-text-field>
-                        <v-text-field style="width: 74%;" box label="Song BPM" prepend-inner-icon="audiotrack" :placeholder="settings.bpm" v-model="settings.bpm" :rules="timingRules"></v-text-field>
-                      </v-card-text>
-                    </v-form>
-                  </v-card>
-                </v-flex>
-                <v-flex xs5>
-                  <v-card style="border-radius: 10px;">
-                    <v-card-title class="justify-center yellow darken-1 headline font-weight-medium pt-2 pb-2">
-                      <v-icon
+                      This action will delete the selected chart. Do you want do continue?
+                      <v-btn dark small @click="deleteSelectedChart(selectedSong, selectedChartId)">YES</v-btn><v-btn dark small @click="deleteChart = !deleteChart">NO</v-btn>
+                      </v-snackbar>
+                      <v-snackbar
+                        v-model="saved"
                         left
-                        color="black"
+                        color="green"
+                        :timeout="3000"
                       >
-                        music_note
-                      </v-icon>
-                      Song
-                    </v-card-title>
-                    <v-form ref="songInfo">
-                      <v-card-text>
-                        <v-text-field box label="Title" prepend-inner-icon="audiotrack" :placeholder="settings.title" v-model="settings.title" :rules="songInfoRules" error--text="red"></v-text-field>
-                        <v-text-field box label="Artist" prepend-inner-icon="audiotrack" :placeholder="settings.artist" v-model="settings.artist" :rules="songInfoRules"></v-text-field>
-                      </v-card-text>
-                    </v-form>
-                  </v-card>
-                </v-flex>
-                <v-flex xs12>
-                  <v-btn block large class="mt-5" @click="saveInfo" :disabled="selectingArea">APPLY</v-btn>
-                </v-flex>
-                    <!-- <v-layout row wrap pl-2>
-                      <v-flex xs12>
-                        <v-card-title primary-title>
-                          <h2>Timing</h2>
-                        </v-card-title>
-                      </v-flex>
-                      <v-flex xs8>
-                        <v-text-field box label="Video Starting Point" prepend-inner-icon="movie" :placeholder="settings.videoStart" v-model="settings.videoStart" :rules="timingRules"></v-text-field>
-                      </v-flex>
-                      <v-flex xs4>
-                        <v-tooltip nudge-top="130" right>
-                          <template v-slot:activator="{ on }">
-                            <v-btn color="primary" fab dark small v-on="on" @click="settings.videoStart = player.getCurrentTime().toString()">
-                              <v-icon>schedule</v-icon>
-                            </v-btn>
-                          </template>
-                          <span class="body-2">Get Current Time</span>
-                        </v-tooltip>
-                      </v-flex>
-                      <v-flex xs8>
-                        <v-text-field box label="Video Ending Point" prepend-inner-icon="movie" :placeholder="settings.videoEnd" v-model="settings.videoEnd" :rules="timingRules"></v-text-field>
-                      </v-flex>
-                      <v-flex xs4>
-                        <v-tooltip nudge-top="130" right>
-                          <template v-slot:activator="{ on }">
-                            <v-btn color="primary" fab dark small v-on="on" @click="settings.videoEnd = player.getCurrentTime().toString()">
-                              <v-icon>schedule</v-icon>
-                            </v-btn>
-                          </template>
-                          <span class="body-2">Get Current Time</span>
-                        </v-tooltip>
-                      </v-flex>
-                      <v-flex xs8>
-                        <v-text-field box label="Song Offset" prepend-inner-icon="audiotrack" :placeholder="settings.offset" v-model="settings.offset" :rules="timingRules"></v-text-field>
-                      </v-flex>
-                      <v-flex xs4>
-                        <v-tooltip nudge-top="130" right>
-                          <template v-slot:activator="{ on }">
-                            <v-btn color="primary" fab dark small v-on="on" @click="settings.offset = player.getCurrentTime().toString()">
-                              <v-icon>schedule</v-icon>
-                            </v-btn>
-                          </template>
-                          <span class="body-2">Get Current Time</span>
-                        </v-tooltip>
-                      </v-flex>
-                      <v-flex xs8>
-                        <v-text-field box label="Song BPM" prepend-inner-icon="audiotrack" :placeholder="settings.bpm" v-model="settings.bpm" :rules="timingRules"></v-text-field>
-                      </v-flex>
-                    </v-layout>
-                  </v-form>
-                </v-flex>
-                <v-flex xs6>
-                  <v-form ref="songInfo">
-                    <v-layout row wrap pl-5>
-                      <v-flex xs12>
-                        <v-card-title text-xs-center primary-title>
-                          <h2>Song</h2>
-                        </v-card-title>
-                      </v-flex>
-                      <v-flex xs10>
-                        <v-text-field box label="Title" prepend-inner-icon="audiotrack" :placeholder="settings.title" v-model="settings.title" :rules="songInfoRules" error--text="red"></v-text-field>
-                      </v-flex>
-                      <v-flex xs10>
-                        <v-text-field box label="Artist" prepend-inner-icon="audiotrack" :placeholder="settings.artist" v-model="settings.artist" :rules="songInfoRules"></v-text-field>
-                      </v-flex>
-                    </v-layout>
-                  </v-form>
-                </v-flex>
-                <v-layout row wrap>
-                  <v-flex xs12>
-                    <v-btn dark block @click="saveInfo" :disabled="selectingArea">APPLY</v-btn>
+                      <v-icon dark>done_outline</v-icon>
+                        SAVED
+                        <v-btn
+                          flat
+                          @click="saved = false"
+                        >
+                        Close
+                        </v-btn>
+                      </v-snackbar>
+                      <v-snackbar
+                        v-model="missingInfo"
+                        left
+                        :timeout="5000"
+                      >
+                      <v-icon color="yellow" left>warning</v-icon>
+                        Can't save if any information is missing. Check all fields.
+                        <v-btn
+                          flat
+                          @click="missingInfo = false"
+                        >
+                        Close
+                        </v-btn>
+                      </v-snackbar>
+                      <v-snackbar
+                        v-model="existingChart"
+                        left
+                        :timeout="3000"
+                      >
+                      <v-icon dark left>warning</v-icon>
+                        There's a chart for this video already. It will be loaded.
+                        <v-btn
+                          flat
+                          @click="existingChart = false"
+                        >
+                        Close
+                        </v-btn>
+                      </v-snackbar>
+                    </v-card>
                   </v-flex>
-                </v-layout> -->
+                </v-layout>
+              </v-container>
+            </v-tab-item>
 
-              </v-layout>
-            </v-container>
-          </v-tab-item>
+            <v-tab-item>
+              <v-container fluid>
+                <v-layout row wrap justify-space-around>
+                  <v-flex xs5>
+                    <v-card style="border-radius: 10px;">
+                      <v-card-title class="justify-center yellow darken-1 headline font-weight-medium pt-2 pb-2">
+                        <v-icon
+                          left
+                          color="black"
+                        >
+                          timer
+                        </v-icon>
+                        Timing
+                      </v-card-title>
+                      <v-form ref="timing">
+                        <v-card-text>
+                          <v-text-field box label="Video Starting Point" prepend-inner-icon="movie" :placeholder="settings.videoStart" v-model="settings.videoStart" :rules="timingRules">
+                            <template v-slot:append-outer>
+                              <v-tooltip right>
+                                <template v-slot:activator="{ on }">
+                                  <v-btn fab dark small v-on="on" @click="settings.videoStart = player.getCurrentTime().toString()">
+                                    <v-icon>schedule</v-icon>
+                                  </v-btn>
+                                </template>
+                                <span class="body-2">Get Current Video Time</span>
+                              </v-tooltip>
+                            </template>
+                          </v-text-field>
+                          <v-text-field box label="Video Ending Point" prepend-inner-icon="movie" :placeholder="settings.videoEnd" v-model="settings.videoEnd" :rules="timingRules">
+                            <template v-slot:append-outer>
+                              <v-tooltip right>
+                                <template v-slot:activator="{ on }">
+                                  <v-btn fab dark small v-on="on" @click="settings.videoEnd = player.getCurrentTime().toString()">
+                                    <v-icon>schedule</v-icon>
+                                  </v-btn>
+                                </template>
+                                <span class="body-2">Get Current Video Time</span>
+                              </v-tooltip>
+                            </template>
+                          </v-text-field>
+                          <v-text-field box label="Song Offset" prepend-inner-icon="audiotrack" :placeholder="settings.offset" v-model="settings.offset" :rules="timingRules">
+                            <template v-slot:append-outer>
+                              <v-tooltip right>
+                                <template v-slot:activator="{ on }">
+                                  <v-btn fab dark small v-on="on" @click="settings.offset = player.getCurrentTime().toString()">
+                                    <v-icon>schedule</v-icon>
+                                  </v-btn>
+                                </template>
+                                <span class="body-2">Get Current Video Time</span>
+                              </v-tooltip>
+                            </template>
+                          </v-text-field>
+                          <v-text-field style="width: 74%;" box label="Song BPM" prepend-inner-icon="audiotrack" :placeholder="settings.bpm" v-model="settings.bpm" :rules="timingRules"></v-text-field>
+                        </v-card-text>
+                      </v-form>
+                    </v-card>
+                  </v-flex>
+                  <v-flex xs5>
+                    <v-card style="border-radius: 10px;">
+                      <v-card-title class="justify-center yellow darken-1 headline font-weight-medium pt-2 pb-2">
+                        <v-icon
+                          left
+                          color="black"
+                        >
+                          music_note
+                        </v-icon>
+                        Song
+                      </v-card-title>
+                      <v-form ref="songInfo">
+                        <v-card-text>
+                          <v-text-field box label="Title" prepend-inner-icon="audiotrack" :placeholder="settings.title" v-model="settings.title" :rules="songInfoRules" error--text="red"></v-text-field>
+                          <v-text-field box label="Artist" prepend-inner-icon="audiotrack" :placeholder="settings.artist" v-model="settings.artist" :rules="songInfoRules"></v-text-field>
+                        </v-card-text>
+                      </v-form>
+                    </v-card>
+                  </v-flex>
+                  <v-flex xs12>
+                    <v-btn block large class="mt-5" @click="saveInfo" :disabled="selectingArea">APPLY</v-btn>
+                  </v-flex>
+                </v-layout>
+              </v-container>
+            </v-tab-item>
 
-          <v-tab-item>
-            <v-card flat>
-              <v-card-text>HOW TO USE THIS EDITOR</v-card-text>
-            </v-card>
-          </v-tab-item>
+            <v-tab-item>
+              <v-card flat>
+                <v-card-text>HOW TO USE THIS EDITOR</v-card-text>
+              </v-card>
+            </v-tab-item>
 
-          <v-tab-item>
-            <v-card flat>
+            <v-tab-item>
               <div id="canvas" tabindex="0"
               @keydown.arrow-down="moveToNextQuarterBeat"
               @keydown.arrow-up="moveToPreviousQuarterBeat"
@@ -405,16 +331,14 @@
               @keyup.q="deleteMove"
               @keyup.w="deleteMove"
               @click="dealWithSelection"></div>
-            </v-card>
-          </v-tab-item>
-        </v-tabs-items>
-      </v-flex>
-      <v-flex xs12 md6 class="text-xs-center">
-        <div id="player">
-        </div>
-      </v-flex>
-    </v-layout>
-  </v-container>
+            </v-tab-item>
+          </v-tabs-items>
+        </v-flex>
+        <v-flex xs12 md6 class="text-xs-center ma-0 pa-0" id="player">
+        </v-flex>
+      </v-layout>
+    </v-container>
+  </div>
 </template>
 
 <script>
@@ -727,7 +651,7 @@ export default {
       this.editorApp.destroy()
       window.removeEventListener('resize', this.resizeWindow)
       window.onresize = null
-      this.$store.commit('goToSongSelection')
+      this.$store.commit('goToScene', 'song-selection')
     },
     resizeWindow: function () {
       window.onresize = (event) => {

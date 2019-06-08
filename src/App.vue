@@ -6,8 +6,10 @@
       center
       :timeout="8000"
     >
-    <v-icon dark left>warning</v-icon>
-      Something went wrong. Make sure your camera is working or verify your browser preferences.
+    <v-icon color="yellow" dark left>warning</v-icon>
+    <span class="red--text"></span>
+      {{$store.state.wrongMessage}}
+      If this problem persists or this is not your problem, contact the webmaster.
       <v-btn
         flat
         @click="toggleWrong"
@@ -38,7 +40,6 @@ export default {
   },
   beforeCreate () {
     this.$store.dispatch('onStateChange')
-    this.$store.dispatch('loadNet', 0.5)
   },
   methods: {
     toggleWrong: function () {
