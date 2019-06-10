@@ -1,7 +1,7 @@
 <template>
   <div style="height: 100vh;" class="black">
     <v-container fluid class="pa-0">
-      <v-layout row wrap class="black" justify-center align-center style="height: 100vh;">
+      <v-layout row wrap class="black" justify-center align-center style="height: 100vh; overflow: hidden;">
         <v-flex md12 lg6 order-xs3 order-md3 order-lg1 v-if="gameOptions.showAnimation" class="text-xs-center">
           <v-layout row wrap style="position: relative;">
             <span v-if="noPose" class="noPoseWarning" :style="$vuetify.breakpoint.md ? 'left: 10%;' : ''">MAKE SURE YOU ARE FAR ENOUGH FROM THE CAMERA</span>
@@ -13,15 +13,15 @@
         <span v-if="noPose && !gameOptions.showAnimation" style="color: white; font-size: 30px;">MAKE SURE YOU ARE FAR ENOUGH FROM THE CAMERA</span>
         <v-flex xs12 order-xs2 order-md2 order-lg3 class="white--text">
           <v-layout row wrap justify-center align-center>
-            <v-flex hidden-xs-only shrink :style="displayWebcam">
-              <video hidden-xs-only id="videoStream" style="width: 100px; height: 100px; border: 2px solid black;">
+            <v-flex shrink :style="displayWebcam" class="pl-2">
+              <video id="videoStream" style="width: 10vh; height: 10vh; border: 2px solid black;">
               </video>
             </v-flex>
-            <v-flex grow>
+            <v-flex grow class="pr-2">
               <ul style="list-style-type: none;">
                 <li><h3 class="title">Score</h3></li>
                 <li>
-                  <ul style="list-style-type: none; border: 2px solid white; border-radius: 5px;" class="pa-3 headline">
+                  <ul style="list-style-type: none; border: 2px solid white; border-radius: 5px;" class="pa-2 headline">
                     <li>{{displayScore}}</li>
                   </ul>
                 </li>
@@ -31,17 +31,17 @@
               <ul style="list-style-type: none;">
                 <li><h3 class="title">Song</h3></li>
                 <li>
-                  <ul style="list-style-type: none; border: 2px solid white; border-radius: 5px;" class="pa-3 headline">
+                  <ul style="list-style-type: none; border: 2px solid white; border-radius: 5px;" class="pa-2 headline">
                     <li>{{song.title}} / {{song.artist}}</li>
                   </ul>
                 </li>
               </ul>
             </v-flex>
-            <v-flex xs4 hidden-sm-and-down class="title">
+            <v-flex grow hidden-sm-and-down>
               <ul style="list-style-type: none;">
-                <li><h3>Status</h3></li>
+                <li><h3 class="title">Status</h3></li>
                 <li>
-                  <ul style="columns: 2; -webkit-columns: 2; -moz-columns: 2; list-style-type: none; border: 2px solid white; border-radius: 5px;" class="pl-3 pr-3">
+                  <ul style="columns: 2; -webkit-columns: 2; -moz-columns: 2; list-style-type: none; border: 2px solid white; border-radius: 5px;" class="pl-2 pr-2">
                   <li>
                     <ul>
                       <li>PERFECT: {{perfect}}</li>

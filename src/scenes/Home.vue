@@ -104,13 +104,13 @@
           <v-toolbar-title>Login</v-toolbar-title>
         </v-toolbar>
         <v-card-text>
-          <p v-if="error">
+          <p class="red--text" v-if="error">
             <b>Error:</b>
             <ul>
               <li>{{ error }}</li>
             </ul>
           </p>
-          <v-text-field v-model="email" label="Email*" required></v-text-field>
+          <v-text-field v-model="email" label="Email*" :rules="emailRules" required></v-text-field>
           <v-text-field @keyup.enter="logUserIn" v-model="password" label="Password*" type="password" required></v-text-field>
         </v-card-text>
         <v-card-actions>
@@ -197,6 +197,13 @@ export default {
         })
       }).catch((err) => {
         this.error = err.message
+        if (err.code === 'auth/invalid-email') {
+          this.error = 'This e-mail address is invalid. Check if it is correct.'
+        } else if (err.code === 'auth/user-not-found') {
+          this.error = 'We couldn\'t find an account for this e-mail address. Check if your e-mail is correct or register first.'
+        } else if (err.code === 'auth/wrong-password') {
+          this.error = 'Invalid password.'
+        }
         this.loading = false
         console.log(err)
       })

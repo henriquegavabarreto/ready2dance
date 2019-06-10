@@ -1,23 +1,25 @@
 <template>
-  <div style="font-family: Arial;" data-app=true>
-    <component :is="$store.state.currentScene"></component>
-    <v-snackbar
-      v-model="$store.state.somethingWentWrong"
-      center
-      :timeout="8000"
-    >
-    <v-icon color="yellow" dark left>warning</v-icon>
-    <span class="red--text"></span>
-      {{$store.state.wrongMessage}}
-      If this problem persists or this is not your problem, contact the webmaster.
-      <v-btn
-        flat
-        @click="toggleWrong"
+  <v-app>
+    <div style="font-family: Arial;" data-app=true>
+      <component :is="$store.state.currentScene"></component>
+      <v-snackbar
+        v-model="$store.state.somethingWentWrong"
+        center
+        :timeout="8000"
       >
-      Close
-      </v-btn>
-    </v-snackbar>
-  </div>
+      <v-icon color="yellow" dark left>warning</v-icon>
+      <span class="red--text"></span>
+        {{$store.state.wrongMessage}}
+        If this problem persists or this is not your problem, contact the webmaster.
+        <v-btn
+          flat
+          @click="toggleWrong"
+        >
+        Close
+        </v-btn>
+      </v-snackbar>
+    </div>
+  </v-app>
 </template>
 
 <script>
