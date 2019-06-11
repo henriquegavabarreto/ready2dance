@@ -155,6 +155,7 @@
                         </v-layout>
                       </v-card-actions>
                       <v-snackbar
+                        auto-height
                         v-model="duplicateChart"
                         class="black--text"
                         left
@@ -165,6 +166,7 @@
                       <v-btn dark small @click="overwriteChart">YES</v-btn><v-btn dark small @click="duplicateChart = !duplicateChart">NO</v-btn>
                       </v-snackbar>
                       <v-snackbar
+                        auto-height
                         v-model="deleteChart"
                         class="black--text"
                         left
@@ -175,6 +177,7 @@
                       <v-btn dark small @click="deleteSelectedChart(selectedSong, selectedChartId)">YES</v-btn><v-btn dark small @click="deleteChart = !deleteChart">NO</v-btn>
                       </v-snackbar>
                       <v-snackbar
+                        auto-height
                         v-model="saved"
                         left
                         color="green"
@@ -190,6 +193,7 @@
                         </v-btn>
                       </v-snackbar>
                       <v-snackbar
+                        auto-height
                         v-model="missingInfo"
                         left
                         :timeout="5000"
@@ -204,6 +208,7 @@
                         </v-btn>
                       </v-snackbar>
                       <v-snackbar
+                        auto-height
                         v-model="existingChart"
                         left
                         :timeout="3000"

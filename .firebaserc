@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "parapara-game"
+    "default": "parapara-game",
+    "staging": "ready2dance-staging"
   }
 }

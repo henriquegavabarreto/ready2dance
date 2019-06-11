@@ -77,6 +77,7 @@
       </v-card>
     </v-dialog>
     <v-snackbar
+      auto-height
       v-model="usernameNotFound"
       class="black--text"
       color="yellow"
@@ -86,6 +87,7 @@
     <v-btn dark small @click="usernameNotFound = !usernameNotFound">CLOSE</v-btn>
     </v-snackbar>
     <v-snackbar
+      auto-height
       v-model="userStatusChanged"
       class="black--text"
       color="green"

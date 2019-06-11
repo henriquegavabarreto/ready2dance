@@ -463,23 +463,33 @@ export default {
         }
       }
 
-      if (navigator.mediaDevices === undefined) {
-        this.player.stop()
-        this.player.destroy()
-        if (this.gameOptions.showAnimation) {
-          for (let texture in this.textures) {
-            this.textures[texture].destroy()
-          }
-          for (let container in this.containers) {
-            this.containers[container].destroy(true)
-          }
-          this.app.destroy()
+      if (!navigator.mediaDevices) { // if there is no mediaDevices
+        // try to use getUserMedia
+        navigator.getUserMedia = navigator.getUserMedia ||
+                         navigator.webkitGetUserMedia ||
+                         navigator.mozGetUserMedia
+
+        if (navigator.getUserMedia) {
+          navigator.getUserMedia({ audio: false, video: { width: 300, height: 300 } }, (stream) => {
+            var video = document.getElementById('videoStream')
+            video.srcObject = stream
+            video.onloadedmetadata = (e) => {
+              video.play()
+            }
+          }, (err) => {
+            let errorMessage = 'The following error occurred: ' + err.name
+            this.stopAndDestroy()
+            this.$store.commit('changeWrongMessage', errorMessage)
+            this.$store.commit('somethingWentWrong')
+            this.$store.commit('goToScene', 'song-selection')
+          })
+        } else {
+          let errorMessage = 'This browser has no camera support.'
+          this.stopAndDestroy()
+          this.$store.commit('changeWrongMessage', errorMessage)
+          this.$store.commit('somethingWentWrong')
+          this.$store.commit('goToScene', 'song-selection')
         }
-        this.ticker.stop()
-        this.ticker.destroy()
-        this.$store.commit('changeWrongMessage', 'navigator.mediaDevices is undefined.')
-        this.$store.commit('somethingWentWrong')
-        this.$store.commit('goToScene', 'song-selection')
       } else {
         navigator.mediaDevices.getUserMedia(constraints)
           .then((stream) => {
@@ -497,19 +507,7 @@ export default {
             }
           })
           .catch((err) => {
-            this.player.stop()
-            this.player.destroy()
-            if (this.gameOptions.showAnimation) {
-              for (let texture in this.textures) {
-                this.textures[texture].destroy()
-              }
-              for (let container in this.containers) {
-                this.containers[container].destroy(true)
-              }
-              this.app.destroy()
-            }
-            this.ticker.stop()
-            this.ticker.destroy()
+            this.stopAndDestroy()
 
             let errorMessage = 'Something went wrong...'
 
@@ -532,6 +530,21 @@ export default {
             this.$store.commit('goToScene', 'song-selection')
           })
       }
+    },
+    stopAndDestroy: function () {
+      this.player.stop()
+      this.player.destroy()
+      if (this.gameOptions.showAnimation) {
+        for (let texture in this.textures) {
+          this.textures[texture].destroy()
+        }
+        for (let container in this.containers) {
+          this.containers[container].destroy(true)
+        }
+        this.app.destroy()
+      }
+      this.ticker.stop()
+      this.ticker.destroy()
     }
   },
   computed: {

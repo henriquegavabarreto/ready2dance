@@ -3,9 +3,10 @@
     <div style="font-family: Arial;" data-app=true>
       <component :is="$store.state.currentScene"></component>
       <v-snackbar
+        auto-height
         v-model="$store.state.somethingWentWrong"
         center
-        :timeout="8000"
+        :timeout="0"
       >
       <v-icon color="yellow" dark left>warning</v-icon>
       <span class="red--text"></span>
