@@ -70,7 +70,7 @@ export default new Vuex.Store({
       state.results = data
     },
     somethingWentWrong: state => {
-      state.somethingWentWrong = !state.somethingWentWrong
+      state.somethingWentWrong = true
     },
     changeWrongMessage: (state, data) => {
       state.wrongMessage = data

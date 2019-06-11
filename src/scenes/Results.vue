@@ -55,6 +55,7 @@
             </v-card-text>
             <v-card-actions icons-and-text class="justify-center">
               <v-btn @click="goToSongSelection"><v-icon :class="!$vuetify.breakpoint.xs ? 'v-icon--left' : 'v-icon--center'">queue_music</v-icon><span class="hidden-xs-only">BACK TO SONG SELECTION</span></v-btn>
+              <v-btn @click="toggleSettings"><v-icon :class="!$vuetify.breakpoint.xs ? 'v-icon--left' : 'v-icon--center'">settings</v-icon><span class="hidden-xs-only">SETTINGS</span></v-btn>
               <v-btn @click="playAgain"><v-icon :class="!$vuetify.breakpoint.xs ? 'v-icon--left' : 'v-icon--center'">replay</v-icon><span class="hidden-xs-only">PLAY AGAIN</span></v-btn>
             </v-card-actions>
           </v-card>
@@ -98,11 +99,132 @@
         </v-flex>
       </v-layout>
     </v-container>
+    <v-dialog
+      v-model="settings"
+      max-width="400"
+    >
+      <v-card style="border-radius: 10px;">
+        <v-card-title class="cyan headline justify-center white--text font-weight-medium">
+          Settings
+        </v-card-title>
+
+        <v-card-text>
+          <h3>Animations</h3>
+          <v-checkbox
+            color="blue"
+            v-model="options.showAnimation">
+            <template v-slot:label>
+              <div class="black--text">
+                Show circle animations
+              </div>
+            </template>
+          </v-checkbox>
+          <v-select
+            :disabled="!options.showAnimation"
+            outline
+            :items="speed"
+            v-model="options.speed"
+            label="Circle Animation Speed"
+            hint="Speed of the circles appearing on screen"
+          ></v-select>
+          <v-divider></v-divider>
+          <h3 class="mt-4">Camera</h3>
+          <v-checkbox
+            color="blue"
+            v-model="options.showWebcam">
+            <template v-slot:label>
+              <div class="black--text">
+                Show webcam video
+              </div>
+            </template>
+          </v-checkbox>
+          <v-text-field
+            outline
+            label="Camera Latency"
+            v-model="options.latency"
+            hint="ex: 0.32"
+          >
+          </v-text-field>
+          <a href="https://www.youtube.com/watch?v=WXud3F-Cuac"><p>Check out this video if you are having any trouble to find your camera's latency</p></a>
+          <v-divider></v-divider>
+          <h3 class="mt-4">Change pose detection precision <a href="https://www.npmjs.com/package/@tensorflow-models/posenet">(advanced)</a></h3>
+          <v-select
+            outline
+            class="mt-4"
+            :items="multipliers"
+            v-model="options.multiplier"
+            label="multiplier"
+            hint="The larger the value, more accurate at the cost of speed - defaults to 0.5, which is recommended for mobiles"
+          ></v-select>
+          <v-select
+            outline
+            class="mt-4"
+            :items="outputStrideValues"
+            v-model="options.outputStride"
+            label="output stride"
+            hint="The smaller the value, more accurate at the cost of speed - defaults to 16"
+          ></v-select>
+          <v-slider
+            class="mt-4"
+            v-model="options.imageScale"
+            color="blue"
+            always-dirty
+            label="Image Scale"
+            thumb-label="always"
+            :thumb-size="24"
+            :min="0.2"
+            :max="1"
+            step="0.01"
+            hint="The larger the value, more accurate at the cost of speed - defaults to 0.5"
+            persistent-hint
+          ></v-slider>
+        </v-card-text>
+
+        <v-card-actions class="cyan">
+          <v-spacer></v-spacer>
+
+          <v-btn
+          class="white"
+            color="green darken-1"
+            flat
+            @click="settings = false"
+          >
+            Close and Apply
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
 <script>
 export default {
+  data () {
+    return {
+      settings: false,
+      multipliers: [0.5, 0.75, 1.0],
+      outputStrideValues: [8, 16, 32],
+      speed: [0.5, 1, 2],
+      options: {
+        multiplier: 0.5,
+        outputStride: 16,
+        imageScale: 0.5,
+        latency: 0.32,
+        showAnimation: true,
+        showWebcam: true,
+        speed: 1
+      }
+    }
+  },
+  created () {
+    this.options.showAnimation = this.$store.state.gameOptions.showAnimation
+    this.options.showWebcam = this.$store.state.gameOptions.showWebcam
+    this.options.latency = this.$store.state.gameOptions.latency
+    this.options.speed = this.$store.state.gameOptions.speed
+    this.options.outputStride = this.$store.state.gameOptions.outputStride
+    this.options.imageScale = this.$store.state.gameOptions.imageScale
+    this.options.multiplier = this.$store.state.gameOptions.multiplier
+  },
   methods: {
     goToSongSelection: function () {
       this.$store.commit('changeSongScores', 'Select a song!')
@@ -110,6 +232,24 @@ export default {
     },
     playAgain: function () {
       this.$store.commit('goToScene', 'game')
+      if (this.options.multiplier !== this.$store.state.gameOptions.multiplier) {
+        this.$store.dispatch('loadNet', this.options.multiplier).then(response => {
+          this.$store.commit('loadNet', response)
+          this.$store.commit('changeOptions', this.options)
+          this.$store.commit('goToScene', 'game')
+        }, error => {
+          console.log(error)
+          this.$store.commit('changeWrongMessage', 'Due to a problem with PoseNet the game is not available right now. Please try it again later.')
+          this.$store.commit('somethingWentWrong')
+          this.store.commit('goToScene', 'error')
+        })
+      } else {
+        this.$store.commit('changeOptions', this.options)
+        this.$store.commit('goToScene', 'game')
+      }
+    },
+    toggleSettings: function () {
+      this.settings = !this.settings
     }
   },
   computed: {

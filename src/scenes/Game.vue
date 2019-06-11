@@ -1,5 +1,5 @@
 <template>
-  <div style="height: 100vh;" class="black">
+  <div @keyup.esc="backToSelection" tabindex="0" style="height: 100vh;" class="black">
     <v-container fluid class="pa-0">
       <v-layout row wrap class="black" justify-center align-center style="height: 100vh; overflow: hidden;">
         <v-flex md12 lg6 order-xs3 order-md3 order-lg1 v-if="gameOptions.showAnimation" class="text-xs-center">
@@ -326,23 +326,7 @@ export default {
   },
   methods: {
     goToResults: function () {
-      this.player.stop()
-      this.player.destroy()
-      if (this.gameOptions.showAnimation) {
-        for (let texture in this.textures) {
-          this.textures[texture].destroy()
-        }
-        for (let container in this.containers) {
-          this.containers[container].destroy(true)
-        }
-        this.app.destroy()
-      }
-      this.ticker.stop()
-      this.ticker.destroy()
-      this.stopCapture()
-
-      window.removeEventListener('resize', this.resizeWindow)
-      window.onresize = null
+      this.stopAndDestroy()
 
       if (this.$store.state.user !== null) { // if the user is not anonymous
         for (let song in this.$store.state.songs) {
@@ -545,6 +529,16 @@ export default {
       }
       this.ticker.stop()
       this.ticker.destroy()
+
+      this.stopCapture()
+
+      window.removeEventListener('resize', this.resizeWindow)
+      window.onresize = null
+    },
+    backToSelection: function () {
+      // interrupts the game and goes back to song selection
+      this.stopAndDestroy()
+      this.$store.commit('goToScene', 'song-selection')
     }
   },
   computed: {

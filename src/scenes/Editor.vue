@@ -162,15 +162,15 @@
                         color="yellow"
                         :timeout="0"
                       >
-                      This action will overwrite the existing version of this chart. Do you want do continue?
+                      <p class="pa-0 ma-0">This action will overwrite the existing version of the <span class="font-weight-bold">{{duplicate.difficulty}}</span> chart for <span class="font-weight-bold">{{duplicate.song.title}} / {{duplicate.song.artist}}</span>. Do you want do continue?</p>
                       <v-btn dark small @click="overwriteChart">YES</v-btn><v-btn dark small @click="duplicateChart = !duplicateChart">NO</v-btn>
                       </v-snackbar>
                       <v-snackbar
                         auto-height
                         v-model="deleteChart"
-                        class="black--text"
+                        class="white--text"
                         left
-                        color="yellow"
+                        color="red"
                         :timeout="0"
                       >
                       This action will delete the selected chart. Do you want do continue?
@@ -358,7 +358,6 @@ import NoteManager from '../tools/editor/notes/note-manager'
 import CueManager from '../tools/config/cue-manager'
 import danceChart from '../tools/editor/data/dance-chart'
 import editorConfig from '../tools/editor/config/editor-config'
-import drawGuideNumbers from '../tools/editor/containers/guideNumbers/draw-guide-numbers'
 import drawStaff from '../tools/editor/containers/backgroundStaff/draw-staff'
 import animationManager from '../tools/editor/animations/animation-manager'
 import drawSelection from '../tools/editor/containers/copyPasteSelection/draw-selection'
@@ -393,6 +392,14 @@ export default {
       dataManager: dataManager,
       selectingArea: false,
       duplicateChart: false,
+      duplicate: {
+        id: '',
+        difficulty: '',
+        song: {
+          title: '',
+          artist: ''
+        }
+      },
       deleteChart: false,
       saved: false,
       missingInfo: false,
@@ -553,7 +560,7 @@ export default {
         this.dataManager.updateDanceChart(this.danceChart, this.settings)
         this.dataManager.updateManagers(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.cueManager)
         this.noteManager.redraw(this.danceChart, this.containers, this.textures)
-        drawGuideNumbers(this.player, this.danceChart, this.songManager)
+        // drawGuideNumbers(this.player, this.danceChart, this.songManager)
         drawStaff(this.containers, this.textures, this.player, this.danceChart, this.songManager)
       }
     },
@@ -568,6 +575,9 @@ export default {
             this.dataManager.saveNewChart(this.danceChart, this.player, songId, this.difficulty, this.draft, this.$store.state.user.username)
             this.saved = true
           } else { // if there is the set difficulty for this song id
+            this.duplicate.song = this.songs[songId]
+            this.duplicate.id = songId
+            this.duplicate.difficulty = this.difficulty
             this.duplicateChart = true
           }
         }
@@ -577,19 +587,35 @@ export default {
     },
     overwriteChart: function () { // updates a danceChart with existing video Id in the database
       if (this.$refs.videoId.validate() && this.$refs.timing.validate() && this.$refs.songInfo.validate()) {
-        let songId = this.dataManager.getSongIdByVideoId(this.songs, this.player.videoId)
-        this.dataManager.overwriteChart(this.danceChart, this.songs[songId].charts[this.difficulty].id, songId, this.difficulty, this.draft, this.$store.state.user.username)
+        this.dataManager.overwriteChart(this.danceChart, this.duplicate.song.charts[this.difficulty].id, this.duplicate.id, this.duplicate.difficulty, this.draft, this.$store.state.user.username)
         this.duplicateChart = false
         this.saved = true
       } else {
         this.missingInfo = true
       }
     },
-    loadVideoById: function () { // loads a video according to the input. If the video already has a chart, it will be loaded
+    loadVideoById: function () { // loads a video according to the input id
       if (this.$refs.videoId.validate()) {
         this.player.load(this.danceChart.videoId, true)
+        // reset chart
+        this.danceChart = {
+          title: '',
+          artist: '',
+          offset: 0,
+          bpm: 200,
+          videoId: this.player.videoId,
+          videoStart: 0,
+          videoEnd: 0,
+          moves: [],
+          chartId: '',
+          songId: ''
+        }
+        // reset settings
+        this.settings = { offset: '0', videoStart: '0', videoEnd: '0', bpm: '200', title: '', artist: '' }
+        this.dataManager.updateManagers(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.cueManager)
+        this.noteManager.redraw(this.danceChart, this.containers, this.textures)
         setTimeout(() => {
-          drawGuideNumbers(this.player, this.danceChart, this.songManager)
+          // drawGuideNumbers(this.player, this.danceChart, this.songManager)
           drawStaff(this.containers, this.textures, this.player, this.danceChart, this.songManager)
         }, 4000)
       }
@@ -620,7 +646,7 @@ export default {
           this.noteManager.redraw(this.danceChart, this.containers, this.textures)
           this.player.load(this.danceChart.videoId, true)
           setTimeout(() => {
-            drawGuideNumbers(this.player, this.danceChart, this.songManager)
+            // drawGuideNumbers(this.player, this.danceChart, this.songManager)
             drawStaff(this.containers, this.textures, this.player, this.danceChart, this.songManager)
           }, 3000)
         }).catch(err => console.log(err))

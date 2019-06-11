@@ -98,7 +98,7 @@
     </v-snackbar>
     <v-dialog
       v-model="settings"
-      max-width="30%"
+      max-width="400"
     >
       <v-card style="border-radius: 10px;">
         <v-card-title class="cyan headline justify-center white--text font-weight-medium">
