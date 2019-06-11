@@ -58,6 +58,13 @@
               <v-btn @click="toggleSettings"><v-icon :class="!$vuetify.breakpoint.xs ? 'v-icon--left' : 'v-icon--center'">settings</v-icon><span class="hidden-xs-only">SETTINGS</span></v-btn>
               <v-btn @click="playAgain"><v-icon :class="!$vuetify.breakpoint.xs ? 'v-icon--left' : 'v-icon--center'">replay</v-icon><span class="hidden-xs-only">PLAY AGAIN</span></v-btn>
             </v-card-actions>
+            <v-card-actions icons-and-text class="justify-center">
+              <a
+                style="text-decoration: none;"
+                :href="twitterText"
+                target="_blank">
+                <v-btn><v-icon :class="!$vuetify.breakpoint.xs ? 'v-icon--left' : 'v-icon--center'">share</v-icon><span class="hidden-xs-only">SHARE ON TWITTER</span></v-btn></a>
+            </v-card-actions>
           </v-card>
         </v-flex>
         <v-flex xs12 md6 :class="!$vuetify.breakpoint.smAndDown ? 'pl-3' : 'pt-3'">
@@ -312,6 +319,9 @@ export default {
           break
       }
       return cl + ' mt-5'
+    },
+    twitterText: function () {
+      return 'https://twitter.com/intent/tweet?text=' + encodeURI(`I played ${this.$store.state.selectedSong.title.toUpperCase()} (${this.$store.state.selectedDifficulty.toUpperCase()}) on Ready2Dance and scored ${this.results.score} (${this.grade})! You think you can beat me? → https://parapara-game.web.app`)
     }
   }
 }
