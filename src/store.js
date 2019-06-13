@@ -9,6 +9,7 @@ Vue.use(posenet)
 
 export default new Vuex.Store({
   state: {
+    welcome: false,
     user: null,
     signInState: null,
     net: null,
@@ -33,6 +34,9 @@ export default new Vuex.Store({
     currentScene: 'home'
   },
   mutations: {
+    toggleWelcome: (state, data) => {
+      state.welcome = data
+    },
     changeUser: (state, data) => {
       state.user = data
     },
@@ -139,6 +143,7 @@ export default new Vuex.Store({
     onStateChange: context => {
       firebase.auth.onAuthStateChanged((userState) => {
         if (userState) {
+          context.commit('toggleWelcome', true)
           context.commit('goToScene', 'song-selection')
           firebase.database.ref(`users/${userState.uid}`).once('value').then((value) => {
             context.commit('changeUser', value.val())

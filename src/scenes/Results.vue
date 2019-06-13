@@ -321,7 +321,7 @@ export default {
       return cl + ' mt-5'
     },
     twitterText: function () {
-      return 'https://twitter.com/intent/tweet?text=' + encodeURI(`I played ${this.$store.state.selectedSong.title.toUpperCase()} (${this.$store.state.selectedDifficulty.toUpperCase()}) on Ready2Dance and scored ${this.results.score} (${this.grade})! You think you can beat me? → https://parapara-game.web.app`)
+      return 'https://twitter.com/intent/tweet?text=' + encodeURI(`I played ${this.$store.state.selectedSong.title.toUpperCase()} (${this.$store.state.selectedDifficulty.toUpperCase()}) on Ready2Dance and scored ${this.results.score} (${this.grade})! You think you can beat me? ⭕ https://parapara-game.web.app ⭕`)
     }
   }
 }

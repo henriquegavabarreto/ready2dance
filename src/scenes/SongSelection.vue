@@ -94,8 +94,42 @@
       :timeout="4000"
     >
       User Status Changed.
-    <v-btn dark small @click="userStatusChanged = !userStatusChanged">CLOSE</v-btn>
+      <v-btn dark small @click="userStatusChanged = !userStatusChanged">CLOSE</v-btn>
     </v-snackbar>
+    <v-dialog
+      v-model="$store.state.welcome"
+      max-width="400"
+    >
+      <v-card style="border-radius: 10px;">
+        <v-card-title class="black headline justify-center white--text font-weight-medium">
+          Welcome to Ready2Dance!
+        </v-card-title>
+
+        <v-card-text>
+          <p>Hi! Thank you for login in! If this is your first time here please read the instructions below!</p>
+          <ul>
+            <li>This website use a lot of data (22~90MB PoseNet + size of the videos), so you may prefer to use it on Wi-Fi only to avoid charges from your carrier.</li>
+            <li>This game uses your front camera, so remember to allow it to be used so the game can begin.</li>
+            <li>Stay at least 1.8m (6ft) away from the camera, otherwise the movement detection won't work properly.</li>
+            <li>Every device has a different camera latency. <a href="https://www.youtube.com/watch?v=WXud3F-Cuac">Check your current device latency</a> and change it in the settings.</li>
+            <li>All options in the settings are not stored, so you will need to set your preferences including latency again if the page is reloaded or whenever you visit this website again.</li>
+            <li>If you have any problems or suggestions, please contact us.</li>
+          </ul>
+        </v-card-text>
+
+        <v-card-actions class="black justify-center">
+
+          <v-btn
+            class="white"
+            color="green darken-1"
+            flat
+            @click="$store.commit('toggleWelcome', false)"
+          >
+            Close
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-dialog
       v-model="settings"
       max-width="400"
@@ -472,6 +506,9 @@ export default {
 <style scoped>
   html, body {
     min-height: 100vh;
+  }
+  li {
+    padding-bottom: 10px;
   }
   th {
     padding-bottom: 25px;

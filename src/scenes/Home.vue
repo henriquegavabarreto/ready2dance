@@ -169,6 +169,7 @@ export default {
               firebase.database.ref(`users/${result.user.uid}`).set(user).then(() => {
                 this.loading = false
                 this.$store.commit('changeUser', user)
+                this.$store.commit('toggleWelcome', true)
                 this.$store.commit('goToScene', 'song-selection')
               }).catch((err) => {
                 this.loading = false
@@ -193,6 +194,7 @@ export default {
         firebase.database.ref(`users/${result.user.uid}`).once('value').then((value) => {
           this.$store.commit('changeUser', value.val())
           this.loading = false
+          this.$store.commit('toggleWelcome', true)
           this.$store.commit('goToScene', 'song-selection')
         })
       }).catch((err) => {
