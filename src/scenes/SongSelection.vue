@@ -295,6 +295,9 @@
                       <div class="headline font-weight-medium">{{selectedSong.artist}}</div>
                     </div>
                   </v-card-title>
+                  <v-card-text>
+                    <div id="player" style="max-width: 100%;"></div>
+                  </v-card-text>
                   <v-divider></v-divider>
                   <v-card-text style="display: inline;" class="justify-center pl-0">
                     <div style="display: inline;" v-for="(chart, dif) in songCharts" :key="dif">
@@ -349,7 +352,10 @@
 </template>
 
 <script>
+import playerConfig from '../tools/editor/config/youtube-player'
 import firebase from '../tools/config/firebase'
+
+const YTPlayer = require('yt-player')
 
 export default {
   data () {
@@ -377,7 +383,8 @@ export default {
       username: '',
       manageUsers: false,
       selectedUser: '',
-      users: null
+      users: null,
+      player: null
     }
   },
   beforeCreate () {
@@ -398,13 +405,19 @@ export default {
       this.options.multiplier = this.$store.state.gameOptions.multiplier
     }
   },
+  mounted () {
+    this.player = new YTPlayer('#player', playerConfig)
+  },
   methods: {
     goToEditor: function () { // go to editor
+      this.player.stop()
+      this.player.destroy()
       this.$store.commit('goToScene', 'editor')
     },
     selectSong: function (song) { // get song info from the list of filtered songs
       this.selectedSong = song
       this.$store.commit('selectSong', song)
+      this.player.load(song.videoId)
       this.$store.commit('changeSongScores', 'Select a difficulty')
       if (this.$vuetify.breakpoint.xs) document.getElementById('currentlySelected').scrollIntoView()
     },
@@ -417,18 +430,24 @@ export default {
             this.$store.commit('changeOptions', this.options)
             this.$store.commit('selectSong', this.selectedSong)
             this.$store.dispatch('changeSelectedChart', this.selectedChart).then(() => {
+              this.player.stop()
+              this.player.destroy()
               this.$store.commit('goToScene', 'game')
             })
           }, error => {
             console.log(error)
             this.$store.commit('changeWrongMessage', 'Due to a problem with PoseNet the game is not available right now. Please try it again later.')
             this.$store.commit('somethingWentWrong')
+            this.player.stop()
+            this.player.destroy()
             this.store.commit('goToScene', 'error')
           })
         } else {
           this.$store.commit('changeOptions', this.options)
           this.$store.commit('selectSong', this.selectedSong)
           this.$store.dispatch('changeSelectedChart', this.selectedChart).then(() => {
+            this.player.stop()
+            this.player.destroy()
             this.$store.commit('goToScene', 'game')
           })
         }
@@ -454,6 +473,8 @@ export default {
     logout: function () {
       firebase.auth.signOut().then(() => {
         this.$store.commit('changeSongScores', 'Select a Song!')
+        this.player.stop()
+        this.player.destroy()
         this.$store.commit('goToScene', 'home')
       }).catch((err) => { console.log(err) })
     },
