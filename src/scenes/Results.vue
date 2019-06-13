@@ -3,7 +3,7 @@
     <v-container fluid>
       <v-layout row wrap>
         <v-flex xs12 md6>
-          <v-card dark style="border-radius: 10px; min-height: 90vh;">
+          <v-card dark style="border-radius: 10px;">
             <v-card-title primary-title class="display-3 font-weight-bold justify-center cyan lighten-1 black--text">
               RESULTS
             </v-card-title>
