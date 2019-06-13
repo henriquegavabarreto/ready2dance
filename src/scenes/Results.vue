@@ -122,7 +122,7 @@
             v-model="options.showAnimation">
             <template v-slot:label>
               <div class="black--text">
-                Show circle animations
+                Show animations
               </div>
             </template>
           </v-checkbox>

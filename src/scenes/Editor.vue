@@ -556,7 +556,7 @@ export default {
     },
     saveInfo: function () { // this saves the input from the options tab to the danceChart
       if (this.$refs.timing.validate()) {
-        this.moveManager.updateMoves(this.danceChart, parseInt(this.settings.bpm), danceChart.offset - parseFloat(this.settings.offset))
+        this.moveManager.updateMoves(this.danceChart, parseInt(this.settings.bpm), this.danceChart.offset - parseFloat(this.settings.offset))
         this.dataManager.updateDanceChart(this.danceChart, this.settings)
         this.dataManager.updateManagers(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.cueManager)
         this.noteManager.redraw(this.danceChart, this.containers, this.textures)

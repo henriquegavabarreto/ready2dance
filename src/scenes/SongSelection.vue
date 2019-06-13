@@ -29,7 +29,7 @@
           </v-btn>
         </template>
 
-        <v-list class="py-0">
+        <v-list class="py-0 title font-weight-regular">
           <v-list-tile @click="toggleSettings">
             <v-list-tile-title><v-icon left>settings</v-icon><span>Settings</span></v-list-tile-title>
           </v-list-tile>
@@ -147,7 +147,7 @@
             v-model="options.showAnimation">
             <template v-slot:label>
               <div class="black--text">
-                Show circle animations
+                Show animations
               </div>
             </template>
           </v-checkbox>
