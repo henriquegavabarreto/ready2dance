@@ -31,7 +31,8 @@ export default new Vuex.Store({
       imageScale: 0.5,
       speed: 1
     },
-    currentScene: 'home'
+    currentScene: 'home',
+    previousScene: ''
   },
   mutations: {
     toggleWelcome: (state, data) => {
@@ -62,6 +63,7 @@ export default new Vuex.Store({
       Vue.delete(state.songs, data.key)
     },
     goToScene: (state, data) => {
+      state.previousScene = state.currentScene
       state.currentScene = data
     },
     changeSelectedChart: (state, data) => {
