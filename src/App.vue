@@ -29,6 +29,7 @@ import SongSelection from './scenes/SongSelection'
 import Game from './scenes/Game'
 import Results from './scenes/Results'
 import Home from './scenes/Home'
+import LatencyTest from './scenes/LatencyTest'
 import ErrorPage from './scenes/ErrorPage'
 
 export default {
@@ -39,6 +40,7 @@ export default {
     'game': Game,
     'results': Results,
     'home': Home,
+    'latency-test': LatencyTest,
     'error': ErrorPage
   },
   beforeCreate () {

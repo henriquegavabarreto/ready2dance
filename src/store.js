@@ -88,6 +88,9 @@ export default new Vuex.Store({
       state.gameOptions.outputStride = parseInt(data.outputStride)
       state.gameOptions.imageScale = parseFloat(data.imageScale)
     },
+    changeLatency: (state, data) => {
+      state.gameOptions.latency = data
+    },
     changeSongScores: (state, data) => {
       state.songScores = data
     },

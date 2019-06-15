@@ -178,6 +178,8 @@
           >
           </v-text-field>
           <a href="https://www.youtube.com/watch?v=WXud3F-Cuac"><p>Check out this video if you are having any trouble to find your camera's latency</p></a>
+          <p class="text-xs-center">OR</p>
+          <v-btn block @click="goToLatencyCalibration">Calibrate Latency (WIP)</v-btn>
           <v-divider></v-divider>
           <h3 class="mt-4">Change pose detection precision <a href="https://www.npmjs.com/package/@tensorflow-models/posenet">(advanced)</a></h3>
           <v-select
@@ -492,6 +494,33 @@ export default {
           this.usernameNotFound = true
         }
       })
+    },
+    goToLatencyCalibration: function () {
+      if (this.options.multiplier !== this.$store.state.gameOptions.multiplier) {
+        this.$store.dispatch('loadNet', this.options.multiplier).then(response => {
+          this.$store.commit('loadNet', response)
+          this.$store.commit('changeOptions', this.options)
+          this.$store.dispatch('changeSelectedChart', '-LhMV2qkovpJ_sAFWcRm').then(() => {
+            this.player.stop()
+            this.player.destroy()
+            this.$store.commit('goToScene', 'latency-test')
+          })
+        }, error => {
+          console.log(error)
+          this.$store.commit('changeWrongMessage', 'Due to a problem with PoseNet the game is not available right now. Please try it again later.')
+          this.$store.commit('somethingWentWrong')
+          this.player.stop()
+          this.player.destroy()
+          this.store.commit('goToScene', 'error')
+        })
+      } else {
+        this.$store.commit('changeOptions', this.options)
+        this.$store.dispatch('changeSelectedChart', '-LhMV2qkovpJ_sAFWcRm').then(() => {
+          this.player.stop()
+          this.player.destroy()
+          this.$store.commit('goToScene', 'latency-test')
+        })
+      }
     }
   },
   computed: {
@@ -507,8 +536,10 @@ export default {
       }
 
       songArray.filter((songs) => {
-        if (songs.title.toLowerCase().includes(this.search.toLowerCase()) || songs.artist.toLowerCase().includes(this.search.toLowerCase())) {
-          filteredSongs.push(songs)
+        if (songs.title !== 'Latency Test') {
+          if (songs.title.toLowerCase().includes(this.search.toLowerCase()) || songs.artist.toLowerCase().includes(this.search.toLowerCase())) {
+            filteredSongs.push(songs)
+          }
         }
       })
       return filteredSongs

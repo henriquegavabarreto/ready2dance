@@ -463,10 +463,14 @@ export default {
 
         if (navigator.getUserMedia) {
           navigator.getUserMedia({ audio: false, video: { width: 300, height: 300 } }, (stream) => {
-            var video = document.getElementById('videoStream')
-            video.srcObject = stream
-            video.onloadedmetadata = (e) => {
-              video.play()
+            this.stream = document.getElementById('videoStream')
+            this.stream.srcObject = stream
+            this.stream.onloadedmetadata = (e) => {
+              this.stream.play()
+              this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride)
+              setTimeout(() => {
+                this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride)
+              }, 2000)
             }
           }, (err) => {
             let errorMessage = 'The following error occurred: ' + err.name
@@ -496,6 +500,9 @@ export default {
               this.stream.height = 300
               this.stream.play()
               this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride)
+              setTimeout(() => {
+                this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride)
+              }, 2000)
             }
           })
           .catch((err) => {
