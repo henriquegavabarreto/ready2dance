@@ -314,7 +314,7 @@
                     <v-btn
                       dark
                       class="ml-4 lighten-2"
-                      :disabled="selectedChart === ''"
+                      :disabled="$store.state.selectedChartId === null"
                       @click="goToGame"><v-icon left>play_arrow</v-icon>PLAY</v-btn>
                   </v-card-text>
                 </v-card>
@@ -422,6 +422,7 @@ export default {
       this.$store.commit('selectSong', song)
       this.player.load(song.videoId)
       this.$store.commit('changeSongScores', 'Select a difficulty')
+      this.$store.commit('selectChart', null)
       if (this.$vuetify.breakpoint.xs) document.getElementById('currentlySelected').scrollIntoView()
     },
     goToGame: function () { // goes to the game after the chart is loaded
