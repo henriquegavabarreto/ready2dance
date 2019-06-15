@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <div style="font-family: Arial;" data-app=true>
+    <div data-app=true>
       <component :is="$store.state.currentScene"></component>
       <v-snackbar
         auto-height

@@ -1,5 +1,5 @@
 <template>
-  <div @keyup.esc="backToSelection" tabindex="0" style="height: 100vh;" class="black">
+  <div @keyup.esc="backToPrevious" tabindex="0" style="height: 100vh;" class="black">
     <v-container fluid class="pa-0">
       <v-layout row wrap class="black" justify-center align-center style="height: 100vh;">
         <v-flex md12 lg6 order-xs3 order-md3 order-lg1 v-if="gameOptions.showAnimation" class="text-xs-center">
@@ -19,7 +19,7 @@
             </v-flex>
             <v-flex grow>
               <ul style="list-style-type: none;">
-                <li><h3 class="title">Score</h3></li>
+                <li class="pb-2"><h3 class="title font-weight-bold">SCORE</h3></li>
                 <li>
                   <ul style="list-style-type: none; border: 2px solid white; border-radius: 5px;" class="pa-2 headline">
                     <li>{{displayScore}}</li>
@@ -29,7 +29,7 @@
             </v-flex>
             <v-flex hidden-xs-only xs3>
               <ul style="list-style-type: none;">
-                <li><h3 class="title">Song</h3></li>
+                <li class="pb-2"><h3 class="title font-weight-bold">SONG</h3></li>
                 <li>
                   <ul style="list-style-type: none; border: 2px solid white; border-radius: 5px;" class="pa-2 headline font-weight-regular">
                     <li>{{song.title}} / {{song.artist}}</li>
@@ -39,7 +39,7 @@
             </v-flex>
             <v-flex shrink hidden-sm-and-down>
               <ul style="list-style-type: none;">
-                <li><h3 class="title">Status</h3></li>
+                <li class="pb-2"><h3 class="title font-weight-bold">STATUS</h3></li>
                 <table style="border: 2px solid white; border-radius: 5px;" class="pl-2 pr-2 title font-weight-regular">
                   <tbody>
                     <tr>
@@ -550,10 +550,10 @@ export default {
       window.removeEventListener('resize', this.resizeWindow)
       window.onresize = null
     },
-    backToSelection: function () {
-      // interrupts the game and goes back to song selection
+    backToPrevious: function () {
+      // interrupts the game and goes back to previous scene
       this.stopAndDestroy()
-      this.$store.commit('goToScene', 'song-selection')
+      this.$store.commit('goToScene', this.$store.state.previousScene)
     }
   },
   computed: {

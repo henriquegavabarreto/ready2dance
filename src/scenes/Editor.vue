@@ -103,7 +103,7 @@
                                   <v-btn
                                     v-for="(chart, dif) in song.charts"
                                     :key="dif"
-                                    @click="selectSong(name, chart.id)"
+                                    @click="selectSong(name, chart.id, dif)"
                                     :class="[selectedChartId === chart.id ? 'darken-1' : '', chart.draft ? 'yellow lighten-4 font-weight-bold' : 'green lighten-4 font-weight-bold']"
                                     small
                                     style="min-width: 0; width: 75px;"
@@ -208,13 +208,13 @@
                         </v-btn>
                       </v-snackbar>
                       <v-snackbar
+                        v-if="$store.state.selectedSong && $store.state.selectedDifficulty"
                         auto-height
                         v-model="existingChart"
-                        left
-                        :timeout="3000"
+                        color="blue"
+                        :timeout="8000"
                       >
-                      <v-icon dark left>warning</v-icon>
-                        There's a chart for this video already. It will be loaded.
+                      <p class="pa-0 ma-0">Loading the <span class="font-weight-bold">{{$store.state.selectedDifficulty.toUpperCase()}}</span> chart for <span class="font-weight-bold">{{$store.state.selectedSong.title}} / {{$store.state.selectedSong.artist}}</span></p>
                         <v-btn
                           flat
                           @click="existingChart = false"
@@ -426,6 +426,11 @@ export default {
     this.noteManager = new NoteManager(this.songManager)
     this.cueManager = new CueManager(this.songManager, editorConfig, grid)
 
+    if (this.$store.state.selectedChartId) {
+      this.existingChart = true
+      this.loadChart(this.$store.state.selectedSong, this.$store.state.selectedChartId)
+    }
+
     this.ticker.add(() => {
       animationManager.animate(this.songManager, this.containers, this.cueManager, this.danceChart)
       if (this.player.getState() === 'playing') this.cueManager.drawDynamicCues(this.danceChart.moves, this.textures.cues)
@@ -620,11 +625,13 @@ export default {
         }, 4000)
       }
     },
-    selectSong: function (songId, chartId) { // changes selected song in the store with the given song id
-      this.$store.commit('selectSong', songId)
+    selectSong: function (songId, chartId, dif) { // changes selected song in the store with the given song id
+      this.$store.commit('selectSong', this.songs[songId])
+      this.$store.commit('selectDifficulty', dif)
       this.$store.commit('selectChart', chartId)
     },
-    loadChart: function (songId, chartId) { // pulls chart info from the database and applies to the danceChart and settings tab
+    loadChart: function (song, chartId) { // pulls chart info from the database and applies to the danceChart and settings tab
+      let songId = this.dataManager.getSongIdByVideoId(this.songs, song.videoId)
       if (chartId !== '') {
         let loadedChart = {}
         firebase.database.ref(`charts/${chartId}`).once('value', (data) => {

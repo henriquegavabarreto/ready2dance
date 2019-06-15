@@ -279,7 +279,7 @@
                       <v-card-title primary-title>
                         <div>
                           <h3 class="headline mb-0 font-weight-bold">{{song.title}}</h3>
-                          <div class="font-weight-medium">{{song.artist}}</div>
+                          <div class="pt-2 title font-weight-regular">{{song.artist}}</div>
                         </div>
                       </v-card-title>
                     </v-card>
@@ -294,7 +294,7 @@
                 <v-card style="border-radius: 10px;" class="blue-grey lighten-5 text-xs-center">
                   <v-card-title primary-title class="justify-center cyan pb-1">
                     <div>
-                      <h3 class="display-1 mb-1 font-weight-bold">{{selectedSong.title}} {{filteredSongs.title}}</h3>
+                      <h3 class="display-2 mb-1 font-weight-bold">{{selectedSong.title}} {{filteredSongs.title}}</h3>
                       <div class="headline font-weight-medium">{{selectedSong.artist}}</div>
                     </div>
                   </v-card-title>
