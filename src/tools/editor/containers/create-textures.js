@@ -2,9 +2,9 @@ import * as PIXI from 'pixi.js'
 import editorConfig from '../config/editor-config'
 
 export default function createTextures (app, textures) {
-  textures.staff = PIXI.Texture.from('https://henriquegavabarreto.github.io/paraparagame/assets/staff.png')
-  textures.note = PIXI.Texture.from('https://henriquegavabarreto.github.io/paraparagame/assets/move.png')
-  textures.guideLine = PIXI.Texture.from('https://henriquegavabarreto.github.io/paraparagame/assets/guideline.png')
+  textures.staff = PIXI.Texture.from('../../../assets/staff.png')
+  textures.note = PIXI.Texture.from('../../../assets/move.png')
+  textures.guideLine = PIXI.Texture.from('../../../assets/guideline.png')
 
   let draw = new PIXI.Graphics()
   draw.lineStyle(editorConfig.cue.lineWidth, editorConfig.colors.grid)
