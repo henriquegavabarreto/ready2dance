@@ -1,10 +1,13 @@
 import * as PIXI from 'pixi.js'
 import editorConfig from '../config/editor-config'
+import Staff from './../../../../public/img/staff.png'
+import Note from './../../../../public/img/move.png'
+import GuideLine from './../../../../public/img/guideline.png'
 
 export default function createTextures (app, textures) {
-  textures.staff = PIXI.Texture.from(require('../../../assets/staff.png'))
-  textures.note = PIXI.Texture.from(require('../../../assets/move.png'))
-  textures.guideLine = PIXI.Texture.from(require('../../../assets/guideline.png'))
+  textures.staff = PIXI.Texture.from(Staff)
+  textures.note = PIXI.Texture.from(Note)
+  textures.guideLine = PIXI.Texture.from(GuideLine)
 
   let draw = new PIXI.Graphics()
   draw.lineStyle(editorConfig.cue.lineWidth, editorConfig.colors.grid)
