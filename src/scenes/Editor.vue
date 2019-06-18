@@ -312,9 +312,7 @@
             </v-tab-item>
 
             <v-tab-item>
-              <v-card flat>
-                <v-card-text>HOW TO USE THIS EDITOR</v-card-text>
-              </v-card>
+              <instructions></instructions>
             </v-tab-item>
 
             <v-tab-item>
@@ -370,10 +368,14 @@ import grid from '../tools/editor/config/grid'
 import * as PIXI from 'pixi.js'
 import firebase from '../tools/config/firebase'
 import dataManager from '../tools/editor/data-manager'
+import EditorInstructions from '../components/EditorInstructions'
 
 const YTPlayer = require('yt-player')
 
 export default {
+  components: {
+    'instructions': EditorInstructions
+  },
   data () {
     return {
       tabs: null,
