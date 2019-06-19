@@ -90,6 +90,9 @@ export default new Vuex.Store({
       state.gameOptions.outputStride = parseInt(data.outputStride)
       state.gameOptions.imageScale = parseFloat(data.imageScale)
     },
+    changeMultiplier: (state, data) => {
+      state.gameOptions.multiplier = data
+    },
     changeLatency: (state, data) => {
       state.gameOptions.latency = data
     },

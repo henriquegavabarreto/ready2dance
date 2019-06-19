@@ -151,6 +151,7 @@
                           </v-flex>
                           <v-flex xs4>
                             <v-btn dark @click="saveToFirebase" class="pt-0">Save Chart</v-btn>
+                            <v-btn @click="testChart" :disabled="testable">Test</v-btn>
                           </v-flex>
                         </v-layout>
                       </v-card-actions>
@@ -428,9 +429,33 @@ export default {
     this.noteManager = new NoteManager(this.songManager)
     this.cueManager = new CueManager(this.songManager, editorConfig, grid)
 
-    if (this.$store.state.selectedChartId) {
-      this.existingChart = true
-      this.loadChart(this.$store.state.selectedSong, this.$store.state.selectedChartId)
+    if (this.$store.state.previousScene === 'game') {
+      let loadedChart = {}
+      loadedChart.offset = this.$store.state.selectedChart.offset
+      loadedChart.moves = this.$store.state.selectedChart.moves
+      loadedChart.videoEnd = this.$store.state.selectedChart.videoEnd
+      loadedChart.videoStart = this.$store.state.selectedChart.videoStart
+      loadedChart.bpm = this.$store.state.selectedChart.bpm
+      loadedChart.videoId = this.$store.state.selectedSong.videoId
+
+      loadedChart.title = this.$store.state.selectedSong.title
+      loadedChart.artist = this.$store.state.selectedSong.artist
+      this.danceChart.songId = ''
+      this.danceChart.chartId = ''
+
+      this.dataManager.updateChartAndSettings(this.danceChart, this.settings, loadedChart)
+      this.dataManager.updateManagers(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.cueManager)
+      this.noteManager.redraw(this.danceChart, this.containers, this.textures)
+      this.player.load(this.danceChart.videoId, true)
+      setTimeout(() => {
+        // drawGuideNumbers(this.player, this.danceChart, this.songManager)
+        drawStaff(this.containers, this.textures, this.player, this.danceChart, this.songManager)
+      }, 3000)
+    } else {
+      if (this.$store.state.selectedChartId) {
+        this.existingChart = true
+        this.loadChart(this.$store.state.selectedSong, this.$store.state.selectedChartId)
+      }
     }
 
     this.ticker.add(() => {
@@ -675,6 +700,14 @@ export default {
       }
     },
     goToSongSelection: function () { // goes back to song selection Scene
+      this.destroyAll()
+      this.$store.commit('selectChart', null)
+      this.$store.commit('selectSong', null)
+      this.$store.commit('selectDifficulty', null)
+      this.$store.commit('changeSelectedChart', null)
+      this.$store.commit('goToScene', 'song-selection')
+    },
+    destroyAll: function () {
       this.player.stop()
       this.player.destroy()
       for (let texture in this.textures) {
@@ -691,7 +724,6 @@ export default {
       this.editorApp.destroy()
       window.removeEventListener('resize', this.resizeWindow)
       window.onresize = null
-      this.$store.commit('goToScene', 'song-selection')
     },
     resizeWindow: function () {
       window.onresize = (event) => {
@@ -719,6 +751,42 @@ export default {
     },
     focusOnEditor: function () {
       document.getElementById('canvas').focus()
+    },
+    testChart: function () {
+      // create a dummy selected chart
+      let dummyChart = {
+        bpm: this.danceChart.bpm,
+        moves: this.danceChart.moves.join(' '),
+        offset: this.danceChart.offset,
+        videoId: this.player.videoId,
+        videoStart: this.danceChart.videoStart,
+        videoEnd: this.danceChart.videoEnd
+      }
+      // create dummy selected song
+      let dummySong = {
+        artist: this.danceChart.artist,
+        title: this.danceChart.title,
+        videoId: this.player.videoId
+      }
+      if (this.$store.state.net === null) {
+        this.$store.commit('changeMultiplier', 0.5)
+        this.$store.dispatch('loadNet', this.$store.state.gameOptions.multiplier).then(response => {
+          this.$store.commit('loadNet', response)
+          this.$store.commit('selectSong', dummySong)
+          this.$store.commit('changeSelectedChart', dummyChart)
+          this.destroyAll()
+          this.$store.commit('goToScene', 'game')
+        }, error => {
+          console.log(error)
+          this.$store.commit('changeWrongMessage', 'Due to a problem with PoseNet the game is not available right now. Please try it again later.')
+          this.$store.commit('somethingWentWrong')
+        })
+      } else {
+        this.$store.commit('selectSong', dummySong)
+        this.$store.commit('changeSelectedChart', dummyChart)
+        this.destroyAll()
+        this.$store.commit('goToScene', 'game')
+      }
     }
   },
   computed: {
@@ -738,6 +806,17 @@ export default {
     },
     selectedChartId: function () {
       return this.$store.state.selectedChartId
+    },
+    testable: function () {
+      if (this.player) {
+        if (this.player.videoId) {
+          return false
+        } else {
+          return true
+        }
+      } else {
+        return true
+      }
     }
   }
 }

@@ -9,7 +9,7 @@
             </v-flex>
           </v-layout>
         </v-flex>
-        <v-flex id="player" :class="gameOptions.showAnimation ? 'md12 lg6 order-xs1 order-md1 order-lg2 text-xs-center' : 'xs12 text-xs-center'" style="width: 100%;"></v-flex>
+        <v-flex id="player" :class="gameOptions.showAnimation ? 'md12 lg6 order-xs1 order-md1 order-lg2 text-xs-center' : 'xs12 text-xs-center'" style="width: 100%; z-index: 1;"></v-flex>
         <span v-if="noPose && !gameOptions.showAnimation" style="color: white; font-size: 30px;">MAKE SURE YOU ARE FAR ENOUGH FROM THE CAMERA</span>
         <v-flex xs12 order-xs2 order-md2 order-lg3 class="white--text">
           <v-layout row wrap justify-center align-center class="pr-2">
@@ -309,12 +309,20 @@ export default {
         this.player.setVolume(this.player.getVolume() - 1)
       }
       if (this.player.getCurrentTime() >= parseFloat(this.videoEnd) && parseFloat(this.videoEnd) !== 0) {
-        this.goToResults()
+        if (this.$store.state.previousScene !== 'editor') {
+          this.goToResults()
+        } else {
+          this.backToPrevious()
+        }
       }
     })
 
     this.player.on('ended', () => {
-      this.goToResults()
+      if (this.$store.state.previousScene !== 'editor') {
+        this.goToResults()
+      } else {
+        this.backToPrevious()
+      }
     })
 
     this.ticker.stop()
