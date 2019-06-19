@@ -7,58 +7,61 @@
             Shortcuts
           </v-card-title>
           <v-card-text>
+            <div class="text-xs-center pt-2 pb-2 mb-3" style="text-decoration: underline; border: 2px solid black;">
+              <span class="font-weight-black">Attention:</span> The editor must be selected for the shortcuts to work
+            </div>
             <table>
               <tr>
-                <td>z</td>
-                <td>create move for left hand</td>
+                <td :class="command">z</td>
+                <td :class="description">create move for left hand</td>
               </tr>
               <tr>
-                <td>x</td>
-                <td>create move for right hand</td>
+                <td :class="command">x</td>
+                <td :class="description">create move for right hand</td>
               </tr>
               <tr>
-                <td>a</td>
-                <td>create a node for left moves (Hold and Motion)</td>
+                <td :class="command">a</td>
+                <td :class="description">create a node for left moves (Hold and Motion)</td>
               </tr>
               <tr>
-                <td>s</td>
-                <td>create a node for right moves (Hold and Motion)</td>
+                <td :class="command">s</td>
+                <td :class="description">create a node for right moves (Hold and Motion)</td>
               </tr>
               <tr>
-                <td>q</td>
-                <td>delete left hand move</td>
+                <td :class="command">q</td>
+                <td :class="description">delete left hand move</td>
               </tr>
               <tr>
-                <td>w</td>
-                <td>delete right hand move</td>
+                <td :class="command">w</td>
+                <td :class="description">delete right hand move</td>
               </tr>
               <tr>
-                <td>c</td>
-                <td>copy</td>
+                <td :class="command">c</td>
+                <td :class="description">copy</td>
               </tr>
               <tr>
-                <td>v</td>
-                <td>paste</td>
+                <td :class="command">v</td>
+                <td :class="description">paste</td>
               </tr>
               <tr>
-                <td>p</td>
-                <td>play / pause video</td>
+                <td :class="command">p</td>
+                <td :class="description">play / pause video</td>
               </tr>
               <tr>
-                <td>up</td>
-                <td>move back a quarter of a beat</td>
+                <td :class="command">up (↑)</td>
+                <td :class="description">move back a quarter of a beat</td>
               </tr>
               <tr>
-                <td>down</td>
-                <td>move forward a quarter of a beat</td>
+                <td :class="command">down (↓)</td>
+                <td :class="description">move forward a quarter of a beat</td>
               </tr>
               <tr>
-                <td>left</td>
-                <td>move back a beat</td>
+                <td :class="command">left (←)</td>
+                <td :class="description">move back a beat</td>
               </tr>
               <tr>
-                <td>right</td>
-                <td>move forward a beat</td>
+                <td :class="command">right (→)</td>
+                <td :class="description">move forward a beat</td>
               </tr>
             </table>
           </v-card-text>
@@ -72,35 +75,43 @@
           <v-card-text>
             <table>
               <tr>
-                <td>Load By Video Id</td>
-                <td>Video Id found at the end of the youtube video link after watch?v=</td>
+                <td :class="command">Load Video By Video Id</td>
+                <td :class="description">Video Id found at the end of the youtube video link - after watch?v=</td>
               </tr>
               <tr>
-                <td>Video Starting Point</td>
-                <td>Value in seconds that the video should start at</td>
+                <td :class="command">Video Starting Point</td>
+                <td :class="description">Value in seconds that the video should start at</td>
               </tr>
               <tr>
-                <td>Video Ending Point</td>
-                <td>Value in seconds that the video should end at</td>
+                <td :class="command">Video Ending Point</td>
+                <td :class="description">Value in seconds that the video should end at</td>
               </tr>
               <tr>
-                <td>Song Offset</td>
-                <td>Value in seconds of the first beat of the song's intro</td>
+                <td :class="command">Song Offset</td>
+                <td :class="description">Value in seconds of the first beat of the song's intro</td>
               </tr>
               <tr>
-                <td>Song BPM</td>
-                <td>Beats Per Minute of the song (You can use any external tool like Tap BPM and online metronome to assist you with this)</td>
+                <td :class="command">Song BPM</td>
+                <td :class="description">Beats Per Minute of the song (You can the external tool of your choice to find that out - I use Tap BPM to get an estimate and online metronome to confirm it)</td>
               </tr>
               <tr>
-                <td>Song Title</td>
-                <td>Title of the song</td>
+                <td :class="command">Song Title</td>
+                <td :class="description">Title of the song</td>
               </tr>
               <tr>
-                <td>Artist</td>
-                <td>Who performs the song</td>
+                <td :class="command">Artist</td>
+                <td :class="description">Who performs the song</td>
               </tr>
             </table>
+          </v-card-text>
+        </v-card>
+      </v-flex>
+      <v-flex xs12 class="mt-4">
+        <v-card style="border-radius: 10px;">
+          <v-card-title class="justify-center yellow darken-1 headline font-weight-medium pa-2">
             Usage
+          </v-card-title>
+          <v-card-text>
             Select a video on youtube and get the id
             Fill all the necessary information on Song Options
             Fill all the necessary information on Timing
@@ -124,6 +135,12 @@
 
 <script>
 export default {
+  data () {
+    return {
+      command: 'subheading font-weight-black text-xs-center',
+      description: 'body-2'
+    }
+  }
 }
 </script>
 
@@ -139,7 +156,7 @@ tr {
 }
 
 td {
-  border: none;
+  border-bottom: 1px solid #ddd;
   padding-top: 10px;
   padding-bottom: 10px;
   padding-right: 30px;

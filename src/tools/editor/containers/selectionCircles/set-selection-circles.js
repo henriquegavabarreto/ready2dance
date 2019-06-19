@@ -20,7 +20,7 @@ function setSelectionCircles (containers, textures) {
       circle.alpha = 0.4
     })
 
-    circle.on('mousedown', (event) => {
+    circle.on('pointerdown', (event) => {
       circle.alpha = 0.4
       editorConfig.selectedCircles.push(circle.name)
     })

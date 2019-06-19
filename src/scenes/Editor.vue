@@ -17,7 +17,7 @@
                 centered
                 color="transparent"
                 icons-and-text
-                height="60"
+                height="55"
                 show-arrows
                 v-model="tabs"
               >
@@ -38,7 +38,7 @@
                   <v-icon>info</v-icon>
                 </v-tab>
 
-                <v-tab>
+                <v-tab @click="focusOnEditor">
                   Editor
                   <v-icon>edit</v-icon>
                 </v-tab>
@@ -716,6 +716,9 @@ export default {
       }
       this.editorApp.view.style.width = w + 'px'
       this.editorApp.view.style.height = h + 'px'
+    },
+    focusOnEditor: function () {
+      document.getElementById('canvas').focus()
     }
   },
   computed: {
