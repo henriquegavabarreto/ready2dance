@@ -6,7 +6,7 @@
       app
     >
       <v-text-field
-        style="max-width: 40vw;"
+        style="max-width: 45vw;"
         prepend-icon="search"
         label="Search"
         v-model="search"
@@ -295,18 +295,16 @@
                 <v-card style="border-radius: 10px;" class="blue-grey lighten-5 text-xs-center">
                   <v-card-title primary-title class="justify-center cyan pb-1">
                     <div>
-                      <h3 class="display-2 mb-1 font-weight-bold">{{selectedSong.title}} {{filteredSongs.title}}</h3>
-                      <div class="headline font-weight-medium">{{selectedSong.artist}}</div>
+                      <h3 class="display-1 mb-2 font-weight-bold">{{selectedSong.title}} / {{selectedSong.artist}}</h3>
                     </div>
                   </v-card-title>
                   <v-card-text>
-                    <div id="player" style="max-width: 100%;"></div>
+                    <div id="player" style="max-height: 300px;"></div>
                   </v-card-text>
                   <v-divider></v-divider>
                   <v-card-text style="display: inline;" class="justify-center pl-0">
                     <div style="display: inline;" v-for="(chart, dif) in songCharts" :key="dif">
                       <v-btn
-                        large
                         @click="selectChart(chart.id, dif)"
                         :class="selectedChart === chart.id ? 'blue lighten' : ''"
                         :disabled="chart.draft && ($store.state.user === null || $store.state.user.type === 'user')">{{dif}}<span v-if="chart.draft">(SOON)</span></v-btn>
