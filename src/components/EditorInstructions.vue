@@ -84,7 +84,7 @@
               </tr>
               <tr>
                 <td :class="command">Video Ending Point</td>
-                <td :class="description">Value in seconds that the video should end at</td>
+                <td :class="description">Value in seconds that the video should end at (you can leave it at 0 if you want the whole video)</td>
               </tr>
               <tr>
                 <td :class="command">Song Offset</td>
@@ -92,7 +92,7 @@
               </tr>
               <tr>
                 <td :class="command">Song BPM</td>
-                <td :class="description">Beats Per Minute of the song (You can the external tool of your choice to find that out - I use Tap BPM to get an estimate and online metronome to confirm it)</td>
+                <td :class="description">Beats Per Minute of the song (You can the external tool of your choice to find that out - I use <a href="http://www.beatsperminuteonline.com/">Tap BPM</a> to get an estimate and <a href="https://www.imusic-school.com/en/tools/online-metronome/">online metronome</a> to confirm it)</td>
               </tr>
               <tr>
                 <td :class="command">Song Title</td>
@@ -111,21 +111,27 @@
           <v-card-title class="justify-center yellow darken-1 headline font-weight-medium pa-2">
             Usage
           </v-card-title>
-          <v-card-text>
-            Select a video on youtube and get the id
-            Fill all the necessary information on Song Options
-            Fill all the necessary information on Timing
-            Start inserting moves on the chart
-            For a Sharp Move, that will be checked just one time in the game at the specific beat that it was inserted on, press Z to create a left hand move or X to create a right hand move
-
-            Select the position on which the move should be checked clicking in one of the circles on the top of the video
-
-            For a Hold Move or Motion Move, that can be checked two times or more, hold Z for left hand or X for right hand on the beat on which the move starts and press the down arrow until the beat which the move should end. After that, release Z or X.
-
-            Now it will be necessary that you select two positions on the circle grid. Selecting two times the same position will create a Hold Move and selecting different positions will create a Motion Move
-
-            If you have created a Hold Move or Motion Move, you can create nodes by selecting the beat and pressing A for left hand or S for right hand. Nodes are a way to create one more detection. Hold nodes will create a new detection on that note considering the same position as the start and end previously created. Motion nodes will require you to select a position, so there are no restriction to Motion Moves (beside that thay can't start and end at the same position).
-            If you want to delete a move, press Q to delete a left hand move or W to delete a right hand move
+          <v-card-text class="subheading">
+            <ol>
+              <li>Select a video on youtube and get the id</li>
+              <li>Fill all the information on Song Settings</li>
+              <li>Start inserting moves on the chart:
+                <ul>
+                  <li>For a Sharp Move:</li>
+                  <ol>
+                    <li>This move will be checked just one time in the game at the specific beat that it was inserted on - press and release on the same beat Z to create a left hand move or X to create a right hand move</li>
+                    <li>Select the position on which the move should be checked clicking in one of the circles</li>
+                  </ol>
+                  <li>For a Hold Move or Motion Move:</li>
+                  <ol>
+                    <li>These moves will be checked two times or more - hold Z for left hand or X for right hand on the beat on which the move starts and press the arrows until you get to the beat on which the move should end. After that, release Z or X.</li>
+                    <li>Now it will be necessary that you select two positions on the circle grid. Selecting two times the same position will create a Hold Move and selecting different positions will create a Motion Move</li>
+                  </ol>
+                </ul>
+              </li>
+              <li>If you have created a Hold Move or Motion Move, you can create nodes by selecting a beat and pressing A for left hand or S for right hand. Nodes are a way to create one more detection. Hold nodes will create a new detection on that note considering the same position as the start and end previously created. Motion nodes will require you to select a position, so there are no restriction to Motion Moves - after you create it, you can change the start, end or add nodes in different positions.</li>
+              <li>If you want to delete a move, press Q to delete a left hand move or W to delete a right hand move</li>
+            </ol>
           </v-card-text>
         </v-card>
       </v-flex>
@@ -161,5 +167,9 @@ td {
   padding-bottom: 10px;
   padding-right: 30px;
   vertical-align: middle;
+}
+li {
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 </style>
