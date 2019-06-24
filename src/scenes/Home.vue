@@ -17,6 +17,9 @@
                   <v-flex xs12>
                     <v-btn style="min-width: 15vw;" large dark @click="toggleRegisterModal">register</v-btn>
                   </v-flex>
+                  <v-flex xs12>
+                    <v-btn style="min-width: 15vw;" large dark @click="enterAsGuest">enter as guest</v-btn>
+                  </v-flex>
                 </v-layout>
               </v-flex>
             </v-layout>
@@ -209,6 +212,10 @@ export default {
         this.loading = false
         console.log(err)
       })
+    },
+    enterAsGuest: function () {
+      this.$store.commit('toggleWelcome', true)
+      this.$store.commit('goToScene', 'song-selection')
     }
   }
 }

@@ -8,7 +8,8 @@
           </v-card-title>
           <v-card-text>
             <div class="text-xs-center pt-2 pb-2 mb-3" style="text-decoration: underline; border: 2px solid black;">
-              <span class="font-weight-black">Attention:</span> The editor must be selected for the shortcuts to work
+              <p><span class="font-weight-black">Attention:</span> The editor must be selected for the shortcuts to work</p>
+              <p>If you notice any unexpected behaviour, refresh the page and tell one of the administrators</p>
             </div>
             <table>
               <tr>

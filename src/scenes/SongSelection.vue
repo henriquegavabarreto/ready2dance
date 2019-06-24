@@ -479,6 +479,7 @@ export default {
         this.$store.commit('changeSongScores', 'Select a Song!')
         this.player.stop()
         this.player.destroy()
+        this.$store.commit('changeUser', null)
         this.$store.commit('goToScene', 'home')
       }).catch((err) => { console.log(err) })
     },
