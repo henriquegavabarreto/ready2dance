@@ -16,22 +16,6 @@ export default {
     }
     return ''
   },
-  checkForVideoId: function (songs, danceChart) {
-    for (var songId in songs) {
-      if (songs[songId].videoId === danceChart.videoId) {
-        return true
-      }
-    }
-    return false
-  },
-  searchSongByVideoId: function (songs, videoId) {
-    for (var songId in songs) {
-      if (songs[songId].videoId === videoId) {
-        return { songId: songId, chartId: songs[songId].chartId }
-      }
-    }
-    return null
-  },
   saveNewSong: function (danceChart, player, difficulty, draft, user) { // save non existing song
     this.sortDanceChart(danceChart)
     firebase.database.ref('charts').push({
