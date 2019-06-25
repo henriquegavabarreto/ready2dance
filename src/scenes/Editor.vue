@@ -163,8 +163,8 @@
                         color="yellow"
                         :timeout="0"
                       >
-                      <p class="pa-0 ma-0">This action will overwrite the existing version of the <span class="font-weight-bold">{{duplicate.difficulty}}</span> chart for <span class="font-weight-bold">{{duplicate.song.title}} / {{duplicate.song.artist}}</span>. Do you want do continue?</p>
-                      <v-btn dark small @click="overwriteChart">YES</v-btn><v-btn dark small @click="duplicateChart = !duplicateChart">NO</v-btn>
+                        <p class="pa-0 ma-0">This action will overwrite the existing version of the <span class="font-weight-bold">{{duplicate.difficulty}}</span> chart for <span class="font-weight-bold">{{duplicate.song.title}} / {{duplicate.song.artist}}</span>. Do you want do continue?</p>
+                        <v-btn dark small @click="overwriteChart">YES</v-btn><v-btn dark small @click="duplicateChart = !duplicateChart">NO</v-btn>
                       </v-snackbar>
                       <v-snackbar
                         auto-height
@@ -173,8 +173,9 @@
                         left
                         color="red"
                         :timeout="0"
+                        v-if="$store.state.selectedDifficulty"
                       >
-                      This action will delete the selected chart. Do you want do continue?
+                        <p class="pa-0 ma-0">This action will delete permanently the existing version of the <span class="font-weight-bold">{{$store.state.selectedDifficulty}}</span> chart for <span class="font-weight-bold">{{selectedSong.title}} / {{selectedSong.artist}}</span>. Do you want do continue?</p>
                       <v-btn dark small @click="deleteSelectedChart(selectedSong, selectedChartId)">YES</v-btn><v-btn dark small @click="deleteChart = !deleteChart">NO</v-btn>
                       </v-snackbar>
                       <v-snackbar
@@ -686,7 +687,8 @@ export default {
         }).catch(err => console.log(err))
       }
     },
-    deleteSelectedChart: function (songId, chartId) { // removes selected chart from the database
+    deleteSelectedChart: function (song, chartId) { // removes selected chart from the database
+      let songId = this.dataManager.getSongIdByVideoId(this.songs, song.videoId)
       if (chartId !== '') {
         let key = Object.keys(this.songs[songId].charts).find(key => this.songs[songId].charts[key].id === chartId)
         if (Object.keys(this.songs[songId].charts).length === 1) {

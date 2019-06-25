@@ -77,7 +77,7 @@
         <v-toolbar-title>Register</v-toolbar-title>
       </v-toolbar>
       <v-card-text>
-        <p v-if="error">
+        <p class="pt-0 mt-0" v-if="error">
           <b>Error:</b>
           <ul>
             <li class="red--text">{{ error }}</li>
@@ -107,10 +107,10 @@
           <v-toolbar-title>Login</v-toolbar-title>
         </v-toolbar>
         <v-card-text>
-          <p class="red--text" v-if="error">
+          <p class="pt-0 mt-0" v-if="error">
             <b>Error:</b>
             <ul>
-              <li>{{ error }}</li>
+              <li class="red--text">{{ error }}</li>
             </ul>
           </p>
           <v-text-field v-model="email" label="Email*" :rules="emailRules" required></v-text-field>
@@ -126,6 +126,7 @@
           </v-btn>
 
           <v-btn :disable="loading" @click="toggleLoginModal" flat>Cancel</v-btn>
+          <v-btn flat @click="setNewPassword">I forgot my password</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -216,6 +217,19 @@ export default {
     enterAsGuest: function () {
       this.$store.commit('toggleWelcome', true)
       this.$store.commit('goToScene', 'song-selection')
+    },
+    setNewPassword: function () {
+      firebase.auth.sendPasswordResetEmail(this.email).then(() => {
+        this.error = 'We sent an e-mail. Change your password and come back here to log in.'
+      }).catch((err) => {
+        if (err.code === 'auth/invalid-email') {
+          this.error = 'This e-mail address is invalid. Check if it is correct.'
+        } else if (err.code === 'auth/user-not-found') {
+          this.error = 'We couldn\'t find an account for this e-mail address. Check if your e-mail is correct or register first.'
+        } else {
+          this.error = 'error'
+        }
+      })
     }
   }
 }
