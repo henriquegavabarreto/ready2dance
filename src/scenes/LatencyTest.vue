@@ -159,7 +159,15 @@ export default {
     changeScene: function () {
       this.stopAndDestroy()
       this.latencies = this.latencies.sort((a, b) => { return b - a }).splice(3, 10)
-      this.$store.commit('changeLatency', this.latencies.reduce((a, b) => a + b, 0) / this.latencies.length)
+      let latency = this.latencies.reduce((a, b) => a + b, 0) / this.latencies.length
+      // only change latency if it is a number, otherwise keep the latency and show an error message with somethingWentWrong
+      // Maybe not the best solution
+      if (typeof latency === 'number') {
+        this.$store.commit('changeLatency', latency)
+      } else {
+        this.$store.commit('changeWrongMessage', 'Something went wrong with the test. Please perform it again.')
+        this.$stopre.commit('somethingWentWrong')
+      }
       this.$store.commit('goToScene', 'song-selection')
     },
     stopCapture: function () {
