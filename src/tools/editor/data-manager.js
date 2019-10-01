@@ -1,11 +1,15 @@
 import firebase from '../config/firebase'
 
+// group of helper functions to organize the danceChart and save it to the firebase
 export default {
+  // sorts the danceChart elements in ascending order of beat
   sortDanceChart: function (danceChart) {
     danceChart.moves.sort(function (a, b) {
       return a[0] - b[0]
     })
   },
+  // returns the songId for a given videoId from the song list
+  // used when loading, saving and deleting charts
   getSongIdByVideoId: function (songs, videoId) {
     if (songs !== null) {
       for (var songId in songs) {
@@ -16,8 +20,10 @@ export default {
     }
     return ''
   },
-  saveNewSong: function (danceChart, player, difficulty, draft, user) { // save non existing song
+  // save non existing song - there is no songId
+  saveNewSong: function (danceChart, player, difficulty, draft, user) {
     this.sortDanceChart(danceChart)
+    // save chart to firebase first
     firebase.database.ref('charts').push({
       offset: danceChart.offset,
       bpm: danceChart.bpm,
@@ -29,6 +35,7 @@ export default {
       createdBy: user
     }).then((chartRef) => {
       danceChart.chartId = chartRef.key
+      // after having the chart saved, save the song
       firebase.database.ref('songs').push({
         title: danceChart.title,
         artist: danceChart.artist,
@@ -44,7 +51,8 @@ export default {
       }).catch(err => console.log(err))
     }).catch(err => console.log(err))
   },
-  saveNewChart: function (danceChart, player, songId, difficulty, draft, user) { // save new chart to existing song
+  // save new chart to existing song - songId exists
+  saveNewChart: function (danceChart, player, songId, difficulty, draft, user) {
     this.sortDanceChart(danceChart)
     firebase.database.ref('charts').push({
       offset: danceChart.offset,
@@ -57,6 +65,7 @@ export default {
       createdBy: user
     }).then((chartRef) => {
       danceChart.chartId = chartRef.key
+      // add the created chartId to the existing songId
       firebase.database.ref('songs/' + songId).child('charts').update({
         [difficulty]: {
           id: chartRef.key,
@@ -67,6 +76,7 @@ export default {
       }).catch(err => console.log(err))
     }).catch(err => console.log(err))
   },
+  // overwrites and existing danceChart
   overwriteChart: function (danceChart, chartId, songId, difficulty, draft, user) {
     this.sortDanceChart(danceChart)
     firebase.database.ref('charts').child(`${chartId}`).update({
@@ -82,6 +92,8 @@ export default {
       draft: draft
     }).catch((err) => { console.log(err) })
   },
+  // updates danceChart locally based on a loadedChart
+  // updates settings based on the updated danceChart
   updateChartAndSettings: function (danceChart, settings, loadedChart) {
     danceChart.offset = parseFloat(loadedChart.offset)
     danceChart.artist = loadedChart.artist
@@ -98,6 +110,7 @@ export default {
     settings.title = danceChart.title
     settings.artist = danceChart.artist
   },
+  // update danceChart based on settings
   updateDanceChart: function (danceChart, settings) {
     danceChart.offset = parseFloat(settings.offset)
     danceChart.videoStart = parseFloat(settings.videoStart)
@@ -106,12 +119,15 @@ export default {
     danceChart.title = settings.title
     danceChart.artist = settings.artist
   },
+  // update all managers
+  // used when there are changes on the danceChart
   updateManagers: function (danceChart, songManager, moveManager, noteManager, cueManager) {
     songManager.update(danceChart)
     moveManager.update(songManager)
     noteManager.update(songManager)
     cueManager.update(songManager)
   },
+  // parse chart for when it is loaded from the database
   parseChart: function (moves) {
     if (moves === '') {
       return []
