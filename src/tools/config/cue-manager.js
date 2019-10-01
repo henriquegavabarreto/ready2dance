@@ -10,6 +10,8 @@ export default class CueManager {
     this.speed = speed
   }
 
+  // this function litteraly draws the cues in the canvas
+  // Helper function to be used in the functions below
   drawCue (handMove, size, cues) { // draw circle cues
     if (handMove[0] === 'S' && handMove.length > 1) {
       cues.lineStyle(this.config.cue.lineWidth, this.config.colors.sharp, 1)
@@ -25,6 +27,7 @@ export default class CueManager {
     }
   }
 
+  // selects the moves that should be drawn this frame and pushes to specific array
   drawDynamicCues (moves, cues) {
     cues.clear()
 
@@ -44,6 +47,8 @@ export default class CueManager {
       }
     }
 
+    // removes move if the proportion is equal or bigger than one,
+    // else keeps drawing the moves in the array
     if (this.movesToDraw.length > 0) {
       for (let i = this.movesToDraw.length - 1; i >= 0; i--) {
         let proportion = ((this.config.advanceSpawn / this.speed) - (this.movesToDraw[i][0] - this.songManager.currentQuarterBeat)) / (this.config.advanceSpawn / this.speed)
@@ -69,6 +74,7 @@ export default class CueManager {
       }
     }
 
+    // if there are no cues to draw, cues should not be visible (conserve memory in pixi)
     if (this.movesToDraw.length === 0 && this.holdsToDraw.length === 0) {
       cues.visible = false
     } else {
@@ -76,7 +82,8 @@ export default class CueManager {
     }
   }
 
-  drawHoldCues (beat, hand, cues, handMove, i) { // draw hold arcs
+  // draw hold arcs that indicate holding time
+  drawHoldCues (beat, hand, cues, handMove, i) {
     let duration = parseInt(handMove.slice(3))
     let proportion = (duration - ((beat + duration) - this.songManager.currentQuarterBeat)) / duration
     if (proportion > 1) {
@@ -90,7 +97,9 @@ export default class CueManager {
     }
   }
 
-  setCurrentIndex (danceChart) { // set the current index to be checked
+  // set the current index to be checked
+  // To be used in the editor when you go back and forth with the beats
+  setCurrentIndex (danceChart) {
     if (danceChart.moves.length > 0) {
       let beat = this.songManager.currentQuarterBeat
       let beatArray = []
@@ -116,6 +125,7 @@ export default class CueManager {
     }
   }
 
+  // updates the songManager according with the new songManager whan the BPM is changed
   update (songManager) {
     this.songManager = songManager
   }
