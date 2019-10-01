@@ -1,3 +1,7 @@
+// initial editor config settings
+/* Some are permanent like the colors and others change according to
+editor functionalities - as beatArray, pressedKey, selectedCircles and others */
+
 var editorConfig = {
   width: 650,
   height: 630,
