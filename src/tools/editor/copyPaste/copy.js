@@ -1,5 +1,19 @@
 import editorConfig from '../config/editor-config'
+/*
+Groups all copy related functions
 
+start - to be used when a button is pressed to copy movements
+Changes mode to selectingMoves, sets copySelection and clipboard to be an empty array to make sure there are no moves stored,
+pushes the beat to the copySelection array
+
+end - to be used when the copy button is released
+pushes the last beat to the copySelection array and sorts the array in ascending order
+exits selectingMoves mode
+
+addSelectionToClipboard - add the moves to the clipboard
+Based on the copySelection elements, get the moves between those selected beats and push them to the clipboard
+to be used afterwards when pasting
+*/
 var copy = {
   start: function (songManager) {
     editorConfig.selectingMoves = true

@@ -1,3 +1,4 @@
+// empty danceChart as it starts in the editor
 var danceChart = {
   title: '',
   artist: '',
