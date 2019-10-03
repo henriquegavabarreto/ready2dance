@@ -1,5 +1,15 @@
 // import * as PIXI from 'pixi.js'
 
+/*
+!!!!ATTENTION!!!!
+
+drawGuideNumbers was used in the begining of the editor, however it is not good for
+the memory management to use PIXI.Text for every number. From what I've read every text would be a new texture
+to be stored, and 200 textures may not be good to be creating, deleting and moving.
+Until there is a bitmap font to be used to draw the numbers, which in this case would be only 10 textures being allocated in the memory,
+this function will not be used.
+*/
+
 // Use when options are saved and numbers need to be drawn again
 function drawGuideNumbers (player, danceChart, songManager) {
   // if (guideNumbers.children.length > 0) guideNumbers.removeChildren()

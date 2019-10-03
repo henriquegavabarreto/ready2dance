@@ -1,5 +1,6 @@
 import * as PIXI from 'pixi.js'
 
+// Creates guideLine sprite and adds it to it's container
 function setGuideLine (containers, textures) {
   let guideLine = new PIXI.Sprite(textures.guideLine)
   guideLine.x = 6
