@@ -1,11 +1,17 @@
 import editorConfig from '../config/editor-config'
-
+/*
+All functions related to moves are here. I made this as a class so I could update the song manager,
+however I'm not sure if it is really necessary or best practice.
+*/
 export default class MoveManager {
   constructor (songManager) {
     this.songManager = songManager
   }
-
-  checkForMoves (danceChart, beat = this.songManager.nearestBeat) { // check if there is a move in a beat
+  /* check if there is a move in a given beat
+  returns -1 if there is no move
+  if there is a move, returns its index in the danceChart
+  */
+  checkForMoves (danceChart, beat = this.songManager.nearestBeat) {
     if (danceChart.moves.length === 0) {
       return -1
     } else {
@@ -19,8 +25,8 @@ export default class MoveManager {
       }
     }
   }
-
-  getHandMove (danceChart, beat, hand) { // internal - return hand move of a beat
+  // used only inside this class - return hand move of a beat
+  getHandMove (danceChart, beat, hand) {
     let i = this.checkForMoves(danceChart, beat)
     if (i >= 0) {
       if (hand === 'L') {
@@ -32,8 +38,17 @@ export default class MoveManager {
       return 'X'
     }
   }
+  /*
+  returns the moveType (Sharp, Motion or Hold)
+  moveType is determined by 2 things:
+  1. the number of elements in the beat array
+  2. the circles selected for the moves
 
-  get moveType () { // internal - returns the moveType
+  - if there is one element in the beat array, it can only be a Sharp Move
+  - if there are more elements, but the movement starts and ends in the same place in the grid, it's a Hold Move
+  - if there are more elements, and the start and the end are in diferent places in the grid, it's a Motion Move
+  */
+  get moveType () {
     if (editorConfig.beatArray.length === 1) {
       return 'S'
     } else if (editorConfig.beatArray.length > 1 && editorConfig.selectedCircles[0] !== editorConfig.selectedCircles[1]) {
@@ -43,7 +58,11 @@ export default class MoveManager {
     }
   }
 
-  getStartBeat (danceChart, beat, hand) { // internal - get start beat of a hold or motion
+  /*
+  internal use - get start beat of a hold or motion move
+  using a recursive function returns the beat when a Motion or Hold Move starts
+  */
+  getStartBeat (danceChart, beat, hand) {
     let handMove = this.getHandMove(danceChart, beat, hand)
     if (handMove[handMove.length - 1] === 'S' || /\d/.test(handMove[handMove.length - 1])) {
       return beat
@@ -51,8 +70,11 @@ export default class MoveManager {
       return this.getStartBeat(danceChart, beat - 1, hand)
     }
   }
-
-  getEndBeat (danceChart, beat, hand) { // internal - get end beat of a hold or motion
+  /*
+  internal use - get end beat of a hold or motion move
+  using a recursive function returns the beat when a Motion or Hold Move ends
+  */
+  getEndBeat (danceChart, beat, hand) {
     let handMove = this.getHandMove(danceChart, beat, hand)
     if (handMove[handMove.length - 1] === 'E') {
       return beat
@@ -60,31 +82,55 @@ export default class MoveManager {
       return this.getEndBeat(danceChart, beat + 1, hand)
     }
   }
+  /*
+  call this function when the user stops the creation, this will add a 'proto-move' to the danceChart
+  proto moves consists in [ beat where the move is placed, avaliation method (single or double - not implemented),
+  leftHand Selected (S) or not (X), rightHand Selected (S) or not (X) ]
+  The avaliation method would describe if left and right hands will be considered
+  for points apart or together, but it was not implemented yet
+  Left and right hand selection means for 'S' that a move information will be placed there,
+  and 'X' means there is no note or move for this hand this time
 
-  addMoveToChart (danceChart, pressedKey, beat) { // call when stop creation to add 'proto-moves' to chart
+  ATTENTION: If there is already a move on the beat, and the pressed button corresponds
+  to a place where there is already move information, no move will be changed
+
+  */
+  addMoveToChart (danceChart, pressedKey, beat) {
+    // chacks for moves in the beat
     let i = this.checkForMoves(danceChart, beat)
 
-    if (i === -1) { // if there is no move on the beat yet
-      if (editorConfig.pressedKey === 'x') { // S for selected and X for no data
+    // if this beat has no moves yet AKA this beat is not part of the danceChart
+    if (i === -1) {
+      if (editorConfig.pressedKey === 'x') {
+        // S stands for selected and X for no data
         danceChart.moves.push([beat, 1, 'X', 'S'])
       } else if (editorConfig.pressedKey === 'z') {
         danceChart.moves.push([beat, 1, 'S', 'X'])
       }
-    } else { // if there is a move on this beat
-      if (editorConfig.pressedKey === 'x' && danceChart.moves[i][3] === 'X') { // select right hand
+    } else { // if this beat already has a move
+      // select right hand if the 'x' key was pressed and the move information there is 'X'
+      if (editorConfig.pressedKey === 'x' && danceChart.moves[i][3] === 'X') {
         danceChart.moves[i][3] = 'S'
-      } else if (editorConfig.pressedKey === 'z' && danceChart.moves[i][2] === 'X') { // select left hand
+        // select left hand if the 'z' key was pressed and the move information there is 'X'
+      } else if (editorConfig.pressedKey === 'z' && danceChart.moves[i][2] === 'X') {
         danceChart.moves[i][2] = 'S'
       }
     }
   }
 
+  // adds hand information to a move
   addHandInfo (danceChart) {
     let moveType = this.moveType
+    /*
+    This will change the "proto-moves" into real usable move information
+    for each of the beats in the beat array
+    */
     editorConfig.beatArray.forEach((beat, index) => {
       let i = this.checkForMoves(danceChart, beat)
       if (moveType === 'S') {
+        // Check if the proto-move (length === 1) is not null ('X'), but a Selected ('S')
         if (danceChart.moves[i][2] !== 'X' && danceChart.moves[i][2].length === 1) {
+          // Sharp move information consists in S (Sharp) + Grid Circle Area (from 1 to 9 selected by the user in the editor)
           danceChart.moves[i][2] = moveType + editorConfig.selectedCircles[0]
         } else if (danceChart.moves[i][3] !== 'X' && danceChart.moves[i][3].length === 1) {
           danceChart.moves[i][3] = moveType + editorConfig.selectedCircles[0]
@@ -93,12 +139,14 @@ export default class MoveManager {
         if (index === 0) {
           if (moveType === 'H') { // adds duration for hold moves
             if (danceChart.moves[i][2] !== 'X' && danceChart.moves[i][2].length === 1) {
+              // Hold move information consists in H (Hold) + Grid Circle Area (from 1 to 9 selected by the user in the editor) + S (to inticate it's the start) + duration of the hold
               danceChart.moves[i][2] = moveType + editorConfig.selectedCircles[0] + 'S' + (editorConfig.beatArray[editorConfig.beatArray.length - 1] - editorConfig.beatArray[0] + 1)
             } else if (danceChart.moves[i][3] !== 'X' && danceChart.moves[i][3].length === 1) {
               danceChart.moves[i][3] = moveType + editorConfig.selectedCircles[0] + 'S' + (editorConfig.beatArray[editorConfig.beatArray.length - 1] - editorConfig.beatArray[0] + 1)
             }
           } else {
             if (danceChart.moves[i][2] !== 'X' && danceChart.moves[i][2].length === 1) {
+              // Motion move information consists in M (Motion) + Grid Circle Area (from 1 to 9 selected by the user in the editor) + S (to inticate it's the start)
               danceChart.moves[i][2] = moveType + editorConfig.selectedCircles[0] + 'S'
             } else if (danceChart.moves[i][3] !== 'X' && danceChart.moves[i][3].length === 1) {
               danceChart.moves[i][3] = moveType + editorConfig.selectedCircles[0] + 'S'
@@ -106,12 +154,15 @@ export default class MoveManager {
           }
         } else if (index > 0 && index < editorConfig.beatArray.length - 1) {
           if (danceChart.moves[i][2] !== 'X' && danceChart.moves[i][2].length === 1) {
+            /* If the beat is not the first or last beat on the beatArray the hold or motion is considered
+            in progress, then the information will consist in H or M + P (in Progress) */
             danceChart.moves[i][2] = moveType + 'P'
           } else if (danceChart.moves[i][3] !== 'X' && danceChart.moves[i][3].length === 1) {
             danceChart.moves[i][3] = moveType + 'P'
           }
         } else if (index === editorConfig.beatArray.length - 1) {
           if (danceChart.moves[i][2] !== 'X' && danceChart.moves[i][2].length === 1) {
+            // The last beat information is H or M (move type) + Grid Circle Selected Area + E (End)
             danceChart.moves[i][2] = moveType + editorConfig.selectedCircles[1] + 'E'
           } else if (danceChart.moves[i][3] !== 'X' && danceChart.moves[i][3].length === 1) {
             danceChart.moves[i][3] = moveType + editorConfig.selectedCircles[1] + 'E'
