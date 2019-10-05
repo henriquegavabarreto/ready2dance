@@ -172,14 +172,24 @@ export default class MoveManager {
     })
   }
 
-  isValidInsert (danceChart) { // call when creation stops - checks if there are notes in any of the selected positions
+  // to be called when creation of moves stops - checks if there are notes in any of the selected positions in the beatArray
+  isValidInsert (danceChart) {
     let isValid = false
     for (let i = 0; i < editorConfig.beatArray.length; i++) {
       let moveIndex = this.checkForMoves(danceChart, editorConfig.beatArray[i])
-      if (moveIndex !== -1) { // if there are moves
-        if (editorConfig.pressedKey === 'z' && danceChart.moves[moveIndex][2] !== 'X') { // for left hand
+      // if there are moves in the beat
+      if (moveIndex !== -1) {
+        /*
+        if there is already move information for the left hand in this beat when the user is inserting
+        information for the left hand, this is not a valid insert
+        */
+        if (editorConfig.pressedKey === 'z' && danceChart.moves[moveIndex][2] !== 'X') {
           return false
-        } else if (editorConfig.pressedKey === 'x' && danceChart.moves[moveIndex][3] !== 'X') { // for right hand
+          /*
+          if there is already move information for the right hand in this beat when the user is inserting
+          information for the right hand, this is not a valid insert
+          */
+        } else if (editorConfig.pressedKey === 'x' && danceChart.moves[moveIndex][3] !== 'X') {
           return false
         } else {
           isValid = true
@@ -191,21 +201,34 @@ export default class MoveManager {
     return isValid
   }
 
-  addRequiredMoves (danceChart, key) { // adds 'proto-moves' - call when isValidInsert is true
+  // adds proto-moves to the danceChart - to be called when isValidInsert is true
+  addRequiredMoves (danceChart, key) {
     editorConfig.beatArray.forEach((beat) => {
       this.addMoveToChart(danceChart, key, beat)
     })
   }
 
-  changeMove (danceChart, beat, key, position) { // call after all selection is done
+  /*
+  changeMove changes a Motion move, changing the start or end moves, or adding a node to the whole movement (thinking about detection and points)
+  This way MP can get a position, and Start and End Motion Moves can have their positions changed
+  - Since Motion need to have diferent start and end areas selectioned,
+    they can be changed to the same position this way and stay as a Motion Move
+
+  This function is called after the change button is pressed and the circle selection is done
+  */
+  changeMove (danceChart, beat, key, position) {
+    // detects hand according to pressed button
     let hand = 'L'
     if (editorConfig.pressedKey === 's') hand = 'R'
+    // get the hand move that will be changed
     let handMove = this.getHandMove(danceChart, this.songManager.nearestBeat, hand)
+    // TODO: one more time assumes that checkForMoves will not return -1
     let i = this.checkForMoves(danceChart)
     if (hand === 'L') {
+      // Adds position to in Progress move
       if (handMove.length === 2) {
         danceChart.moves[i][2] = handMove[0] + position + 'P'
-      } else {
+      } else { // Changes position in non Progress move
         danceChart.moves[i][2] = handMove[0] + position + handMove[2]
       }
     } else {
@@ -217,7 +240,11 @@ export default class MoveManager {
     }
   }
 
-  setHoldNode (danceChart, key) { // call when 'a' or 's' keyup
+  /*
+  call when 'a' or 's' keyup (creating a node for a hold move) - This checks for the original position of the Hold Move,
+  and applies it to the current beat move as a new node
+  */
+  setHoldNode (danceChart, key) {
     let hand = 'L'
     if (key === 's') hand = 'R'
     let startBeat = this.getStartBeat(danceChart, this.songManager.nearestBeat, hand)
@@ -230,6 +257,13 @@ export default class MoveManager {
     }
   }
 
+  /*
+  getCreatedMoveType returns the first character of a hand move, which determines
+  the move moveType
+
+  this function is used to see if a hold node will be set or if a circle should be
+  selected for a Motion Move change
+  */
   getCreatedMoveType (danceChart, key) {
     let hand = 'L'
     if (key === 's') hand = 'R'
@@ -237,7 +271,8 @@ export default class MoveManager {
     return handMove[0]
   }
 
-  updateMoves (danceChart, bpm, offsetDifference) { // to use when there are any changes in timing
+  // to use when there are any changes in timing in the danceChart
+  updateMoves (danceChart, bpm, offsetDifference) {
     let updatedMoves = []
     danceChart.moves.forEach(move => { // insert all elements again based on the bpm and offset changes based on the dance chart
       move[0] = parseInt(move[0]) + Math.round((offsetDifference / (60 / bpm)) * 4) // change each move beat so they stay in the same time according to the song
@@ -246,7 +281,12 @@ export default class MoveManager {
     danceChart.moves = updatedMoves // update moves on the dance chart
   }
 
-  deleteMove (danceChart, key, noteManager, containers) { // call when q or w keyup to delete moves
+  /*
+  to be called when q (delete left hand) or w (delete right hand) keyup to delete moves
+  Moves are deleted and beats with no valid movements ('X' and 'X' for left and right hands)
+  are removed from the chart
+  */
+  deleteMove (danceChart, key, noteManager, containers) {
     if (key === 'q') {
       let handMove = this.getHandMove(danceChart, this.songManager.nearestBeat, 'L')
       if (handMove !== 'X') {
@@ -262,7 +302,12 @@ export default class MoveManager {
     }
   }
 
-  searchAndDelete (danceChart, beat, handMove, hand, noteManager, containers) { // internal - search surrounding moves to delete
+  /*
+  function used inside this class - search surrounding moves to delete
+  Sharp Moves have their information removed, and after that, the noteManager removes the respective note
+  Get Hold and Motion Moves start and end beats, loop through start to end removing move information and notes
+  */
+  searchAndDelete (danceChart, beat, handMove, hand, noteManager, containers) {
     if (handMove[0] === 'S') { // if sharp move
       this.removeHandInfo(danceChart, beat, hand)
       noteManager.removeNote(containers, beat, hand)
@@ -276,7 +321,8 @@ export default class MoveManager {
     }
   }
 
-  removeHandInfo (danceChart, beat, hand) { // internal - remove hand info when delete button keyup
+  // internal - remove hand info when delete button keyup - Hand information will be changed to 'X'
+  removeHandInfo (danceChart, beat, hand) {
     if (hand === 'L') { // if left hand
       danceChart.moves[this.checkForMoves(danceChart, beat)][2] = 'X' // change the move that needs to be changed
     } else {
@@ -284,12 +330,14 @@ export default class MoveManager {
     }
   }
 
-  removeNoInfoMoves (danceChart) { // internal - it is called to remove 'X,X' moves from the chart
+  // internal - it is called to remove 'X,X' moves from the chart ('X' information for left and right hands)
+  removeNoInfoMoves (danceChart) {
     for (let i = danceChart.moves.length - 1; i >= 0; i--) {
       if (danceChart.moves[i][2] === 'X' && danceChart.moves[i][3] === 'X') danceChart.moves.splice(i, 1)
     }
   }
 
+  // add beats to the beatArray when creating notes
   addBeatToArray (beat = this.songManager.nearestBeat, modifier = 1) {
     if (modifier === 1 || modifier === -1) {
       if (!editorConfig.beatArray.includes(beat)) editorConfig.beatArray.push(beat)
@@ -310,10 +358,16 @@ export default class MoveManager {
     editorConfig.beatArray = []
   }
 
+  // sort beatArray in ascending order
   sortBeatArray () {
     editorConfig.beatArray.sort(function (a, b) { return a - b })
   }
 
+  /*
+  sets editorConfig.circleCount to 1 or 2 depending on the length of the beatArray
+  if the beat array has one element, just one position will need to be selected, otherwise
+  2 must be selected
+  */
   setCircleCount () {
     if (editorConfig.beatArray.length === 1) {
       editorConfig.circleCount = 1
@@ -322,6 +376,7 @@ export default class MoveManager {
     }
   }
 
+  // to update songManager when needed
   update (songManager) {
     this.songManager = songManager
   }
