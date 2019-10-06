@@ -1,11 +1,23 @@
 import editorConfig from '../config/editor-config'
 import * as PIXI from 'pixi.js'
 
+/*
+All functions related to drawing, deleting, tinting notes are here
+Notes are the visual representation of moves - they are shown on the PIXI canvas as rectangles
+*/
 export default class NoteManager {
   constructor (songManager) {
     this.songManager = songManager
   }
 
+  /*
+  draws notes to selected beat when creating moves dynamically
+  if beats are selected, instead of quarter beats, the gaps are filled
+
+  TODO: if a gap is created for some reason, they should be filled to avoid errors
+  The beat array and this function can be used to accomplish that
+  notes are not tinted at this point
+  */
   createNotes (key, containers, textures, beat = this.songManager.nearestBeat, modifier = 1) { // call to create notes
     let x = 22 // default x to left hand
     if (key === 'x') {
@@ -27,7 +39,12 @@ export default class NoteManager {
     }
   }
 
-  drawNote (x, beat, containers, textures) { // internal use - actually draws the note in the container
+  /*
+  internal use - actually draws the note sprite in the container
+  all notes are named with beat + hand (L for left, and R for right)
+  notes are not tinted at this point
+  */
+  drawNote (x, beat, containers, textures) {
     if (!this.isOccupied(x, beat, containers)) {
       // eslint-disable-next-line
       let note = new PIXI.Sprite(textures.note)
@@ -43,7 +60,8 @@ export default class NoteManager {
     }
   }
 
-  isOccupied (x, beat, containers) { // checks for note in a beat
+  // checks for note in a beat
+  isOccupied (x, beat, containers) {
     for (let notes of containers.auxiliary.noteElements.children) {
       if (notes.x === x && notes.y === (56 * beat / 4) + 58) {
         return true
@@ -51,12 +69,20 @@ export default class NoteManager {
     }
   }
 
-  removeNote (containers, beat, hand) { // remove specific note
+  /*
+  remove specific note with a given name (beat + hand)
+  - destroy sprite and remove note from container
+  */
+  removeNote (containers, beat, hand) {
     let note = containers.auxiliary.noteElements.getChildByName(`${beat}${hand}`)
     note.destroy()
     containers.auxiliary.noteElements.removeChild(note)
   }
 
+  /*
+  Used when pasting moves to create new notes
+  sprites are created, tinted and added to the container
+  */
   addNote (beat, hand, move, containers, textures) {
     let note = new PIXI.Sprite(textures.note)
     let x = 22
@@ -73,7 +99,11 @@ export default class NoteManager {
     containers.auxiliary.noteElements.addChild(note)
   }
 
-  redraw (danceChart, containers, textures) { // call after update chart or after a move delete
+  /*
+  call after update chart or after a move delete
+  removes all the notes drawn and draw them again based on the danceChart new information
+  */
+  redraw (danceChart, containers, textures) {
     if (containers.auxiliary.noteElements.children.length > 0) containers.auxiliary.noteElements.removeChildren()
     danceChart.moves.forEach(move => { // insert all elements again
       if (move[2] !== 'X') {
@@ -87,11 +117,20 @@ export default class NoteManager {
     })
   }
 
-  removeInvalidNotes (danceChart, containers) { // call if a insertion is not valid (see isValidInsert in MoveManager)
+  /*
+  call if a insertion is not valid (see isValidInsert in MoveManager)
+  All created/drawn notes are removed before tinting, because it conflicts with
+  another note already created
+  Notes are only valid if there is information for them in the danceChart, otherwise
+  there would be no way to tint them, for example
+  */
+  removeInvalidNotes (danceChart, containers) {
     let invalidNotes = []
+    // goes through all beats in the beat array
     editorConfig.beatArray.forEach((beat) => {
       let i = this.checkForMove(danceChart, beat)
-      if (i !== -1) { // if there are moves
+      if (i !== -1) { // if there are moves for this beat
+        // if no proto move with relevant information is part of the danceChart for this beat, this note is not valid
         if (editorConfig.pressedKey === 'z' && danceChart.moves[i][2] === 'X') {
           invalidNotes.push(beat)
         } else if (editorConfig.pressedKey === 'x' && danceChart.moves[i][3] === 'X') {
@@ -112,7 +151,8 @@ export default class NoteManager {
     }
   }
 
-  checkForMove (danceChart, beat = this.songManager.nearestBeat) { // check for move in a beat
+  // Check for move in a given beat - returns -1 for no move or the index of the move when it's part of the danceChart
+  checkForMove (danceChart, beat = this.songManager.nearestBeat) {
     if (danceChart.moves.length === 0) {
       return -1
     } else {
@@ -126,7 +166,8 @@ export default class NoteManager {
     }
   }
 
-  tintNotes (containers, beatToTint, hand, moveType) { // tint a specific note or all notes from the beat array (call after the information is added to chart)
+  // tint a specific note or all notes from the beat array according to moveType (call after the information is added to chart)
+  tintNotes (containers, beatToTint, hand, moveType) {
     if (!beatToTint && !hand && !moveType) {
       hand = 'L'
       if (editorConfig.pressedKey === 'x') hand = 'R'
@@ -143,7 +184,8 @@ export default class NoteManager {
     }
   }
 
-  tint (moveType, note) { // internal - actually tints the note
+  // internal - actually tints the note Sprite
+  tint (moveType, note) {
     if (moveType === 'S') {
       note.tint = editorConfig.colors.sharp
     } else if (moveType === 'H') {
@@ -153,7 +195,8 @@ export default class NoteManager {
     }
   }
 
-  get moveType () { // returns moveType
+  // returns moveType of a creating move
+  get moveType () {
     if (editorConfig.beatArray.length === 1) {
       return 'S'
     } else if (editorConfig.beatArray.length > 1 && editorConfig.selectedCircles[0] !== editorConfig.selectedCircles[1]) {
@@ -163,6 +206,7 @@ export default class NoteManager {
     }
   }
 
+  // updates songManager when necessary
   update (songManager) {
     this.songManager = songManager
   }
