@@ -1,5 +1,7 @@
+// function that returns if the hand was placed at a given position based on posenet body keypoints
 export default {
   detect: function (hand, position, pose) {
+    // set relevant body parts based on keypoints
     let nose = pose.keypoints[0].position
     let leftEar = pose.keypoints[3].position
     let rightEar = pose.keypoints[4].position
@@ -18,12 +20,14 @@ export default {
     // Sets which hand is being checked
     let checkingHand
 
+    // sets the hand that will be checked this time (this is a parameter for the detect function)
     if (hand === 'R') {
       checkingHand = rightHand
     } else {
       checkingHand = leftHand
     }
 
+    // set area positions to false
     let left = false
     let center = false
     let right = false
@@ -31,6 +35,7 @@ export default {
     let middle = false
     let bottom = false
 
+    // check which conditions based on body parts and the idea of 3x3 grid are true
     if (checkingHand.x > leftEar.x) {
       left = true
     }
@@ -50,7 +55,7 @@ export default {
       bottom = true
     }
 
-    // Check the position for the hand
+    // Returns hand placed in the given position (true or false)
     switch (position) {
       case '1':
         return left && bottom

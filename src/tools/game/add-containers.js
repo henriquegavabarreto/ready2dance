@@ -1,5 +1,6 @@
 import * as PIXI from 'pixi.js'
 
+// creates containers and add them to the stage
 export default function addContainers (app, containers) {
   containers.circles = new PIXI.Container()
   containers.cues = new PIXI.Container()

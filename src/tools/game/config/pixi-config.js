@@ -1,3 +1,4 @@
+// PIXI app config
 var pixiConfig = {
   backgroundColor: 0x000000,
   resizeTo: document.getElementById('canvas'),

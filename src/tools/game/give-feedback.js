@@ -1,3 +1,8 @@
+/*
+Change texture of the feedback depending on HitType, determined by
+the result of posenet detection, area that hand should be placed as well
+as the frame when it was recognized as positive or not
+*/
 export default function giveFeedback (leftHand, rightHand, leftHitType, rightHitType, container, textures) {
   if (leftHand !== 'X') {
     let feedback = container.getChildAt(parseInt(leftHand[1]) - 1)

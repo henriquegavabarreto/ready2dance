@@ -1,3 +1,7 @@
+/*
+game configuration
+canvas size, colors and cue sizes, how fast the spawn should be
+*/
 var gameConfig = {
   width: 720,
   height: 680,

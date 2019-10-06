@@ -1,6 +1,8 @@
 import * as PIXI from 'pixi.js'
 
+// creates textures
 export default function createTextures (app, textures, gameConfig) {
+  // create circle texture for reference circles
   let draw = new PIXI.Graphics()
   draw.lineStyle(gameConfig.cue.lineWidth, gameConfig.colors.grid)
   draw.drawCircle(0, 0, gameConfig.cue.size)
@@ -9,8 +11,10 @@ export default function createTextures (app, textures, gameConfig) {
 
   draw.destroy()
 
+  // Graphics to draw dynamic cues
   textures.cues = new PIXI.Graphics()
 
+  // creates textures for feedback text
   textures.perfectText = new PIXI.Text('PERFECT', {
     fontFamily: 'Arial',
     fontSize: 30,

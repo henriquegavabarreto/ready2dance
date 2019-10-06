@@ -1,5 +1,6 @@
 import pixiConfig from './pixi-config'
 
+// similar to editor grid, same idea, but with diferent measures
 function createGrid () {
   let referenceGrid = ['-'] // placeholder for the first so position 1 can be index 1
 
