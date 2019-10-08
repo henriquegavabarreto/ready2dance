@@ -1,3 +1,4 @@
+<!-- App - where components are loaded dynamicaly -->
 <template>
   <v-app>
     <div data-app=true>

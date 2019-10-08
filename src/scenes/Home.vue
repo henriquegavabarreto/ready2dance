@@ -1,7 +1,9 @@
+<!-- First view - Where the user can enter, register or log in -->
 <template>
   <div>
     <v-container fluid class="pa-0 ma-0" id="background">
       <v-layout row wrap>
+        <!-- Webpage title and enter options -->
         <v-flex xs12>
           <v-container fluid justify-center align-center>
             <v-layout row wrap align-center justify-center style="min-height: 88.5vh;">
@@ -25,6 +27,7 @@
             </v-layout>
           </v-container>
         </v-flex>
+        <!-- v-flex to show that there is an about below -->
         <v-flex class="mt-2" xs12>
           <v-container fluid class="pa-0">
             <v-layout row wrap class="pa-0">
@@ -35,6 +38,7 @@
           </v-container>
         </v-flex>
         <v-flex xs12>
+          <!-- Website explanation -->
           <v-container fluid>
             <v-layout row wrap>
               <v-flex xs12>
@@ -68,6 +72,7 @@
       </div>
     </v-footer>
     <v-layout row justify-center>
+    <!-- modal for user to register before entering -->
     <v-dialog v-model="registerModal" persistent max-width="600">
       <v-card
         style="border-radius: 10px;"
@@ -77,12 +82,14 @@
         <v-toolbar-title>Register</v-toolbar-title>
       </v-toolbar>
       <v-card-text>
+        <!-- show error message from auth -->
         <p class="pt-0 mt-0" v-if="error">
           <b>Error:</b>
           <ul>
             <li class="red--text">{{ error }}</li>
           </ul>
         </p>
+        <!-- form for user to register themselves-->
         <v-form ref="register">
           <v-text-field v-model="username" label="Username*" :rules="usernameRules" required></v-text-field>
           <v-text-field v-model="email" label="Email*" :rules="emailRules" required></v-text-field>
@@ -101,12 +108,14 @@
       </v-card-actions>
       </v-card>
     </v-dialog>
+    <!-- login modal for registered users -->
     <v-dialog v-model="loginModal" persistent max-width="600">
       <v-card style="border-radius: 10px;">
         <v-toolbar dark class="cyan headline font-weight-medium">
           <v-toolbar-title>Login</v-toolbar-title>
         </v-toolbar>
         <v-card-text>
+          <!-- show error text when there is a problem login in -->
           <p class="pt-0 mt-0" v-if="error">
             <b>Error:</b>
             <ul>
@@ -154,18 +163,21 @@ export default {
     }
   },
   methods: {
+    // toggles register modal to be shown
     toggleRegisterModal: function () {
       this.registerModal = !this.registerModal
     },
+    // toggles login modal to be shown
     toggleLoginModal: function () {
       this.loginModal = !this.loginModal
     },
+    // register new user using auth and add username to the database
     registerNewUser: function () {
       if (this.$refs.register.validate()) {
         this.loading = true
         firebase.database.ref('users').orderByChild('username').equalTo(`${this.username}`).once('value', snapshot => {
           if (snapshot.val() === null) { // if there is no user with the chosen username create a new one
-            firebase.auth.createUserWithEmailAndPassword(this.email, this.password).then((result) => { // create new user
+            firebase.auth.createUserWithEmailAndPassword(this.email, this.password).then((result) => { // create new user - the default type is always user
               let user = {
                 username: this.username,
                 type: 'user'
@@ -185,7 +197,7 @@ export default {
               this.error = err.message
               console.log(err)
             })
-          } else {
+          } else { // when the username is not available, it doesn't go through
             this.loading = false
             this.error = 'Username not available, please choose another one.'
           }
@@ -194,6 +206,7 @@ export default {
     },
     logUserIn: function () {
       this.loading = true
+      // log user in with email and password
       firebase.auth.signInWithEmailAndPassword(this.email, this.password).then((result) => {
         firebase.database.ref(`users/${result.user.uid}`).once('value').then((value) => {
           this.$store.commit('changeUser', value.val())
@@ -201,7 +214,7 @@ export default {
           this.$store.commit('toggleWelcome', true)
           this.$store.commit('goToScene', 'song-selection')
         })
-      }).catch((err) => {
+      }).catch((err) => { // shows error in the modal dialog in case the user can't log in
         this.error = err.message
         if (err.code === 'auth/invalid-email') {
           this.error = 'This e-mail address is invalid. Check if it is correct.'
@@ -214,10 +227,13 @@ export default {
         console.log(err)
       })
     },
+    /* Enter the game with no need of login in, doesn't save points to the
+    database and maybe can't use the (to be implemented) chat feature */
     enterAsGuest: function () {
       this.$store.commit('toggleWelcome', true)
       this.$store.commit('goToScene', 'song-selection')
     },
+    // reset password
     setNewPassword: function () {
       firebase.auth.sendPasswordResetEmail(this.email).then(() => {
         this.error = 'We sent an e-mail. Change your password and come back here to log in.'
