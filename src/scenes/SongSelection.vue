@@ -1,10 +1,12 @@
 <template>
   <div id="background">
+    <!-- Toolbar shown at the top of the app -->
     <v-toolbar
       dark
       icons-and-text
       app
     >
+      <!-- search textfield to filter game songs -->
       <v-text-field
         style="max-width: 45vw;"
         prepend-icon="search"
@@ -15,9 +17,11 @@
         class="mt-2"
         flat
       ></v-text-field>
+      <!-- h3 that shows username (if registered user) or guest (if decided not to sign in / sign up) -->
       <h3 class="ml-5" v-if="$store.state.user !== null">Hello, {{$store.state.user.username}}!</h3>
       <h3 class="ml-5" v-else>Hello, Guest!</h3>
       <v-spacer></v-spacer>
+      <!-- menu with settings, editor, log out and user management -->
       <v-menu bottom left>
         <template v-slot:activator="{ on }">
           <v-btn
@@ -49,6 +53,7 @@
         </v-list>
       </v-menu>
     </v-toolbar>
+    <!-- user management dialog - fill text field with user name and click button with the desired user type -->
     <v-dialog
       v-model="manageUsers"
       max-width="400"
@@ -76,6 +81,8 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <!-- snackbars to show change of user status or not
+    TODO: this could be only one snackbar that would change depending on the changeUserStatus response -->
     <v-snackbar
       auto-height
       v-model="usernameNotFound"
@@ -96,6 +103,7 @@
       User Status Changed.
       <v-btn dark small @click="userStatusChanged = !userStatusChanged">CLOSE</v-btn>
     </v-snackbar>
+    <!-- welcome dialog that describes some of the apps functionalities and warnings -->
     <v-dialog
       v-model="$store.state.welcome"
       persistent
@@ -133,6 +141,9 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <!-- settings dialog - where user can change options regarding in game animations and
+    posenet configuration
+    TODO: when updated to posenet 2.0, change these options to match the package as well -->
     <v-dialog
       v-model="settings"
       max-width="400"
@@ -230,6 +241,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <!-- loading dialog in case it takes some time to load posenet to go into the game -->
     <v-dialog
       v-model="loading"
       hide-overlay
@@ -253,6 +265,7 @@
     <v-content style="min-height: 100vh;">
       <v-container fluid fill-height>
         <v-layout row wrap>
+          <!-- v-flex that shows all current songs in the database to be chosen to play by the users -->
           <v-flex sm12 md6>
             <v-card style="max-height: 100%; border-radius: 10px;" class="blue-grey lighten-5">
               <v-card-title class="justify-center teal lighten-2">
@@ -290,6 +303,7 @@
               </v-container>
             </v-card>
           </v-flex>
+          <!-- v-flex that show videos and available chart difficulties for the selected song -->
           <v-flex sm12 md6 :class="!$vuetify.breakpoint.smAndDown ? 'pl-3' : 'pt-3'" v-show="selectedSong.title">
             <v-layout row wrap>
               <v-flex xs12 id="currentlySelected">
@@ -319,6 +333,7 @@
                   </v-card-text>
                 </v-card>
               </v-flex>
+              <!-- scoreboard for the selected chart -->
               <v-flex xs12>
                 <v-card style="border-radius: 10px;" class="mt-3 blue-grey lighten-5">
                   <v-card-title class="headline justify-center yellow darken-1 font-weight-bold" primary-title>
@@ -370,6 +385,7 @@ export default {
       multipliers: [0.5, 0.75, 1.0],
       outputStrideValues: [8, 16, 32],
       speed: [0.5, 1, 2],
+      // local and initial setting values
       options: {
         multiplier: 0.5,
         outputStride: 16,
@@ -391,11 +407,13 @@ export default {
     }
   },
   beforeCreate () {
+    // load all songs from the database in the store on before create lifecicle
     if (this.$store.state.songs === null) {
       this.$store.dispatch('loadSongs')
     }
   },
   created () {
+    // when this view is loaded, substitute the local setting options according to the options saved at the store
     this.options.showAnimation = this.$store.state.gameOptions.showAnimation
     this.options.showWebcam = this.$store.state.gameOptions.showWebcam
     this.options.latency = this.$store.state.gameOptions.latency
@@ -409,6 +427,7 @@ export default {
     }
   },
   mounted () {
+    // to make sure the player div was created, create new youtube player when the view is mounted
     this.player = new YTPlayer('#player', playerConfig)
   },
   methods: {
@@ -426,8 +445,10 @@ export default {
       if (this.$vuetify.breakpoint.xs) document.getElementById('currentlySelected').scrollIntoView()
     },
     goToGame: function () { // goes to the game after the chart is loaded
-      if (this.selectedSong !== {} && this.selectedChart !== '') {
+      if (this.selectedSong !== {} && this.selectedChart !== '') { // makes sure there is a selected song and a selected chart
         this.loading = true
+        /* if the local settings are different from the store, save the local options to the store
+        but alter that only after the new posenet is loaded (if the local multiplier is different from the store) */
         if (this.options.multiplier !== this.$store.state.gameOptions.multiplier) {
           this.$store.dispatch('loadNet', this.options.multiplier).then(response => {
             this.$store.commit('loadNet', response)
@@ -439,6 +460,7 @@ export default {
               this.$store.commit('goToScene', 'game')
             })
           }, error => {
+            // deal with errors when loading posenet (if they occur)
             console.log(error)
             this.$store.commit('changeWrongMessage', 'Due to a problem with PoseNet the game is not available right now. Please try it again later.')
             this.$store.commit('somethingWentWrong')
@@ -447,6 +469,7 @@ export default {
             this.store.commit('goToScene', 'error')
           })
         } else {
+          // if there is no need to load a new multiplier for posenet
           this.$store.commit('changeOptions', this.options)
           this.$store.commit('selectSong', this.selectedSong)
           this.$store.dispatch('changeSelectedChart', this.selectedChart).then(() => {
@@ -471,10 +494,10 @@ export default {
         }
       }
     },
-    toggleSettings: function () {
+    toggleSettings: function () { // show settings dialog
       this.settings = !this.settings
     },
-    logout: function () {
+    logout: function () { // sign out
       firebase.auth.signOut().then(() => {
         this.$store.commit('changeSongScores', 'Select a Song!')
         this.player.stop()
@@ -483,21 +506,21 @@ export default {
         this.$store.commit('goToScene', 'home')
       }).catch((err) => { console.log(err) })
     },
-    changeUserStatus: function (status) {
+    changeUserStatus: function (status) { // change user status in the database
       firebase.database.ref('users').orderByChild('username').equalTo(`${this.usernameToChange}`).once('value', snapshot => {
-        if (snapshot.val() !== null) {
+        if (snapshot.val() !== null) { // if the user exists
           firebase.database.ref('users/' + Object.keys(snapshot.val())[0]).update({
             type: status
           }).then(() => {
             this.userStatusChanged = true
             this.manageUsers = false
           })
-        } else {
+        } else { // if this user name was not found
           this.usernameNotFound = true
         }
       })
     },
-    goToLatencyCalibration: function () {
+    goToLatencyCalibration: function () { // similar to goToGame function, but instead loads webcam latency calibration
       if (this.options.multiplier !== this.$store.state.gameOptions.multiplier) {
         this.$store.dispatch('loadNet', this.options.multiplier).then(response => {
           this.$store.commit('loadNet', response)
@@ -529,7 +552,7 @@ export default {
     songs: function () { // loads all songs from the $store
       return this.$store.state.songs
     },
-    filteredSongs: function () { // Returns array of songs based on the search.
+    filteredSongs: function () { // Returns array of songs based on the search - filtered from the songs computed property above
       let songArray = []
       let filteredSongs = []
 
@@ -546,7 +569,7 @@ export default {
       })
       return filteredSongs
     },
-    songCharts: function () { // returns charts object with charts by order of difficulty
+    songCharts: function () { // returns charts object with charts ordered by difficulty
       if (this.selectedSong.hasOwnProperty('charts')) {
         let order = ['easy', 'medium', 'hard']
         let sortedChart = Object.entries(this.selectedSong.charts).sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0]))
