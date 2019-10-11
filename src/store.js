@@ -123,6 +123,7 @@ export default new Vuex.Store({
     }
   },
   actions: {
+    // update songs locally based on database changes
     loadSongs: context => {
       firebase.database.ref('songs').orderByChild('title').on('child_added', (data) => {
         let values = {
@@ -146,11 +147,13 @@ export default new Vuex.Store({
         context.commit('removeSong', values)
       })
     },
+    // load specific chart from firebase
     changeSelectedChart: (context, payload) => {
       return firebase.database.ref(`charts/${payload}`).once('value', (data) => {
         context.commit('changeSelectedChart', data.val())
       }, (err) => { console.log(err) })
     },
+    // load posenet based on multiplier
     loadNet: (context, payload) => {
       return new Promise((resolve, reject) => {
         posenet.load(payload).then(response => {
@@ -160,13 +163,16 @@ export default new Vuex.Store({
         })
       })
     },
+    // load scores of a specific chart
     updateSongScores: (context, payload) => {
       firebase.database.ref(`scores/${payload}`).orderByValue().limitToLast(50).once('value', (data) => {
         let scores = data.val()
+        // sort scores by value
         let sortedScores = Object.entries(scores).sort((a, b) => b[1] - a[1])
         context.commit('changeSongScores', sortedScores)
       }, (err) => console.log(err))
     },
+    // react to auth state change
     onStateChange: context => {
       firebase.auth.onAuthStateChanged((userState) => {
         if (userState) {
