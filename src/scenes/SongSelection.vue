@@ -421,7 +421,14 @@ export default {
     this.options.outputStride = this.$store.state.gameOptions.outputStride
     this.options.imageScale = this.$store.state.gameOptions.imageScale
     if (this.$store.state.gameOptions.multiplier === 0) {
-      this.options.multiplier = 0.5
+      // not ideal solution, but detects major mobile devices
+      if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        // load multiplier 0.5 if mobile device
+        this.options.multiplier = 0.5
+      } else {
+        // load multiplier 0.75 if not mobile
+        this.options.multiplier = 0.75
+      }
     } else {
       this.options.multiplier = this.$store.state.gameOptions.multiplier
     }
