@@ -1,7 +1,9 @@
 <template>
+  <!-- if esc is pressed on this scene, go back to previous scene -->
   <div @keyup.esc="backToPrevious" tabindex="0" style="height: 100vh;" class="black">
     <v-container fluid class="pa-0">
       <v-layout row wrap class="black" justify-center align-center style="height: 100vh;">
+        <!-- flex containing pixi canvas that shows the game circles -->
         <v-flex md12 lg6 order-xs3 order-md3 order-lg1 v-if="gameOptions.showAnimation" class="text-xs-center">
           <v-layout row wrap style="position: relative;">
             <span v-if="noPose" class="noPoseWarning" :style="$vuetify.breakpoint.mdAndUp ? 'left: 10%; right: 10%;' : ''">MAKE SURE YOU ARE FAR ENOUGH FROM THE CAMERA</span>
@@ -9,14 +11,17 @@
             </v-flex>
           </v-layout>
         </v-flex>
+        <!-- youtube video is loaded in this v-flex -->
         <v-flex id="player" :class="gameOptions.showAnimation ? 'md12 lg6 order-xs1 order-md1 order-lg2 text-xs-center' : 'xs12 text-xs-center'" style="width: 100%; z-index: 1;"></v-flex>
         <span v-if="noPose && !gameOptions.showAnimation" style="color: white; font-size: 30px;">MAKE SURE YOU ARE FAR ENOUGH FROM THE CAMERA</span>
         <v-flex xs12 order-xs2 order-md2 order-lg3 class="white--text">
           <v-layout row wrap justify-center align-center class="pr-2">
+            <!-- webcam video is displayed here if chosen to in settings -->
             <v-flex shrink :style="displayWebcam" class="pl-2">
               <video id="videoStream" style="width: 10vh; height: 10vh; border: 2px solid black;">
               </video>
             </v-flex>
+            <!-- flex containing general score -->
             <v-flex grow>
               <ul style="list-style-type: none;">
                 <li class="pb-2"><h3 class="title font-weight-bold">SCORE</h3></li>
@@ -27,6 +32,7 @@
                 </li>
               </ul>
             </v-flex>
+            <!-- display song details -->
             <v-flex hidden-xs-only xs3>
               <ul style="list-style-type: none;">
                 <li class="pb-2"><h3 class="title font-weight-bold">SONG</h3></li>
@@ -37,6 +43,7 @@
                 </li>
               </ul>
             </v-flex>
+            <!-- show detailed score -->
             <v-flex shrink hidden-sm-and-down>
               <ul style="list-style-type: none;">
                 <li class="pb-2"><h3 class="title font-weight-bold">STATUS</h3></li>
