@@ -98,16 +98,26 @@ const YTPlayer = require('yt-player')
 export default {
   data () {
     return {
+      // pixi app
       app: null,
+      // object that holds all containers
       containers: {},
+      // object that holds all textures and other PIXI instances
       textures: {},
+      // pixi ticker
       ticker: null,
+      // youtube player
       player: null,
+      // song manager that does calculations based on youtube video
       songManager: null,
+      // starter index to show cues on screen
       moveIndex: 0,
+      // webcam video to be passed as a parameter to posenet
       stream: null,
+      // pose detection helpers
       holdingLeft: false,
       holdingRight: false,
+      // detailed score
       perfect: 0,
       awesome: 0,
       good: 0,
@@ -116,15 +126,20 @@ export default {
       maxCombo: 0,
       score: 0,
       displayScore: 0,
+      // report should be deprecated - shows right and left hand misses
       report: {
         rightHand: [],
         leftHand: []
       },
+      // holds all requests to be done to posenet as regarding the pose detection of a particular frame
       promiseArray: [],
+      // camera latency that should be considered for taking the correct frame from the camera stream and make the pose detection
       cameraLatency: 0,
+      // stores the value of if there is a pose being detected by posenet
       noPose: false
     }
   },
+  // creates a new ticker, and app, containers and textures if necessary
   created () {
     this.ticker = new PIXI.ticker.Ticker()
     if (this.gameOptions.showAnimation) {
@@ -134,19 +149,28 @@ export default {
       addGraphics(this.containers, this.textures)
     }
   },
+  // after mounting elements
   mounted () {
+    // append youtube player
     this.player = new YTPlayer('#player', playerConfig)
+    // create song manager based on player loaded song
     this.songManager = new SongManager(this.player, this.$store.state.selectedChart)
+    // if user chose to have animations
     if (this.gameOptions.showAnimation) {
+      // append app view to canvas
       document.getElementById('canvas').appendChild(this.app.view)
+      // create cueManager and add drawDynamicCues to ticker
       this.cueManager = new CueManager(this.songManager, gameConfig, grid, this.gameOptions.speed)
       this.ticker.add(() => {
         this.cueManager.drawDynamicCues(this.moves, this.textures.cues)
       })
+      // always resize canvas conserving aspect ratio
       window.addEventListener('resize', this.resizeWindow())
       this.resize()
     }
-    this.cameraLatency = (this.gameOptions.latency / this.songManager.tempo) * 4 // measured in quarterBeat => should be in the $store
+    // camera latency is transformed in quarter beats to make sense in game calculations
+    this.cameraLatency = (this.gameOptions.latency / this.songManager.tempo) * 4
+    // Game logic is added to ticker here
     this.ticker.add(() => {
       if (this.moveIndex < this.moves.length) { // index value is not higher than the array length
         if (this.moves[this.moveIndex][0] + 1 <= this.songManager.currentQuarterBeat - this.cameraLatency) { // if the beat of the current index has passed the current beat
