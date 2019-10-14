@@ -356,19 +356,24 @@ export default {
       }
     })
 
+    // force ticker stop to assure it will only start when the video is playing
     this.ticker.stop()
 
+    // if there is a videoStart specified on the danceChart when the player first start playing, the player should seek to that time
     this.player.on('playing', () => {
       if (parseFloat(this.videoStart) !== 0 && this.player.getCurrentTime() < 0.5) this.player.seek(parseFloat(this.videoStart))
       this.ticker.start()
     })
 
+    // stop the ticker when the player is paused, as it is not necessary to continue doing this process
     this.player.on('paused', () => {
       this.ticker.stop()
     })
 
+    // set volume to 0 on mount to fade music in when video starts
     this.player.setVolume(0)
 
+    // create video capture to use stream as a parameter to posenet
     this.createCapture()
   },
   methods: {
