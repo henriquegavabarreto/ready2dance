@@ -380,14 +380,18 @@ export default {
     goToResults: function () {
       this.stopAndDestroy()
 
-      if (this.$store.state.user !== null) { // if the user is not anonymous
+      if (this.$store.state.user !== null) { // if the user is registered
         for (let song in this.$store.state.songs) {
+          // search for the video that was selected, making sure the chart is not a draft
           if (this.$store.state.selectedSong.videoId === this.$store.state.songs[song].videoId && this.$store.state.songs[song].charts[this.$store.state.selectedDifficulty].draft !== true) {
-            if (!this.$store.state.songs[song].hasOwnProperty('scores')) { // if there are no scores for this song
+            // if there are no scores for this song
+            if (!this.$store.state.songs[song].hasOwnProperty('scores')) {
+              // create new score in the database
               firebase.database.ref('scores').push({
                 [this.$store.state.user.username]: this.score
               }).then((scoreRef) => {
                 this.$store.dispatch('updateSongScores', scoreRef.key)
+                // create new reference for the score created in the respective song and difficulty
                 firebase.database.ref(`songs/${song}`).update({
                   scores: {
                     [this.$store.state.selectedDifficulty]: scoreRef.key
@@ -395,16 +399,17 @@ export default {
                 }).catch((err) => { console.log(err) })
               }).catch((err) => { console.log(err) })
             } else { // if there are scores for the song
-              if (this.$store.state.songs[song].scores.hasOwnProperty(this.$store.state.selectedDifficulty)) { // if selected difficulty is part of the score node
+              // if selected difficulty already has scores
+              if (this.$store.state.songs[song].scores.hasOwnProperty(this.$store.state.selectedDifficulty)) {
                 let scoreId = this.$store.state.songs[song].scores[this.$store.state.selectedDifficulty]
                 firebase.database.ref(`scores/${scoreId}`).orderByKey().equalTo(this.$store.state.user.username).once('value', data => {
-                  if (data.val() === null) { // if the user has no scores
+                  if (data.val() === null) { // if the user has no scores add the new score to the database
                     firebase.database.ref(`scores/${scoreId}`).update({
                       [this.$store.state.user.username]: this.score
                     }).then(() => {
                       this.$store.dispatch('updateSongScores', scoreId)
                     }).catch((err) => { console.log(err) })
-                  } else { // if the user has a score
+                  } else { // if the user has a score already
                     let currentScore = data.val()[this.$store.state.user.username]
                     if (this.score > currentScore) { // update only if score is larger
                       firebase.database.ref(`scores/${scoreId}`).update({
@@ -417,7 +422,7 @@ export default {
                     }
                   }
                 })
-              } else {
+              } else { // if there are no scores for the selectedDifficulty
                 // create new score in database and update it in the song
                 firebase.database.ref('scores').push({
                   [this.$store.state.user.username]: this.score
@@ -431,19 +436,21 @@ export default {
             }
           }
         }
-      } else { // for anonymous users
+      } else { // for non registered users
         if (this.$store.state.selectedSong.hasOwnProperty('scores')) { // if has scores
-          if (this.$store.state.selectedSong.scores.hasOwnProperty(this.$store.state.selectedDifficulty)) { // if there are scores for the dif
+          if (this.$store.state.selectedSong.scores.hasOwnProperty(this.$store.state.selectedDifficulty)) { // if there are scores for the difficulty
             this.$store.dispatch('updateSongScores', this.$store.state.selectedSong.scores[this.$store.state.selectedDifficulty])
-          } else { // no scores for dif
+          } else { // no scores for difficulty
             this.$store.commit('changeSongScores', 'No scores here yet. Register and be the first in the scoreboard!')
           }
-        } else { // if no scores
+        } else { // if no scores at all
           this.$store.commit('changeSongScores', 'No scores here yet. Register and be the first in the scoreboard!')
         }
       }
 
+      // go to results scene
       this.$store.commit('goToScene', 'results')
+      // change detailed results in score
       this.$store.commit('changeResults', {
         perfect: this.perfect,
         awesome: this.awesome,
@@ -455,16 +462,19 @@ export default {
         report: this.report
       })
     },
+    // stop capture of the webcam
     stopCapture: function () {
       this.stream.srcObject.getVideoTracks().forEach((track) => {
         track.stop()
       })
     },
+    // listen to window resize
     resizeWindow: function () {
       window.onresize = (event) => {
         this.resize()
       }
     },
+    // resize app.view based on window resize preserving aspect ratio
     resize: function () {
       let ratio = pixiConfig.width / pixiConfig.height
       let w
@@ -488,6 +498,7 @@ export default {
         this.app.view.style.height = h / 1.3 + 'px'
       }
     },
+    // creates webcam capture - making our own function was more effective than using libraries
     createCapture: function () {
       let constraints = {
         audio: false,
@@ -499,18 +510,20 @@ export default {
         }
       }
 
-      if (!navigator.mediaDevices) { // if there is no mediaDevices
-        // try to use getUserMedia
+      if (!navigator.mediaDevices) { // if there is no mediaDevices try to use getUserMedia (fallback for older browsers)
         navigator.getUserMedia = navigator.getUserMedia ||
                          navigator.webkitGetUserMedia ||
                          navigator.mozGetUserMedia
 
-        if (navigator.getUserMedia) {
+        if (navigator.getUserMedia) { // if we were able to access getUserMedia
           navigator.getUserMedia({ audio: false, video: { width: 300, height: 300 } }, (stream) => {
+            // create stream
             this.stream = document.getElementById('videoStream')
             this.stream.srcObject = stream
             this.stream.onloadedmetadata = (e) => {
               this.stream.play()
+              /* as there is a delay in posenet first estimations, 2 estimations are done at the time the stream starts
+              to prevent delay when estimations are supposed to occur quickly during the game */
               this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride)
               setTimeout(() => {
                 this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride)
@@ -535,6 +548,7 @@ export default {
           .then((stream) => {
             this.player.load(this.$store.state.selectedChart.videoId, false)
             this.stream = document.getElementById('videoStream')
+            // make sure stream is autoplay with no audio
             this.stream.setAttribute('autoplay', '')
             this.stream.setAttribute('muted', '')
             this.stream.setAttribute('playsinline', '')
@@ -543,13 +557,14 @@ export default {
               this.stream.width = 300
               this.stream.height = 300
               this.stream.play()
+              // estimate poses to prevent delays on first estimation in game
               this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride)
               setTimeout(() => {
                 this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride)
               }, 2000)
             }
           })
-          .catch((err) => {
+          .catch((err) => { // catch error from mediaDevices
             this.stopAndDestroy()
 
             let errorMessage = 'Something went wrong...'
@@ -575,6 +590,9 @@ export default {
       }
     },
     stopAndDestroy: function () {
+      /* stop player ticker and capture
+      destroy player, ticker and animation helpers if necessary
+      remove resize event listener */
       this.player.stop()
       this.player.destroy()
       if (this.gameOptions.showAnimation) {
@@ -601,6 +619,7 @@ export default {
     }
   },
   computed: {
+    // get moves from store and parse it to an array
     moves () {
       if (this.$store.state.selectedChart.moves === '') {
         return []
@@ -616,11 +635,13 @@ export default {
         return newChart
       }
     },
+    // returns maximum number of points of the selected chart
     maxPoints () {
       if (this.moves === []) {
         return 0
       } else {
         let points = 0
+        // adds 1000 for each valid move - it considerates 'nodes' but not 'progress'
         this.moves.forEach(move => {
           if (move[2].length === 3 || move[2][0] === 'S') {
             points += 1000
