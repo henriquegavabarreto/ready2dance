@@ -16,7 +16,7 @@ function moveToBeat (player, songManager, moveManager, noteManager, cueManager, 
         // add selected and in between beats to array - necessary when selecting areas
         moveManager.addBeatToArray(songManager.nearestBeat, skippedBeats)
       }
-      // if making a selection
+      // if making a selection, draw it on screen
       if (editorConfig.selectingMoves) drawSelection(songManager, containers, textures)
     }, 200)
   }

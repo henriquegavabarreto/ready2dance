@@ -76,7 +76,7 @@ export default {
       }).catch(err => console.log(err))
     }).catch(err => console.log(err))
   },
-  // overwrites and existing danceChart
+  // overwrites an existing danceChart
   overwriteChart: function (danceChart, chartId, songId, difficulty, draft, user) {
     this.sortDanceChart(danceChart)
     firebase.database.ref('charts').child(`${chartId}`).update({
