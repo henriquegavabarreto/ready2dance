@@ -90,7 +90,7 @@
       color="yellow"
       :timeout="4000"
     >
-    There is no user with this username.
+      {{ userNameNotFoundText }}
     <v-btn dark small @click="usernameNotFound = !usernameNotFound">CLOSE</v-btn>
     </v-snackbar>
     <v-snackbar
@@ -398,6 +398,7 @@ export default {
       loading: false,
       usernameToChange: '',
       usernameNotFound: false,
+      userNameNotFoundText: '',
       userStatusChanged: false,
       username: '',
       manageUsers: false,
@@ -468,7 +469,7 @@ export default {
             })
           }, error => {
             // deal with errors when loading posenet (if they occur)
-            console.log(error)
+            alert(error)
             this.$store.commit('changeWrongMessage', 'Due to a problem with PoseNet the game is not available right now. Please try it again later.')
             this.$store.commit('somethingWentWrong')
             this.player.stop()
@@ -511,7 +512,9 @@ export default {
         this.player.destroy()
         this.$store.commit('changeUser', null)
         this.$store.commit('goToScene', 'home')
-      }).catch((err) => { console.log(err) })
+      }).catch((err) => {
+        alert(err)
+      })
     },
     changeUserStatus: function (status) { // change user status in the database
       firebase.database.ref('users').orderByChild('username').equalTo(`${this.usernameToChange}`).once('value', snapshot => {
@@ -524,6 +527,7 @@ export default {
           })
         } else { // if this user name was not found
           this.usernameNotFound = true
+          this.usernameNotFoundText = 'There is no user with this username.'
         }
       })
     },
@@ -538,7 +542,7 @@ export default {
             this.$store.commit('goToScene', 'latency-test')
           })
         }, error => {
-          console.log(error)
+          alert(error)
           this.$store.commit('changeWrongMessage', 'Due to a problem with PoseNet the game is not available right now. Please try it again later.')
           this.$store.commit('somethingWentWrong')
           this.player.stop()

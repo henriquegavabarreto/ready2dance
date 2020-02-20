@@ -48,8 +48,8 @@ export default {
         videoId: player.videoId
       }).then((songRef) => {
         danceChart.songId = songRef.key
-      }).catch(err => console.log(err))
-    }).catch(err => console.log(err))
+      }).catch(err => alert(err))
+    }).catch(err => alert(err))
   },
   // save new chart to existing song - songId exists
   saveNewChart: function (danceChart, player, songId, difficulty, draft, user) {
@@ -73,8 +73,8 @@ export default {
         }
       }).then(() => {
         danceChart.songId = songId
-      }).catch(err => console.log(err))
-    }).catch(err => console.log(err))
+      }).catch(err => alert(err))
+    }).catch(err => alert(err))
   },
   // overwrites an existing danceChart
   overwriteChart: function (danceChart, chartId, songId, difficulty, draft, user) {
@@ -87,10 +87,10 @@ export default {
       moves: danceChart.moves.join(' '),
       updatedAt: new Date().getTime(),
       lastUpdatedBy: user
-    }).catch((err) => { console.log(err) })
+    }).catch((err) => { alert(err) })
     firebase.database.ref(`songs/${songId}/charts`).child(`${difficulty}`).update({
       draft: draft
-    }).catch((err) => { console.log(err) })
+    }).catch((err) => { alert(err) })
   },
   // updates danceChart locally based on a loadedChart
   // updates settings based on the updated danceChart
