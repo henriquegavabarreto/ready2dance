@@ -598,7 +598,9 @@ export default {
       }
     },
     saveToFirebase: function () { // saves chart to firebase if all information is correct and videoId is unique
-      if (this.$refs.videoId.validate() && this.$refs.timing.validate() && this.$refs.songInfo.validate() && this.difficulties.indexOf(this.difficulty) !== -1) {
+      // these validations make no sense, since all the information comes from the danceChart and not from settings
+      let validInformation = this.validateBeforeSaving()
+      if (validInformation && this.difficulties.indexOf(this.difficulty) !== -1) {
         let songId = this.dataManager.getSongIdByVideoId(this.songs, this.player.videoId)
         if (songId === '') { // if there is no song with this videoId
           this.dataManager.saveNewSong(this.danceChart, this.player, this.difficulty, this.draft, this.$store.state.user.username)
@@ -618,8 +620,14 @@ export default {
         this.missingInfo = true
       }
     },
+    // returns true if the danceChart has at least title, artist and one move on the chart
+    validateBeforeSaving: function () {
+      let valid = this.danceChart.artist !== '' && this.danceChart.title !== '' && this.danceChart.moves.length !== 0
+      return valid
+    },
     overwriteChart: function () { // updates a danceChart with existing video Id in the database
-      if (this.$refs.videoId.validate() && this.$refs.timing.validate() && this.$refs.songInfo.validate()) {
+      let validInformation = this.validateBeforeSaving()
+      if (validInformation && this.$refs.videoId.validate() && this.$refs.timing.validate() && this.$refs.songInfo.validate()) {
         this.dataManager.overwriteChart(this.danceChart, this.duplicate.song.charts[this.difficulty].id, this.duplicate.id, this.duplicate.difficulty, this.draft, this.$store.state.user.username)
         this.duplicateChart = false
         this.saved = true
