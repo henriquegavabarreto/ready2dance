@@ -107,7 +107,7 @@ export default {
               // define difference between first timestamp (beat) and the one of when the x was the least (which is believed to be the movement for this beat)
               let latency = this.timeStamps[handMove[0]][highestRight] - this.timeStamps[handMove[0]][0]
               // only push to latencies if it is a number
-              if (typeof latency === 'number') this.latencies.push(latency)
+              if (typeof latency === 'number' && !isNaN(latency)) this.latencies.push(latency)
             }
           }).catch((err) => { console.log(err) })
           this.promiseArray = []
@@ -166,7 +166,7 @@ export default {
         this.$store.commit('changeLatency', latency)
       } else {
         this.$store.commit('changeWrongMessage', 'Something went wrong with the test. Please perform it again.')
-        this.$stopre.commit('somethingWentWrong')
+        this.$store.commit('somethingWentWrong')
       }
       this.$store.commit('goToScene', 'song-selection')
     },
@@ -283,7 +283,6 @@ export default {
             } else {
               errorMessage = 'Something went wrong... Check if you have a camera, if it\'s working and that this website can use it. Check your settings and try again.'
             }
-            console.log(err.name, err.message)
             this.$store.commit('changeWrongMessage', errorMessage)
             this.$store.commit('somethingWentWrong')
             this.$store.commit('goToScene', 'song-selection')
