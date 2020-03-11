@@ -324,6 +324,7 @@
               @keydown.arrow-right="moveToNextBeat"
               @keydown.arrow-left="moveToPreviousBeat"
               @keyup.p="playAndPause"
+              @keyup.space="playAndPause"
               @keydown.c="startCopySelection"
               @keyup.c="endCopySelection"
               @keyup.v="pasteMoves"
@@ -599,6 +600,9 @@ export default {
     },
     saveToFirebase: function () { // saves chart to firebase if all information is correct and videoId is unique
       // these validations make no sense, since all the information comes from the danceChart and not from settings
+
+      // TODO: check if the video has one of the keywords, the length of the chart (impose a limit of maybe 3 minutes),
+      // and everything related to the user type
       let validInformation = this.validateBeforeSaving()
       if (validInformation && this.difficulties.indexOf(this.difficulty) !== -1) {
         let songId = this.dataManager.getSongIdByVideoId(this.songs, this.player.videoId)
@@ -637,6 +641,7 @@ export default {
     },
     loadVideoById: function () { // loads a video according to the input id
       if (this.$refs.videoId.validate()) {
+        // here we should check if the video has one of the keywords in the title or description
         this.player.load(this.danceChart.videoId, true)
         // reset chart
         this.danceChart = {
@@ -809,7 +814,23 @@ export default {
         info.charts = Object.fromEntries(sortedChart)
         sortedDif[song] = info
       }
-      return sortedDif
+
+      let editableSongs = {}
+      if (this.$store.state.user.type === 'user') {
+        for (let song in sortedDif) {
+          let songInfo = this.$store.state.songs[song]
+          for (let chart in songInfo.charts) {
+            if (songInfo.charts[chart].createdBy === this.$store.state.user.username) {
+              editableSongs[song] = songInfo
+            }
+          }
+        }
+      } else if (this.$store.state.user.type === 'admin' || this.$store.state.user.type === 'editor') {
+        editableSongs = sortedDif
+      } else {
+        editableSongs = null
+      }
+      return editableSongs
     },
     selectedSong: function () { // changes the selected song from the list
       return this.$store.state.selectedSong

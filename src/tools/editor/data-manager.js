@@ -31,18 +31,19 @@ export default {
       videoStart: danceChart.videoStart,
       videoEnd: danceChart.videoEnd,
       moves: danceChart.moves.join(' '),
-      createdAt: new Date().getTime(),
-      createdBy: user
+      updatedAt: new Date().getTime()
     }).then((chartRef) => {
       danceChart.chartId = chartRef.key
       // after having the chart saved, save the song
       firebase.database.ref('songs').push({
         title: danceChart.title,
         artist: danceChart.artist,
+        createdAt: new Date().getTime(),
         charts: {
           [difficulty]: {
             id: chartRef.key,
-            draft: draft
+            draft: draft,
+            createdBy: user
           }
         },
         videoId: player.videoId
@@ -61,15 +62,15 @@ export default {
       videoStart: danceChart.videoStart,
       videoEnd: danceChart.videoEnd,
       moves: danceChart.moves.join(' '),
-      createdAt: new Date().getTime(),
-      createdBy: user
+      updatedAt: new Date().getTime()
     }).then((chartRef) => {
       danceChart.chartId = chartRef.key
       // add the created chartId to the existing songId
       firebase.database.ref('songs/' + songId).child('charts').update({
         [difficulty]: {
           id: chartRef.key,
-          draft: draft
+          draft: draft,
+          createdBy: user
         }
       }).then(() => {
         danceChart.songId = songId
