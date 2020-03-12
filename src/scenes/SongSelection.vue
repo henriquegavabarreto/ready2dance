@@ -321,9 +321,12 @@
                   <v-card-text style="display: inline;" class="justify-center pl-0">
                     <div style="display: inline;" v-for="(chart, dif) in songCharts" :key="dif">
                       <v-btn
-                        @click="selectChart(chart.id, dif)"
+                        @click="selectChart(chart.id, dif); getCreator(dif);"
                         :class="selectedChart === chart.id ? 'blue lighten' : ''"
                         :disabled="chart.draft && ($store.state.user === null || $store.state.user.type === 'user')">{{dif}}<span v-if="chart.draft">(SOON)</span></v-btn>
+                    </div>
+                    <div v-if="selectedChart" class="justify-center ma-1">
+                      Created by: {{ createdBy }}
                     </div>
                     <v-spacer></v-spacer>
                     <v-btn
@@ -379,6 +382,7 @@ const YTPlayer = require('yt-player')
 export default {
   data () {
     return {
+      createdBy: '',
       search: '',
       selectedSong: {},
       selectedChart: '',
@@ -447,6 +451,7 @@ export default {
     },
     selectSong: function (song) { // get song info from the list of filtered songs
       this.selectedSong = song
+      this.selectedChart = ''
       this.$store.commit('selectSong', song)
       this.player.load(song.videoId)
       this.$store.commit('changeSongScores', 'Select a difficulty')
@@ -501,6 +506,13 @@ export default {
         } else {
           this.$store.dispatch('updateSongScores', this.selectedSong.scores[dif])
         }
+      }
+    },
+    getCreator: function (dif) {
+      if (this.selectedSong.charts[dif].createdBy) {
+        this.createdBy = this.selectedSong.charts[dif].createdBy
+      } else {
+        this.createdBy = 'unknown'
       }
     },
     toggleSettings: function () { // show settings dialog
