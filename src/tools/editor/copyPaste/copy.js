@@ -14,8 +14,6 @@ addSelectionToClipboard - add the moves to the clipboard
 Based on the copySelection elements, get the moves between those selected beats and push them to the clipboard
 to be used afterwards when pasting
 
-TODO:
-
 1. all - copy from first to last note - Check the best approach to do this.
 Maybe the editor should listen to another key or a combination of keys (c + a)
 

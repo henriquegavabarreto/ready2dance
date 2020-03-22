@@ -196,15 +196,15 @@
                       </v-snackbar>
                       <v-snackbar
                         auto-height
-                        v-model="missingInfo"
+                        v-model="warningSnack"
                         left
                         :timeout="5000"
                       >
                       <v-icon color="yellow" left>warning</v-icon>
-                        Can't save if any information is missing. Check all fields.
+                        {{ warningText }}
                         <v-btn
                           flat
-                          @click="missingInfo = false"
+                          @click="warningSnack = false"
                         >
                         Close
                         </v-btn>
@@ -374,6 +374,7 @@ import dataManager from '../tools/editor/data-manager'
 import EditorInstructions from '../components/EditorInstructions'
 
 const YTPlayer = require('yt-player')
+const YouTube = require('simple-youtube-api')
 
 export default {
   components: {
@@ -388,6 +389,8 @@ export default {
       player: null,
       editorApp: null,
       ticker: null,
+      youtube: null,
+      ytKeyRg: /(paralist|parapara|eurobeat|techpara|techno|trapara|trance|パラパラ|ユーロ|ユーロビート|テクパラ|テクノ|トラパラ|トランス|わたクラ|スタファ)/gi,
       containers: { master: {}, auxiliary: {} },
       textures: {},
       songManager: null,
@@ -407,7 +410,8 @@ export default {
       },
       deleteChart: false,
       saved: false,
-      missingInfo: false,
+      warningSnack: false,
+      warningText: '',
       charts: null,
       existingChart: false,
       settings: { offset: '0', videoStart: '0', videoEnd: '0', bpm: '150', title: '', artist: '' },
@@ -419,6 +423,7 @@ export default {
   created () { // creates pixi app, a ticker for the game graphics and stops the shared ticker, that will be started only when necessary (dealing with selection)
     this.editorApp = new PIXI.Application(pixiConfig)
     this.ticker = new PIXI.ticker.Ticker()
+    this.youtube = new YouTube(process.env.VUE_APP_YT_API)
   },
   mounted () { // set containers, graphics, player and managers. Starts the ticker
     addContainers(this.editorApp, this.containers)
@@ -621,7 +626,8 @@ export default {
           }
         }
       } else {
-        this.missingInfo = true
+        this.warningText = 'Can\'t save if any information is missing. Check all fields.'
+        this.warningSnack = true
       }
     },
     // returns true if the danceChart has at least title, artist and one move on the chart
@@ -636,34 +642,42 @@ export default {
         this.duplicateChart = false
         this.saved = true
       } else {
-        this.missingInfo = true
+        this.warningText = 'Can\'t save if any information is missing. Check all fields.'
+        this.warningSnack = true
       }
     },
     loadVideoById: function () { // loads a video according to the input id
       if (this.$refs.videoId.validate()) {
         // here we should check if the video has one of the keywords in the title or description
-        this.player.load(this.danceChart.videoId, true)
-        // reset chart
-        this.danceChart = {
-          title: '',
-          artist: '',
-          offset: 0,
-          bpm: 200,
-          videoId: this.player.videoId,
-          videoStart: 0,
-          videoEnd: 0,
-          moves: [],
-          chartId: '',
-          songId: ''
-        }
-        // reset settings
-        this.settings = { offset: '0', videoStart: '0', videoEnd: '0', bpm: '200', title: '', artist: '' }
-        this.dataManager.updateManagers(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.cueManager)
-        this.noteManager.redraw(this.danceChart, this.containers, this.textures)
-        setTimeout(() => {
-          // drawGuideNumbers(this.player, this.danceChart, this.songManager)
-          drawStaff(this.containers, this.textures, this.player, this.danceChart, this.songManager)
-        }, 4000)
+        this.youtube.getVideoByID(this.danceChart.videoId).then(result => {
+          if (this.ytKeyRg.test(result.title) || this.ytKeyRg.test(result.description)) {
+            this.player.load(this.danceChart.videoId, true)
+            // reset chart
+            this.danceChart = {
+              title: '',
+              artist: '',
+              offset: 0,
+              bpm: 200,
+              videoId: this.player.videoId,
+              videoStart: 0,
+              videoEnd: 0,
+              moves: [],
+              chartId: '',
+              songId: ''
+            }
+            // reset settings
+            this.settings = { offset: '0', videoStart: '0', videoEnd: '0', bpm: '200', title: '', artist: '' }
+            this.dataManager.updateManagers(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.cueManager)
+            this.noteManager.redraw(this.danceChart, this.containers, this.textures)
+            setTimeout(() => {
+              // drawGuideNumbers(this.player, this.danceChart, this.songManager)
+              drawStaff(this.containers, this.textures, this.player, this.danceChart, this.songManager)
+            }, 4000)
+          } else {
+            this.warningText = 'This is not a valid ParaPara video. Please try another ID.'
+            this.warningSnack = true
+          }
+        }).catch(err => console.log(err))
       }
     },
     selectSong: function (songId, chartId, dif) { // changes selected song in the store with the given song id
