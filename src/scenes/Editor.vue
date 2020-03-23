@@ -91,10 +91,11 @@
                           <v-layout row wrap justify-space-between class="scroll-y ma-0 pa-3" style="max-height: 32vh;">
                             <v-flex xs5 class="ma-1"
                               v-for="(song, name) in songs"
-                              :key="song.chartId">
+                              :key="song.chartId"
+                              @click="selectVideoId(song)">
                               <v-card style="border-radius: 10px;" class="blue-grey lighten-5">
                                 <v-card-title class="title font-weight-bold pb-1">
-                                    {{song.title}}
+                                  {{song.title}}
                                 </v-card-title>
                                 <v-card-text class="pt-0 mt-0 body-2 pb-1">
                                   {{song.artist}}
@@ -104,7 +105,7 @@
                                     v-for="(chart, dif) in song.charts"
                                     :key="dif"
                                     @click="selectSong(name, chart.id, dif)"
-                                    :class="[selectedChartId === chart.id ? 'darken-1' : '', chart.draft ? 'yellow lighten-4 font-weight-bold' : 'green lighten-4 font-weight-bold']"
+                                    :class="[selectedChartId === chart.id ? 'darken-1' : '', !chart.editable ? 'red lighten-3 font-weight-bold' : chart.draft ? 'yellow lighten-3 font-weight-bold' : 'green lighten-3 font-weight-bold']"
                                     small
                                     style="min-width: 0; width: 75px;"
                                     >{{dif}}</v-btn>
@@ -115,7 +116,9 @@
                         </v-container>
                       </v-card-text>
                       <v-card-actions class="justify-space-around">
-                        <v-btn dark @click="loadChart(selectedSong, selectedChartId)">Load</v-btn>
+                        <v-btn dark @click="loadChart(selectedSong, selectedChartId)"
+                        :disabled="unableToLoad">Load</v-btn>
+                        <!-- TODO: users need to be able to delete their own charts (if not modified by and admin?) -->
                         <v-btn dark v-if="$store.state.user.type === 'admin'" color="red" @click="deleteChart = true">Delete</v-btn>
                       </v-card-actions>
                     </v-card>
@@ -459,7 +462,7 @@ export default {
         drawStaff(this.containers, this.textures, this.player, this.danceChart, this.songManager)
       }, 3000)
     } else {
-      if (this.$store.state.selectedChartId) {
+      if (this.$store.state.selectedChartId && this.$store.state.user.type !== 'user') {
         this.existingChart = true
         this.loadChart(this.$store.state.selectedSong, this.$store.state.selectedChartId)
       }
@@ -606,10 +609,13 @@ export default {
     saveToFirebase: function () { // saves chart to firebase if all information is correct and videoId is unique
       // these validations make no sense, since all the information comes from the danceChart and not from settings
 
-      // TODO: check if the video has one of the keywords, the length of the chart (impose a limit of maybe 3 minutes),
+      // TODO: check if chart duration limit works,
       // and everything related to the user type
+      // TODO: check if user is allowed to save the chart under the selected difficulty
+
       let validInformation = this.validateBeforeSaving()
-      if (validInformation && this.difficulties.indexOf(this.difficulty) !== -1) {
+      let chartDuration = this.getChartDuration()
+      if (validInformation && this.difficulties.indexOf(this.difficulty) !== -1 && chartDuration < 180 && chartDuration > 60) {
         let songId = this.dataManager.getSongIdByVideoId(this.songs, this.player.videoId)
         if (songId === '') { // if there is no song with this videoId
           this.dataManager.saveNewSong(this.danceChart, this.player, this.difficulty, this.draft, this.$store.state.user.username)
@@ -626,7 +632,11 @@ export default {
           }
         }
       } else {
-        this.warningText = 'Can\'t save if any information is missing. Check all fields.'
+        if (chartDuration > 180 || chartDuration < 60) {
+          this.warningText = 'The duration of your chart is too long. It has to be between 1 and 3 minutes.'
+        } else {
+          this.warningText = 'Can\'t save if any information is missing. Check all fields.'
+        }
         this.warningSnack = true
       }
     },
@@ -634,6 +644,14 @@ export default {
     validateBeforeSaving: function () {
       let valid = this.danceChart.artist !== '' && this.danceChart.title !== '' && this.danceChart.moves.length !== 0
       return valid
+    },
+    getChartDuration: function () {
+      if (this.danceChart.videoEnd === 0) {
+        let duration = this.player.getDuration()
+        return duration - this.danceChart.videoStart
+      } else {
+        return this.danceChart.videoEnd - this.danceChart.videoStart
+      }
     },
     overwriteChart: function () { // updates a danceChart with existing video Id in the database
       let validInformation = this.validateBeforeSaving()
@@ -686,6 +704,7 @@ export default {
       this.$store.commit('selectChart', chartId)
     },
     loadChart: function (song, chartId) { // pulls chart info from the database and applies to the danceChart and settings tab
+      // TODO: check if user is allowed to do that
       let songId = this.dataManager.getSongIdByVideoId(this.songs, song.videoId)
       if (chartId !== '') {
         let loadedChart = {}
@@ -715,6 +734,7 @@ export default {
       }
     },
     deleteSelectedChart: function (song, chartId) { // removes selected chart from the database
+      // check if user is allowed to do that
       let songId = this.dataManager.getSongIdByVideoId(this.songs, song.videoId)
       if (chartId !== '') {
         let key = Object.keys(this.songs[songId].charts).find(key => this.songs[songId].charts[key].id === chartId)
@@ -816,6 +836,9 @@ export default {
         this.destroyAll()
         this.$store.commit('goToScene', 'game')
       }
+    },
+    selectVideoId: function (song) {
+      this.danceChart.videoId = song.videoId
     }
   },
   computed: {
@@ -829,22 +852,41 @@ export default {
         sortedDif[song] = info
       }
 
-      let editableSongs = {}
-      if (this.$store.state.user.type === 'user') {
-        for (let song in sortedDif) {
-          let songInfo = this.$store.state.songs[song]
-          for (let chart in songInfo.charts) {
-            if (songInfo.charts[chart].createdBy === this.$store.state.user.username) {
-              editableSongs[song] = songInfo
+      for (let song in sortedDif) {
+        for (let chart in sortedDif[song].charts) {
+          if (this.$store.state.user.type === 'admin' || this.$store.state.user.type === 'editor') {
+            sortedDif[song].charts[chart].editable = true
+          } else {
+            if (sortedDif[song].charts[chart].createdBy) {
+              if (sortedDif[song].charts[chart].createdBy === this.$store.state.user.username) {
+                sortedDif[song].charts[chart].editable = true
+              }
+            } else {
+              sortedDif[song].charts[chart].editable = false
             }
           }
         }
-      } else if (this.$store.state.user.type === 'admin' || this.$store.state.user.type === 'editor') {
-        editableSongs = sortedDif
-      } else {
-        editableSongs = null
       }
-      return editableSongs
+      console.log(sortedDif)
+      // let editableSongs = {}
+      // if (this.$store.state.user.type === 'user') {
+      //   for (let song in sortedDif) {
+      //     let songInfo = this.$store.state.songs[song]
+      //     for (let chart in songInfo.charts) {
+      //       if (songInfo.charts[chart].createdBy) {
+      //         if (songInfo.charts[chart].createdBy === this.$store.state.user.username) {
+      //           editableSongs[song] = songInfo
+      //         }
+      //       }
+      //     }
+      //   }
+      // } else if (this.$store.state.user.type === 'admin' || this.$store.state.user.type === 'editor') {
+      //   editableSongs = sortedDif
+      // } else {
+      //   editableSongs = null
+      // }
+      // return editableSongs
+      return sortedDif
     },
     selectedSong: function () { // changes the selected song from the list
       return this.$store.state.selectedSong
@@ -861,6 +903,20 @@ export default {
         }
       } else {
         return true
+      }
+    },
+    unableToLoad: function () {
+      // TODO: maybe unable to load charts should be in red?
+      // write in about the rules to make a chart easy, medium and hard (prerequisites) and maybe check for them before saving
+      if (this.$store.state.user.type === 'admin' || this.$store.state.user.type === 'editor') {
+        return false
+      } else {
+        if (this.$store.state.selectedSong && this.$store.state.selectedDifficulty && this.$store.state.selectedSong.charts[this.$store.state.selectedDifficulty].createdBy) {
+          let condition = this.$store.state.selectedSong.charts[this.$store.state.selectedDifficulty].createdBy === this.$store.state.user.username
+          return !condition
+        } else {
+          return true
+        }
       }
     }
   }
