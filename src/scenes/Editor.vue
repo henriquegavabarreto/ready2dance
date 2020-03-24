@@ -460,7 +460,7 @@ export default {
       setTimeout(() => {
         // drawGuideNumbers(this.player, this.danceChart, this.songManager)
         drawStaff(this.containers, this.textures, this.player, this.danceChart, this.songManager)
-      }, 3000)
+      }, 5000)
     } else {
       if (this.$store.state.selectedChartId && this.$store.state.user.type !== 'user') {
         this.existingChart = true
@@ -609,8 +609,7 @@ export default {
     saveToFirebase: function () { // saves chart to firebase if all information is correct and videoId is unique
       // these validations make no sense, since all the information comes from the danceChart and not from settings
 
-      // TODO: check if chart duration limit works,
-      // and everything related to the user type
+      // TODO: check everything related to the user type
       // TODO: check if user is allowed to save the chart under the selected difficulty
 
       let validInformation = this.validateBeforeSaving()
@@ -625,10 +624,15 @@ export default {
             this.dataManager.saveNewChart(this.danceChart, this.player, songId, this.difficulty, this.draft, this.$store.state.user.username)
             this.saved = true
           } else { // if there is the set difficulty for this song id
-            this.duplicate.song = this.songs[songId]
-            this.duplicate.id = songId
-            this.duplicate.difficulty = this.difficulty
-            this.duplicateChart = true
+            if (this.songs[songId].charts[this.difficulty].editable) {
+              this.duplicate.song = this.songs[songId]
+              this.duplicate.id = songId
+              this.duplicate.difficulty = this.difficulty
+              this.duplicateChart = true
+            } else {
+              this.warningText = 'You don\'t have permission to save to the selected difficulty.'
+              this.warningSnack = true
+            }
           }
         }
       } else {
@@ -666,36 +670,76 @@ export default {
     },
     loadVideoById: function () { // loads a video according to the input id
       if (this.$refs.videoId.validate()) {
-        // here we should check if the video has one of the keywords in the title or description
-        this.youtube.getVideoByID(this.danceChart.videoId).then(result => {
-          if (this.ytKeyRg.test(result.title) || this.ytKeyRg.test(result.description)) {
-            this.player.load(this.danceChart.videoId, true)
-            // reset chart
-            this.danceChart = {
-              title: '',
-              artist: '',
-              offset: 0,
-              bpm: 200,
-              videoId: this.player.videoId,
-              videoStart: 0,
-              videoEnd: 0,
-              moves: [],
-              chartId: '',
-              songId: ''
-            }
-            // reset settings
-            this.settings = { offset: '0', videoStart: '0', videoEnd: '0', bpm: '200', title: '', artist: '' }
+        // check if this is an existing videoId. If it is, load song settings only from one of the existing charts
+        // if not, proceed as usual
+        let songId = this.dataManager.getSongIdByVideoId(this.songs, this.danceChart.videoId)
+        if (songId !== '') {
+          let existingDif = Object.keys(this.songs[songId].charts)
+          let existingChartId = this.songs[songId].charts[existingDif[0]].id
+
+          let loadedChart = {}
+          firebase.database.ref(`charts/${existingChartId}`).once('value', (data) => {
+            let value = data.val()
+            loadedChart.offset = value.offset
+            // load no moves in this case
+            loadedChart.moves = ''
+            loadedChart.videoEnd = value.videoEnd
+            loadedChart.videoStart = value.videoStart
+            loadedChart.videoId = value.videoId
+            loadedChart.bpm = value.bpm
+
+            loadedChart.title = this.$store.state.songs[songId].title
+            loadedChart.artist = this.$store.state.songs[songId].artist
+            this.danceChart.songId = songId
+            this.danceChart.chartId = ''
+          }).then(() => {
+            this.dataManager.updateChartAndSettings(this.danceChart, this.settings, loadedChart)
             this.dataManager.updateManagers(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.cueManager)
             this.noteManager.redraw(this.danceChart, this.containers, this.textures)
+            this.player.load(this.danceChart.videoId, true)
             setTimeout(() => {
               // drawGuideNumbers(this.player, this.danceChart, this.songManager)
               drawStaff(this.containers, this.textures, this.player, this.danceChart, this.songManager)
-            }, 4000)
-          } else {
-            this.warningText = 'This is not a valid ParaPara video. Please try another ID.'
+            }, 5000)
+          }).catch(err => {
+            this.warningText = `There was an error loading information from the database. Try again later.\n${err}`
             this.warningSnack = true
-          }
-        }).catch(err => console.log(err))
+          })
+        } else {
+          // here we should check if the video has one of the keywords in the title or description
+          this.youtube.getVideoByID(this.danceChart.videoId).then(result => {
+            if (this.ytKeyRg.test(result.title) || this.ytKeyRg.test(result.description)) {
+              this.player.load(this.danceChart.videoId, true)
+              // reset chart
+              this.danceChart = {
+                title: '',
+                artist: '',
+                offset: 0,
+                bpm: 200,
+                videoId: this.player.videoId,
+                videoStart: 0,
+                videoEnd: 0,
+                moves: [],
+                chartId: '',
+                songId: ''
+              }
+              // reset settings
+              this.settings = { offset: '0', videoStart: '0', videoEnd: '0', bpm: '200', title: '', artist: '' }
+              this.dataManager.updateManagers(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.cueManager)
+              this.noteManager.redraw(this.danceChart, this.containers, this.textures)
+              setTimeout(() => {
+                // drawGuideNumbers(this.player, this.danceChart, this.songManager)
+                drawStaff(this.containers, this.textures, this.player, this.danceChart, this.songManager)
+              }, 5000)
+            } else {
+              this.warningText = 'This is not a valid ParaPara video. Please try another ID.'
+              this.warningSnack = true
+            }
+          }).catch(err => {
+            this.warningText = `Something went wrong. Please try again another time. \n ${err}`
+            this.warningSnack = true
+          })
+        }
       }
     },
     selectSong: function (songId, chartId, dif) { // changes selected song in the store with the given song id
@@ -704,7 +748,7 @@ export default {
       this.$store.commit('selectChart', chartId)
     },
     loadChart: function (song, chartId) { // pulls chart info from the database and applies to the danceChart and settings tab
-      // TODO: check if user is allowed to do that
+      // TODO: check if user is allowed to do that?
       let songId = this.dataManager.getSongIdByVideoId(this.songs, song.videoId)
       if (chartId !== '') {
         let loadedChart = {}
@@ -729,8 +773,11 @@ export default {
           setTimeout(() => {
             // drawGuideNumbers(this.player, this.danceChart, this.songManager)
             drawStaff(this.containers, this.textures, this.player, this.danceChart, this.songManager)
-          }, 3000)
-        }).catch(err => console.log(err))
+          }, 5000)
+        }).catch(err => {
+          this.warningText = `An error occured trying to load this chart. Please try again later. \n ${err}`
+          this.warningSnack = true
+        })
       }
     },
     deleteSelectedChart: function (song, chartId) { // removes selected chart from the database
