@@ -607,11 +607,6 @@ export default {
       }
     },
     saveToFirebase: function () { // saves chart to firebase if all information is correct and videoId is unique
-      // these validations make no sense, since all the information comes from the danceChart and not from settings
-
-      // TODO: check everything related to the user type
-      // TODO: check if user is allowed to save the chart under the selected difficulty
-
       let validInformation = this.validateBeforeSaving()
       let chartDuration = this.getChartDuration()
       if (validInformation && this.difficulties.indexOf(this.difficulty) !== -1 && chartDuration < 180 && chartDuration > 60) {
@@ -624,6 +619,7 @@ export default {
             this.dataManager.saveNewChart(this.danceChart, this.player, songId, this.difficulty, this.draft, this.$store.state.user.username)
             this.saved = true
           } else { // if there is the set difficulty for this song id
+            // check if user is allowed to save the chart under the selected difficulty
             if (this.songs[songId].charts[this.difficulty].editable) {
               this.duplicate.song = this.songs[songId]
               this.duplicate.id = songId
@@ -637,7 +633,7 @@ export default {
         }
       } else {
         if (chartDuration > 180 || chartDuration < 60) {
-          this.warningText = 'The duration of your chart is too long. It has to be between 1 and 3 minutes.'
+          this.warningText = 'The duration of your chart has to be between 1 and 3 minutes.'
         } else {
           this.warningText = 'Can\'t save if any information is missing. Check all fields.'
         }
@@ -899,10 +895,17 @@ export default {
         sortedDif[song] = info
       }
 
+      // add information if song is editable or not - it will show up in the client as a color code
       for (let song in sortedDif) {
         for (let chart in sortedDif[song].charts) {
-          if (this.$store.state.user.type === 'admin' || this.$store.state.user.type === 'editor') {
+          if (this.$store.state.user.type === 'admin') { // admins can edit anything
             sortedDif[song].charts[chart].editable = true
+          } else if (this.$store.state.user.type === 'editor') { // editors can't edit the latency test
+            if (sortedDif[song].title === 'Latency Test') {
+              sortedDif[song].charts[chart].editable = false
+            } else {
+              sortedDif[song].charts[chart].editable = true
+            }
           } else {
             if (sortedDif[song].charts[chart].createdBy) {
               if (sortedDif[song].charts[chart].createdBy === this.$store.state.user.username) {
@@ -914,25 +917,6 @@ export default {
           }
         }
       }
-      console.log(sortedDif)
-      // let editableSongs = {}
-      // if (this.$store.state.user.type === 'user') {
-      //   for (let song in sortedDif) {
-      //     let songInfo = this.$store.state.songs[song]
-      //     for (let chart in songInfo.charts) {
-      //       if (songInfo.charts[chart].createdBy) {
-      //         if (songInfo.charts[chart].createdBy === this.$store.state.user.username) {
-      //           editableSongs[song] = songInfo
-      //         }
-      //       }
-      //     }
-      //   }
-      // } else if (this.$store.state.user.type === 'admin' || this.$store.state.user.type === 'editor') {
-      //   editableSongs = sortedDif
-      // } else {
-      //   editableSongs = null
-      // }
-      // return editableSongs
       return sortedDif
     },
     selectedSong: function () { // changes the selected song from the list

@@ -42,7 +42,6 @@
           <v-list-tile v-if="$store.state.user.type === 'admin'" @click="manageUsers = true">
             <v-list-tile-title><v-icon left>assignment_ind</v-icon><span>Users</span></v-list-tile-title>
           </v-list-tile>
-          <!-- TODO: change v-if condition user !== null -->
           <!-- OLD CONDITION: v-if="$store.state.user.type === 'admin' || $store.state.user.type === 'editor'" -->
           <v-list-tile v-if="$store.state.user !== null" @click="goToEditor">
             <v-list-tile-title><v-icon left>edit</v-icon><span>Editor</span></v-list-tile-title>

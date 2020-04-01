@@ -56,6 +56,9 @@
                     <p>Don't forget to be aware of your surroundings and that this website can consume a lot of data (to download the PoseNet model and streaming youtube videos), so you may prefer to use this application using Wi-Fi.</p>
                     <p>I hope you all enjoy this little experiment!</p>
                     <br>
+                    <p>Any thoughts or ideas? Want to contribute for this project?</p>
+                    <a href="mailto:ready2dancegame@gmail.com">Send me an email!</a>
+                    <br>
                     <p class="text-sm-right">Created using Vue.js, Vuetify, Tensorflow's PoseNet, pixi.js and the youtube API by <a target="blank" href="https://github.com/henriquegavabarreto/">Henrique Barreto</a>.</p>
                   </v-card-text>
                 </v-card>
