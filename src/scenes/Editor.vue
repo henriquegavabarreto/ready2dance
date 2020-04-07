@@ -155,6 +155,7 @@
                           <v-flex xs4>
                             <v-btn dark @click="saveToFirebase" class="pt-0">Save Chart</v-btn>
                             <v-btn @click="testChart" :disabled="testable">Test</v-btn>
+                            <v-btn @click="firebaseTests">FIREBASE TESTS</v-btn>
                           </v-flex>
                         </v-layout>
                       </v-card-actions>
@@ -485,6 +486,12 @@ export default {
     this.resize()
   },
   methods: {
+    firebaseTests: function () {
+      // let testUsername = 'rodrigo'
+      // firebase.database.ref('usernames').orderByValue().equalTo(testUsername).once('value', snapshot => {
+      //   console.log(snapshot.val())
+      // })
+    },
     moveToNextQuarterBeat: function () {
       // eslint-disable-next-line
       moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, this.containers, this.textures, 1)

@@ -160,7 +160,7 @@ export default {
       loading: false,
       loadingGuest: false,
       error: null,
-      usernameRules: [ v => (!!/^[a-z0-9_-]/g.test(v) && v.length > 3 && v.length < 17) || 'Alphanumeric lowercase only. Can include _ and – having a length of 4 to 16 characters.' ],
+      usernameRules: [ v => (!!/^[a-z0-9_-]+$/g.test(v) && v.length > 3 && v.length < 17) || 'Alphanumeric lowercase only. Can include _ and – having a length of 4 to 16 characters.' ],
       emailRules: [ v => !!/^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/g.test(v) || 'Enter a valid e-mail address.' ],
       passwordRules: [ v => v.length > 5 || 'The password must be at least 6 characters long.' ]
     }
@@ -178,18 +178,28 @@ export default {
     registerNewUser: function () {
       if (this.$refs.register.validate()) {
         this.loading = true
-        firebase.database.ref('users').orderByChild('username').equalTo(`${this.username}`).once('value', snapshot => {
+        firebase.database.ref('usernames').orderByKey().equalTo(`${this.username}`).once('value', snapshot => {
           if (snapshot.val() === null) { // if there is no user with the chosen username create a new one
-            firebase.auth.createUserWithEmailAndPassword(this.email, this.password).then((result) => { // create new user - the default type is always user
+            firebase.auth.createUserWithEmailAndPassword(this.email, this.password).then((result) => { // create new user - the default type is always user TODO: should type be defined by a cloud function?
               let user = {
                 username: this.username,
                 type: 'user'
               }
+
+              let usernameToSet = {
+                [this.username]: `${result.user.uid}`
+              }
               firebase.database.ref(`users/${result.user.uid}`).set(user).then(() => {
-                this.loading = false
-                this.$store.commit('changeUser', user)
-                this.$store.commit('toggleWelcome', true)
-                this.$store.commit('goToScene', 'song-selection')
+                firebase.database.ref(`usernames`).update(usernameToSet).then(() => {
+                  this.loading = false
+                  this.$store.commit('changeUser', user)
+                  this.$store.commit('toggleWelcome', true)
+                  this.$store.commit('goToScene', 'song-selection')
+                }).catch(err => {
+                  this.loading = false
+                  this.error = err.message
+                  console.log(err)
+                })
               }).catch((err) => {
                 this.loading = false
                 this.error = err.message
@@ -227,7 +237,6 @@ export default {
           this.error = 'Invalid password.'
         }
         this.loading = false
-        console.log(err)
       })
     },
     /* Enter the game with no need of login in, doesn't save points to the
@@ -239,7 +248,7 @@ export default {
     // reset password
     setNewPassword: function () {
       firebase.auth.sendPasswordResetEmail(this.email).then(() => {
-        this.error = 'We sent an e-mail. Change your password and come back here to log in.'
+        this.error = 'We sent you an e-mail. Change your password and come back here to log in.'
       }).catch((err) => {
         if (err.code === 'auth/invalid-email') {
           this.error = 'This e-mail address is invalid. Check if it is correct.'
