@@ -2,7 +2,7 @@
   <div style="min-height: 100vh;" id="background">
     <v-container fluid class="ma-0 pa-0">
       <v-layout row wrap justify-center>
-        <v-flex xs12 md6 style="height: 100%;">
+        <v-flex xs12 md6 class="ma-0 pa-0" style="height: 100%;">
           <v-toolbar dark flat tabs>
             <v-tooltip bottom>
             <template v-slot:activator="{ on }">
@@ -287,8 +287,8 @@
                             </template>
                           </v-text-field>
                           <v-text-field style="width: 74%;" box label="Song BPM" prepend-inner-icon="audiotrack" :placeholder="settings.bpm" v-model="settings.bpm" :rules="timingRules"></v-text-field>
-                          <v-checkbox class="ml-5" color="blue" v-model="enableMetronome">
-                            <template v-slot:label><span class="font-weight-bold">enable metronome ({{ danceChart.bpm }})</span></template>
+                          <v-checkbox class="ma-0" color="blue" v-model="enableMetronome">
+                            <template v-slot:label><span class="font-weight-bold">enable metronome ({{ danceChart.bpm }} BPM)</span></template>
                           </v-checkbox>
                         </v-card-text>
                       </v-form>
