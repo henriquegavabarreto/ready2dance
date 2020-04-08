@@ -31,7 +31,8 @@ export default {
       videoStart: danceChart.videoStart,
       videoEnd: danceChart.videoEnd,
       moves: danceChart.moves.join(' '),
-      updatedAt: new Date().getTime()
+      updatedAt: new Date().getTime(),
+      createdBy: user
     }).then((chartRef) => {
       danceChart.chartId = chartRef.key
       // after having the chart saved, save the song
@@ -62,7 +63,8 @@ export default {
       videoStart: danceChart.videoStart,
       videoEnd: danceChart.videoEnd,
       moves: danceChart.moves.join(' '),
-      updatedAt: new Date().getTime()
+      updatedAt: new Date().getTime(),
+      createdBy: user
     }).then((chartRef) => {
       danceChart.chartId = chartRef.key
       // add the created chartId to the existing songId
@@ -103,7 +105,7 @@ export default {
     danceChart.videoEnd = parseFloat(loadedChart.videoEnd)
     danceChart.videoStart = parseFloat(loadedChart.videoStart)
     danceChart.videoId = loadedChart.videoId
-    danceChart.bpm = parseInt(loadedChart.bpm)
+    danceChart.bpm = parseFloat(loadedChart.bpm)
     settings.offset = danceChart.offset.toString()
     settings.videoStart = danceChart.videoStart.toString()
     settings.videoEnd = danceChart.videoEnd.toString()
@@ -116,7 +118,7 @@ export default {
     danceChart.offset = parseFloat(settings.offset)
     danceChart.videoStart = parseFloat(settings.videoStart)
     danceChart.videoEnd = parseFloat(settings.videoEnd)
-    danceChart.bpm = parseInt(settings.bpm)
+    danceChart.bpm = parseFloat(settings.bpm)
     danceChart.title = settings.title
     danceChart.artist = settings.artist
   },

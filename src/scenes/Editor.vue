@@ -287,6 +287,9 @@
                             </template>
                           </v-text-field>
                           <v-text-field style="width: 74%;" box label="Song BPM" prepend-inner-icon="audiotrack" :placeholder="settings.bpm" v-model="settings.bpm" :rules="timingRules"></v-text-field>
+                          <v-checkbox class="ml-5" color="blue" v-model="enableMetronome">
+                            <template v-slot:label><span class="font-weight-bold">enable metronome ({{ danceChart.bpm }})</span></template>
+                          </v-checkbox>
                         </v-card-text>
                       </v-form>
                     </v-card>
@@ -390,6 +393,7 @@ export default {
       difficulties: [ 'easy', 'medium', 'hard' ],
       difficulty: '',
       draft: true,
+      enableMetronome: false,
       player: null,
       editorApp: null,
       ticker: null,
@@ -418,6 +422,9 @@ export default {
       warningText: '',
       charts: null,
       existingChart: false,
+      audioCtx: null,
+      latestMetronomeBeat: 0,
+      lastBeat: 0,
       settings: { offset: '0', videoStart: '0', videoEnd: '0', bpm: '150', title: '', artist: '' },
       timingRules: [ v => !!/\d*(\.)?\d+$/g.test(v) || 'input must be a valid number.' ],
       songInfoRules: [ v => !!v || 'Required.' ],
@@ -428,6 +435,7 @@ export default {
     this.editorApp = new PIXI.Application(pixiConfig)
     this.ticker = new PIXI.ticker.Ticker()
     this.youtube = new YouTube(process.env.VUE_APP_YT_API)
+    this.audioCtx = new (window.AudioContext || window.webkitAudioContext)()
   },
   mounted () { // set containers, graphics, player and managers. Starts the ticker
     addContainers(this.editorApp, this.containers)
@@ -471,6 +479,20 @@ export default {
 
     this.ticker.add(() => {
       animationManager.animate(this.songManager, this.containers, this.cueManager, this.danceChart)
+      // adds an oscillator to sound the metronome
+      if (this.songManager.currentBeat > this.latestMetronomeBeat && this.enableMetronome && this.songManager.currentBeat !== this.lastBeat) {
+        let oscillator = this.audioCtx.createOscillator()
+        var gainNode = this.audioCtx.createGain()
+        oscillator.connect(gainNode)
+        gainNode.connect(this.audioCtx.destination)
+        oscillator.start()
+        // 0.05 is the length of the note played by the oscillator
+        oscillator.stop(this.audioCtx.currentTime + 0.05)
+        // keep track of the latest metronome beat, so the sound is played every beat
+        this.latestMetronomeBeat++
+        // last beat is here so the ticker is no triggered more than once per beat in case the user seeks the player (there is a delay between seek and player.on('playing') happens)
+        this.lastBeat = this.songManager.currentBeat
+      }
       if (this.player.getState() === 'playing') this.cueManager.drawDynamicCues(this.danceChart.moves, this.textures.cues)
     })
 
@@ -478,6 +500,8 @@ export default {
 
     this.player.on('playing', () => {
       this.cueManager.setCurrentIndex(this.danceChart)
+      // set the latestMetronomeBeat according to the video time if the player seeks
+      this.latestMetronomeBeat = this.songManager.currentRoundBeat
       this.cueManager.holdsToDraw = []
       this.cueManager.movesToDraw = []
     })
@@ -493,20 +517,16 @@ export default {
       // })
     },
     moveToNextQuarterBeat: function () {
-      // eslint-disable-next-line
-      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, this.containers, this.textures, 1)
+      moveToBeat(this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, this.containers, this.textures, 1)
     },
     moveToPreviousQuarterBeat: function () {
-      // eslint-disable-next-line
-      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, this.containers, this.textures, -1)
+      moveToBeat(this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, this.containers, this.textures, -1)
     },
     moveToNextBeat: function () {
-      // eslint-disable-next-line
-      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, this.containers, this.textures, 4)
+      moveToBeat(this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, this.containers, this.textures, 4)
     },
     moveToPreviousBeat: function () {
-      // eslint-disable-next-line
-      moveToBeat (this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, this.containers, this.textures, -4)
+      moveToBeat(this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, this.containers, this.textures, -4)
     },
     playAndPause: function () { // shortcut for play and pause when canvas is selected
       if (!this.selectingArea) {
