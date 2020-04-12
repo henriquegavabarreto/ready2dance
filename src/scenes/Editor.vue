@@ -47,9 +47,230 @@
 
           <v-tabs-items v-model="tabs">
             <v-tab-item>
-              <v-container fluid>
+              <v-container fluid class="ma-0 pa-0">
                 <v-layout row wrap class="scroll-y">
-                  <v-flex xs12>
+                  <v-expansion-panel>
+                    <v-expansion-panel-content class="yellow darken-1 headline font-weight-medium">
+                      <template v-slot:header>
+                        <div>
+                          <v-icon
+                          left
+                          color="black"
+                          >
+                            video_library
+                          </v-icon>
+                          Load Video</div>
+                      </template>
+                      <v-card>
+                        <v-card-actions>
+                          <v-form ref="videoId">
+                            <v-text-field box label="Video ID" prepend-inner-icon="movie" v-model="danceChart.videoId" :rules="songIdRules"></v-text-field>
+                          </v-form>
+                          <v-tooltip right>
+                            <template v-slot:activator="{ on }">
+                              <v-btn fab dark small v-on="on" @click="loadVideoById"  class="mb-4 ml-3">
+                                <v-icon>forward</v-icon>
+                              </v-btn>
+                            </template>
+                            <span class="body-2">Load Video</span>
+                          </v-tooltip>
+                        </v-card-actions>
+                      </v-card>
+                    </v-expansion-panel-content>
+                    <v-expansion-panel-content class="headline yellow darken-1 elevation-5 font-weight-medium">
+                      <template v-slot:header>
+                        <div>
+                          <v-icon
+                          left
+                          color="black"
+                          >
+                            queue_music
+                          </v-icon>
+                          Load Chart</div>
+                      </template>
+                      <v-card>
+                        <v-card-text class="ma-0 pa-0">
+                          <v-container fluid class="ma-0 pa-0">
+                            <v-layout row wrap justify-space-between class="scroll-y ma-0 pa-3" style="max-height: 50vh;">
+                              <v-flex xs5 class="ma-1"
+                                v-for="(song, name) in songs"
+                                :key="song.chartId"
+                                @click="selectVideoId(song)">
+                                <v-card style="border-radius: 10px;" class="blue-grey lighten-5">
+                                  <v-card-title class="title font-weight-bold pb-1">
+                                    {{song.title}}
+                                  </v-card-title>
+                                  <v-card-text class="pt-0 mt-0 body-2 pb-1">
+                                    {{song.artist}}
+                                  </v-card-text>
+                                  <v-card-actions class="ma-0">
+                                    <v-btn
+                                      v-for="(chart, dif) in song.charts"
+                                      :key="dif"
+                                      @click="selectSong(name, chart.id, dif)"
+                                      :class="[selectedChartId === chart.id ? 'darken-1' : '', !chart.editable ? 'red lighten-3 font-weight-bold' : chart.draft ? 'yellow lighten-3 font-weight-bold' : 'green lighten-3 font-weight-bold']"
+                                      small
+                                      style="min-width: 0; width: 75px;"
+                                      >{{dif}}</v-btn>
+                                  </v-card-actions>
+                                </v-card>
+                              </v-flex>
+                            </v-layout>
+                          </v-container>
+                        </v-card-text>
+                        <v-card-actions class="justify-space-around">
+                          <v-btn dark @click="loadChart(selectedSong, selectedChartId)"
+                          :disabled="unableToLoad">Load</v-btn>
+                          <v-btn dark v-if="$store.state.user.type === 'admin'" color="red" @click="deleteChart = true">Delete</v-btn>
+                        </v-card-actions>
+                      </v-card>
+                    </v-expansion-panel-content>
+                    <v-expansion-panel-content class="yellow darken-1 elevation-5 headline font-weight-medium">
+                      <template v-slot:header>
+                        <div>
+                          <v-icon
+                          left
+                          color="black"
+                          >
+                            done_outline
+                          </v-icon>
+                          Save Chart</div>
+                      </template>
+                      <v-card>
+                        <v-card-text>
+                          <v-container grid-list-xs class="ma-0 pa-0">
+                            <v-layout row wrap class="ma-0 pa-0">
+                              <v-flex xs6 class="body-2">
+                                <div :class="danceChart.title === '' ? 'red lighten-3 mt-1 pa-1' : ''">
+                                  Title: {{ danceChart.title }}
+                                </div>
+                                <div :class="danceChart.artist === '' ? 'red lighten-3 mt-1 pa-1' : ''">
+                                  Artist: {{ danceChart.artist }}
+                                </div>
+                                <div class="mt-1 pa-1">
+                                  BPM: {{ danceChart.bpm }}
+                                </div>
+                                <div class="mt-1 pa-1">
+                                  Offset: {{ danceChart.offset }}
+                                </div>
+                                <div class="mt-1 pa-1">
+                                  Start: {{ danceChart.videoStart }}
+                                </div>
+                                <div class="mt-1 pa-1">
+                                  End: {{ danceChart.videoEnd }}
+                                </div>
+                                <div :class="danceChart.moves.length === 0 ? 'red lighten-3 mt-1 pa-1' : ''">
+                                  Beats with moves: {{ danceChart.moves.length }}
+                                </div>
+                              </v-flex>
+                              <v-flex xs6 class="body-2">
+                                <div class="mt-1 pa-1">
+                                  Draft: {{ draft ? 'Yes' : 'No' }}
+                                </div>
+                                <div :class="difficulty === '' ? 'red lighten-3 mt-1 pa-1' : ''">
+                                  Difficulty: {{ difficulty === '' ? 'Not Selected' : difficulty }}
+                                </div>
+                              </v-flex>
+                            </v-layout>
+                          </v-container>
+                        </v-card-text>
+                        <v-card-actions class="pb-0 mb-0">
+                          <v-layout row wrap justify-space-between align-center>
+                            <v-flex xs4>
+                              <v-select
+                                 color="white"
+                                 :items="difficulties"
+                                 label="Difficulty"
+                                 outline
+                                 v-model="difficulty"
+                                 style="max-width: 150px; margin-right: 10px;"
+                               ></v-select>
+                            </v-flex>
+                            <v-flex xs4>
+                              <v-checkbox class="ml-5" color="blue" v-model="draft">
+                                <template v-slot:label><span class="font-weight-bold">draft</span></template>
+                              </v-checkbox>
+                            </v-flex>
+                            <v-flex xs4>
+                              <v-btn dark @click="saveToFirebase" class="pt-0">Save Chart</v-btn>
+                              <v-btn @click="testChart" :disabled="testable">Test</v-btn>
+                              <v-btn @click="firebaseTests">FIREBASE TESTS</v-btn>
+                            </v-flex>
+                          </v-layout>
+                        </v-card-actions>
+                        <v-snackbar
+                          auto-height
+                          v-model="duplicateChart"
+                          class="black--text"
+                          left
+                          color="yellow"
+                          :timeout="0"
+                        >
+                          <p class="pa-0 ma-0">This action will overwrite the existing version of the <span class="font-weight-bold">{{duplicate.difficulty}}</span> chart for <span class="font-weight-bold">{{duplicate.song.title}} / {{duplicate.song.artist}}</span>. Do you want do continue?</p>
+                          <v-btn dark small @click="overwriteChart">YES</v-btn><v-btn dark small @click="duplicateChart = !duplicateChart">NO</v-btn>
+                        </v-snackbar>
+                        <v-snackbar
+                          auto-height
+                          v-model="deleteChart"
+                          class="white--text"
+                          left
+                          color="red"
+                          :timeout="0"
+                          v-if="$store.state.selectedDifficulty"
+                        >
+                          <p class="pa-0 ma-0">This action will delete permanently the existing version of the <span class="font-weight-bold">{{$store.state.selectedDifficulty}}</span> chart for <span class="font-weight-bold">{{selectedSong.title}} / {{selectedSong.artist}}</span>. Do you want do continue?</p>
+                        <v-btn dark small @click="deleteSelectedChart(selectedSong, selectedChartId)">YES</v-btn><v-btn dark small @click="deleteChart = !deleteChart">NO</v-btn>
+                        </v-snackbar>
+                        <v-snackbar
+                          auto-height
+                          v-model="saved"
+                          left
+                          color="green"
+                          :timeout="3000"
+                        >
+                        <v-icon dark>done_outline</v-icon>
+                          SAVED
+                          <v-btn
+                            flat
+                            @click="saved = false"
+                          >
+                          Close
+                          </v-btn>
+                        </v-snackbar>
+                        <v-snackbar
+                          auto-height
+                          v-model="warningSnack"
+                          left
+                          :timeout="5000"
+                        >
+                        <v-icon color="yellow" left>warning</v-icon>
+                          {{ warningText }}
+                          <v-btn
+                            flat
+                            @click="warningSnack = false"
+                          >
+                          Close
+                          </v-btn>
+                        </v-snackbar>
+                        <v-snackbar
+                          v-if="$store.state.selectedSong && $store.state.selectedDifficulty"
+                          auto-height
+                          v-model="existingChart"
+                          color="blue"
+                          :timeout="8000"
+                        >
+                        <p class="pa-0 ma-0">Loading the <span class="font-weight-bold">{{$store.state.selectedDifficulty.toUpperCase()}}</span> chart for <span class="font-weight-bold">{{$store.state.selectedSong.title}} / {{$store.state.selectedSong.artist}}</span></p>
+                          <v-btn
+                            flat
+                            @click="existingChart = false"
+                          >
+                          Close
+                          </v-btn>
+                        </v-snackbar>
+                      </v-card>
+                    </v-expansion-panel-content>
+                  </v-expansion-panel>
+                  <!-- <v-flex xs12>
                     <v-card style="border-radius: 10px;">
                       <v-card-title class="justify-center yellow darken-1 headline font-weight-medium pt-2 pb-2">
                         <v-icon
@@ -74,8 +295,8 @@
                         </v-tooltip>
                       </v-card-actions>
                     </v-card>
-                  </v-flex>
-                  <v-flex xs12>
+                  </v-flex> -->
+                  <!-- <v-flex xs12>
                     <v-card class="mt-2" style="border-radius: 10px;">
                       <v-card-title class="justify-center yellow darken-1 headline font-weight-medium pt-2 pb-2">
                         <v-icon
@@ -118,13 +339,12 @@
                       <v-card-actions class="justify-space-around">
                         <v-btn dark @click="loadChart(selectedSong, selectedChartId)"
                         :disabled="unableToLoad">Load</v-btn>
-                        <!-- TODO: users need to be able to delete their own charts (if not modified by and admin?) -->
                         <v-btn dark v-if="$store.state.user.type === 'admin'" color="red" @click="deleteChart = true">Delete</v-btn>
                       </v-card-actions>
                     </v-card>
-                  </v-flex>
+                  </v-flex> -->
 
-                  <v-flex xs12>
+                  <!-- <v-flex xs12>
                     <v-card style="border-radius: 10px;" class="mt-2">
                       <v-card-title class="justify-center yellow darken-1 headline font-weight-medium pt-2 pb-2">
                         <v-icon
@@ -229,7 +449,7 @@
                         </v-btn>
                       </v-snackbar>
                     </v-card>
-                  </v-flex>
+                  </v-flex> -->
                 </v-layout>
               </v-container>
             </v-tab-item>
@@ -425,7 +645,7 @@ export default {
       audioCtx: null,
       latestMetronomeBeat: 0,
       lastBeat: 0,
-      settings: { offset: '0', videoStart: '0', videoEnd: '0', bpm: '150', title: '', artist: '' },
+      settings: { offset: '0', videoStart: '0', videoEnd: '0', bpm: '200', title: '', artist: '' },
       timingRules: [ v => !!/\d*(\.)?\d+$/g.test(v) || 'input must be a valid number.' ],
       songInfoRules: [ v => !!v || 'Required.' ],
       songIdRules: [ v => v.length === 11 || 'Video IDs have 11 characters.' ]

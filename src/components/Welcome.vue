@@ -50,7 +50,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
   li {
     margin: 10px 5px 10px 5px;
   }
