@@ -104,44 +104,7 @@
       User Status Changed.
       <v-btn dark small @click="userStatusChanged = !userStatusChanged">CLOSE</v-btn>
     </v-snackbar>
-    <!-- welcome dialog that describes some of the apps functionalities and warnings -->
-    <v-dialog
-      v-model="$store.state.welcome"
-      persistent
-      max-width="400"
-    >
-      <v-card style="border-radius: 10px;">
-        <v-card-title class="black headline justify-center white--text font-weight-medium">
-          Welcome to Ready2Dance!
-        </v-card-title>
-
-        <v-card-text class="subheading scroll-y" style="max-height: 60vh;">
-          <p class="text-xs-center pb-3">Thank you for login in! If this is your first time here please read the instructions below!</p>
-          <ul>
-            <li>This website use a lot of data (22~90MB PoseNet + video streaming), so you may prefer to use it on Wi-Fi only to avoid charges from your carrier.</li>
-            <li>This game uses your front camera, so remember to allow it to be used so the game can begin - sometimes adblock or pop-up blockers get on the way.</li>
-            <li>Stay at least 1.8m (6ft) away from the camera, otherwise the movement detection won't work properly.</li>
-            <li>Static clear backgrounds work best for detection as well as good lighting conditions.</li>
-            <li>Every device has a different camera latency. Check your current device latency using your prefered method (<a href="https://www.youtube.com/watch?v=WXud3F-Cuac">this is one</a>) and change it in the settings or try the calibration on settings.</li>
-            <li>Options in settings are not stored, so you will need to set all your preferences again if the page is reloaded or whenever you visit this website again.</li>
-            <li>If you have any problems or suggestions, please contact us.</li>
-          </ul>
-          <p class="text-xs-center pt-3 pb-0 mb-0">Have fun!</p>
-        </v-card-text>
-
-        <v-card-actions class="black justify-center">
-
-          <v-btn
-            class="white"
-            color="green darken-1"
-            flat
-            @click="$store.commit('toggleWelcome', false)"
-          >
-            Close
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <Welcome />
     <!-- settings dialog - where user can change options regarding in game animations and
     posenet configuration
     TODO: when updated to posenet 2.0, change these options to match the package as well -->
@@ -376,10 +339,14 @@
 <script>
 import playerConfig from '../tools/editor/config/youtube-player'
 import firebase from '../tools/config/firebase'
+import Welcome from '../components/Welcome.vue'
 
 const YTPlayer = require('yt-player')
 
 export default {
+  components: {
+    Welcome
+  },
   data () {
     return {
       createdBy: '',
@@ -416,6 +383,9 @@ export default {
     // load all songs from the database in the store on before create lifecicle
     if (this.$store.state.songs === null) {
       this.$store.dispatch('loadSongs')
+    }
+    if (!this.$store.state.welcomeShown) {
+      this.$store.commit('toggleWelcome', true)
     }
   },
   created () {
@@ -467,6 +437,7 @@ export default {
           this.$store.dispatch('loadNet', this.options.multiplier).then(response => {
             this.$store.commit('loadNet', response)
             this.$store.commit('changeOptions', this.options)
+            this.$store.commit('saveOptionsOnStorage')
             this.$store.commit('selectSong', this.selectedSong)
             this.$store.dispatch('changeSelectedChart', this.selectedChart).then(() => {
               this.player.stop()
@@ -485,6 +456,7 @@ export default {
         } else {
           // if there is no need to load a new multiplier for posenet
           this.$store.commit('changeOptions', this.options)
+          this.$store.commit('saveOptionsOnStorage')
           this.$store.commit('selectSong', this.selectedSong)
           this.$store.dispatch('changeSelectedChart', this.selectedChart).then(() => {
             this.player.stop()
@@ -549,6 +521,7 @@ export default {
         this.$store.dispatch('loadNet', this.options.multiplier).then(response => {
           this.$store.commit('loadNet', response)
           this.$store.commit('changeOptions', this.options)
+          this.$store.commit('saveOptionsOnStorage')
           this.$store.dispatch('changeSelectedChart', '-LhMV2qkovpJ_sAFWcRm').then(() => {
             this.player.stop()
             this.player.destroy()
@@ -564,6 +537,7 @@ export default {
         })
       } else {
         this.$store.commit('changeOptions', this.options)
+        this.$store.commit('saveOptionsOnStorage')
         this.$store.dispatch('changeSelectedChart', '-LhMV2qkovpJ_sAFWcRm').then(() => {
           this.player.stop()
           this.player.destroy()

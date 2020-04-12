@@ -45,6 +45,7 @@ export default {
     'error': ErrorPage
   },
   beforeCreate () {
+    this.$store.commit('loadLocalStorage')
     this.$store.dispatch('onStateChange')
   },
   methods: {

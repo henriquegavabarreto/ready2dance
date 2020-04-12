@@ -10,6 +10,7 @@ Vue.use(posenet)
 export default new Vuex.Store({
   state: {
     welcome: false,
+    welcomeShown: false,
     user: null,
     signInState: null,
     net: null,
@@ -112,6 +113,8 @@ export default new Vuex.Store({
     // change latency
     changeLatency: (state, data) => {
       state.gameOptions.latency = data
+      // save latency to local storage when changed using the latency test
+      localStorage.setItem('latency', data)
     },
     // change song scores locally
     changeSongScores: (state, data) => {
@@ -120,6 +123,40 @@ export default new Vuex.Store({
     // change sign in state of an user
     changeState: (state, data) => {
       state.signInState = state
+    },
+    dismissWelcome: state => {
+      // welcome is shown one time only
+      state.welcomeShown = true
+      localStorage.setItem('welcomeShown', true)
+    },
+    loadLocalStorage: state => {
+      // load items from storage or get default values if the storage does not have the item
+      state.welcomeShown = JSON.parse(localStorage.getItem('welcomeShown'))
+      state.gameOptions.showAnimation = localStorage.getItem('showAnimation') || state.gameOptions.showAnimation
+      state.gameOptions.showWebcam = localStorage.getItem('showWebcam') || state.gameOptions.showWebcam
+      state.gameOptions.latency = localStorage.getItem('latency') || state.gameOptions.latency
+      state.gameOptions.multiplier = localStorage.getItem('multiplier') || state.gameOptions.multiplier
+      state.gameOptions.speed = localStorage.getItem('speed') || state.gameOptions.speed
+      state.gameOptions.outputStride = localStorage.getItem('outputStride') || state.gameOptions.outputStride
+      state.gameOptions.imageScale = localStorage.getItem('imageScale') || state.gameOptions.imageScale
+
+      // parse all options in case they come from storage
+      state.gameOptions.showAnimation = JSON.parse(state.gameOptions.showAnimation)
+      state.gameOptions.showWebcam = JSON.parse(state.gameOptions.showWebcam)
+      state.gameOptions.latency = JSON.parse(state.gameOptions.latency)
+      state.gameOptions.multiplier = JSON.parse(state.gameOptions.multiplier)
+      state.gameOptions.speed = JSON.parse(state.gameOptions.speed)
+      state.gameOptions.outputStride = JSON.parse(state.gameOptions.outputStride)
+      state.gameOptions.imageScale = JSON.parse(state.gameOptions.imageScale)
+    },
+    saveOptionsOnStorage: state => { // save game options / settings to local storage
+      localStorage.setItem('showAnimation', state.gameOptions.showAnimation)
+      localStorage.setItem('showWebcam', state.gameOptions.showWebcam)
+      localStorage.setItem('latency', state.gameOptions.latency)
+      localStorage.setItem('multiplier', state.gameOptions.multiplier)
+      localStorage.setItem('speed', state.gameOptions.speed)
+      localStorage.setItem('outputStride', state.gameOptions.outputStride)
+      localStorage.setItem('imageScale', state.gameOptions.imageScale)
     }
   },
   actions: {
@@ -176,11 +213,10 @@ export default new Vuex.Store({
     onStateChange: context => {
       firebase.auth.onAuthStateChanged((userState) => {
         if (userState) {
-          context.commit('toggleWelcome', true)
-          context.commit('goToScene', 'song-selection')
           firebase.database.ref(`users/${userState.uid}`).once('value').then((value) => {
             context.commit('changeUser', value.val())
             context.commit('changeState', userState)
+            context.commit('goToScene', 'song-selection')
           })
         } else {
           context.commit('changeState', userState)

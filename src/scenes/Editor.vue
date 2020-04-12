@@ -625,7 +625,7 @@ export default {
     },
     saveInfo: function () { // this saves the input from the options tab to the danceChart
       if (this.$refs.timing.validate()) {
-        this.moveManager.updateMoves(this.danceChart, parseInt(this.settings.bpm), this.danceChart.offset - parseFloat(this.settings.offset))
+        this.moveManager.updateMoves(this.danceChart, parseFloat(this.settings.bpm), this.danceChart.offset - parseFloat(this.settings.offset))
         this.dataManager.updateDanceChart(this.danceChart, this.settings)
         this.dataManager.updateManagers(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.cueManager)
         this.noteManager.redraw(this.danceChart, this.containers, this.textures)
@@ -641,7 +641,7 @@ export default {
         if (songId === '') { // if there is no song with this videoId
           this.dataManager.saveNewSong(this.danceChart, this.player, this.difficulty, this.draft, this.$store.state.user.username)
           this.saved = true
-        } else {
+        } else { // TODO: TO think about: if the videoId is not unique, the title and artist should be checked too or start and end of the video. There could be a videoId that has more than one song. Should we leave this as is - one song per videoId?
           if (!this.songs[songId].charts.hasOwnProperty(this.difficulty)) { // if the song exists, but this difficulty has not been set
             this.dataManager.saveNewChart(this.danceChart, this.player, songId, this.difficulty, this.draft, this.$store.state.user.username)
             this.saved = true
@@ -662,14 +662,14 @@ export default {
         if (chartDuration > 180 || chartDuration < 60) {
           this.warningText = 'The duration of your chart has to be between 1 and 3 minutes.'
         } else {
-          this.warningText = 'Can\'t save if any information is missing. Check all fields.'
+          this.warningText = 'Can\'t save if any information is missing or inconsistent. Check all fields and apply before saving.'
         }
         this.warningSnack = true
       }
     },
     // returns true if the danceChart has at least title, artist and one move on the chart
     validateBeforeSaving: function () {
-      let valid = this.danceChart.artist !== '' && this.danceChart.title !== '' && this.danceChart.moves.length !== 0
+      let valid = this.danceChart.artist !== '' && this.danceChart.title !== '' && this.danceChart.moves.length !== 0 && this.danceChart.artist === this.settings.artist && this.danceChart.title === this.settings.title && this.danceChart.bpm === parseFloat(this.settings.bpm)
       return valid
     },
     getChartDuration: function () {

@@ -244,6 +244,7 @@ export default {
         this.$store.dispatch('loadNet', this.options.multiplier).then(response => {
           this.$store.commit('loadNet', response)
           this.$store.commit('changeOptions', this.options)
+          this.$store.commit('saveOptionsOnStorage')
           this.$store.commit('goToScene', 'game')
         }, error => {
           console.log(error)
@@ -253,6 +254,7 @@ export default {
         })
       } else {
         this.$store.commit('changeOptions', this.options)
+        this.$store.commit('saveOptionsOnStorage')
         this.$store.commit('goToScene', 'game')
       }
     },
@@ -264,6 +266,7 @@ export default {
         this.$store.dispatch('loadNet', this.options.multiplier).then(response => {
           this.$store.commit('loadNet', response)
           this.$store.commit('changeOptions', this.options)
+          this.$store.commit('saveOptionsOnStorage')
           this.$store.dispatch('changeSelectedChart', '-LhMV2qkovpJ_sAFWcRm').then(() => {
             this.$store.commit('goToScene', 'latency-test')
           })
@@ -275,6 +278,7 @@ export default {
         })
       } else {
         this.$store.commit('changeOptions', this.options)
+        this.$store.commit('saveOptionsOnStorage')
         this.$store.dispatch('changeSelectedChart', '-LhMV2qkovpJ_sAFWcRm').then(() => {
           this.$store.commit('goToScene', 'latency-test')
         })

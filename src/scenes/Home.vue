@@ -193,7 +193,6 @@ export default {
                 firebase.database.ref(`usernames`).update(usernameToSet).then(() => {
                   this.loading = false
                   this.$store.commit('changeUser', user)
-                  this.$store.commit('toggleWelcome', true)
                   this.$store.commit('goToScene', 'song-selection')
                 }).catch(err => {
                   this.loading = false
@@ -224,7 +223,6 @@ export default {
         firebase.database.ref(`users/${result.user.uid}`).once('value').then((value) => {
           this.$store.commit('changeUser', value.val())
           this.loading = false
-          this.$store.commit('toggleWelcome', true)
           this.$store.commit('goToScene', 'song-selection')
         })
       }).catch((err) => { // shows error in the modal dialog in case the user can't log in
@@ -242,7 +240,6 @@ export default {
     /* Enter the game with no need of login in, doesn't save points to the
     database and maybe can't use the (to be implemented) chat feature */
     enterAsGuest: function () {
-      this.$store.commit('toggleWelcome', true)
       this.$store.commit('goToScene', 'song-selection')
     },
     // reset password
