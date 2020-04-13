@@ -13,36 +13,36 @@
             <span class="body-2">Back to Song Selection</span>
             </v-tooltip>
 
-              <v-tabs
-                centered
-                color="transparent"
-                icons-and-text
-                height="55"
-                show-arrows
-                v-model="tabs"
-              >
-                <v-tabs-slider color="yellow"></v-tabs-slider>
+            <v-tabs
+              centered
+              color="transparent"
+              icons-and-text
+              height="55"
+              show-arrows
+              v-model="tabs"
+            >
+              <v-tabs-slider color="yellow"></v-tabs-slider>
 
-                <v-tab>
-                  Save/Load
-                  <v-icon>video_library</v-icon>
-                </v-tab>
+              <v-tab>
+                Save/Load
+                <v-icon>video_library</v-icon>
+              </v-tab>
 
-                <v-tab>
-                  Song Settings
-                  <v-icon>audiotrack</v-icon>
-                </v-tab>
+              <v-tab>
+                Song Settings
+                <v-icon>audiotrack</v-icon>
+              </v-tab>
 
-                <v-tab>
-                  About
-                  <v-icon>info</v-icon>
-                </v-tab>
+              <v-tab>
+                About
+                <v-icon>info</v-icon>
+              </v-tab>
 
-                <v-tab @click="focusOnEditor">
-                  Editor
-                  <v-icon>edit</v-icon>
-                </v-tab>
-              </v-tabs>
+              <v-tab @click="focusOnEditor">
+                Editor
+                <v-icon>edit</v-icon>
+              </v-tab>
+            </v-tabs>
           </v-toolbar>
 
           <v-tabs-items v-model="tabs">
@@ -1108,7 +1108,6 @@ export default {
         videoId: this.player.videoId
       }
       if (this.$store.state.net === null) {
-        this.$store.commit('changeMultiplier', 0.5)
         this.$store.dispatch('loadNet', this.$store.state.gameOptions.multiplier).then(response => {
           this.$store.commit('loadNet', response)
           this.$store.commit('selectSong', dummySong)

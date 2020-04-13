@@ -615,6 +615,19 @@ export default {
     backToPrevious: function () {
       // interrupts the game and goes back to previous scene
       this.stopAndDestroy()
+      // change the current results to be displayed if going back to results
+      if (this.$store.state.previousScene === 'results') {
+        this.$store.commit('changeResults', {
+          perfect: this.perfect,
+          awesome: this.awesome,
+          good: this.good,
+          miss: this.miss,
+          maxCombo: this.maxCombo,
+          score: this.score,
+          maxPoints: this.maxPoints,
+          report: this.report
+        })
+      }
       this.$store.commit('goToScene', this.$store.state.previousScene)
     }
   },

@@ -389,7 +389,7 @@ export default {
     }
   },
   created () {
-    // when this view is loaded, substitute the local setting options according to the options saved at the store
+    // when this view is loaded, substitute the local setting options according to the options saved at the store / localStorage
     this.options.showAnimation = this.$store.state.gameOptions.showAnimation
     this.options.showWebcam = this.$store.state.gameOptions.showWebcam
     this.options.latency = this.$store.state.gameOptions.latency
@@ -398,6 +398,7 @@ export default {
     this.options.imageScale = this.$store.state.gameOptions.imageScale
     if (this.$store.state.gameOptions.multiplier === 0) {
       // not ideal solution, but detects major mobile devices
+      // this only happens when loading this scene for the first time, after that multiplier will be loaded from the local storage
       if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
         // load multiplier 0.5 if mobile device
         this.options.multiplier = 0.5
@@ -405,6 +406,7 @@ export default {
         // load multiplier 0.75 if not mobile
         this.options.multiplier = 0.75
       }
+      this.$store.commit('changeMultiplier', this.options.multiplier)
     } else {
       this.options.multiplier = this.$store.state.gameOptions.multiplier
     }
@@ -433,7 +435,7 @@ export default {
         this.loading = true
         /* if the local settings are different from the store, save the local options to the store
         but alter that only after the new posenet is loaded (if the local multiplier is different from the store) */
-        if (this.options.multiplier !== this.$store.state.gameOptions.multiplier) {
+        if (this.options.multiplier !== this.$store.state.gameOptions.multiplier || this.$store.state.net === null) {
           this.$store.dispatch('loadNet', this.options.multiplier).then(response => {
             this.$store.commit('loadNet', response)
             this.$store.commit('changeOptions', this.options)
@@ -517,7 +519,7 @@ export default {
       })
     },
     goToLatencyCalibration: function () { // similar to goToGame function, but instead loads webcam latency calibration
-      if (this.options.multiplier !== this.$store.state.gameOptions.multiplier) {
+      if (this.options.multiplier !== this.$store.state.gameOptions.multiplier || this.$store.state.net) {
         this.$store.dispatch('loadNet', this.options.multiplier).then(response => {
           this.$store.commit('loadNet', response)
           this.$store.commit('changeOptions', this.options)
