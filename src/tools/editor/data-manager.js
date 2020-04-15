@@ -21,7 +21,7 @@ export default {
     return ''
   },
   // save non existing song - there is no songId
-  saveNewSong: function (danceChart, player, difficulty, draft, user) {
+  saveNewSong: function (danceChart, player, difficulty, draft, user, genre) {
     this.sortDanceChart(danceChart)
     // save chart to firebase first
     firebase.database.ref('charts').push({
@@ -40,6 +40,7 @@ export default {
         title: danceChart.title,
         artist: danceChart.artist,
         createdAt: new Date().getTime(),
+        genre: genre,
         charts: {
           [difficulty]: {
             id: chartRef.key,

@@ -147,12 +147,6 @@
                               <v-container grid-list-xs class="ma-0 pa-0">
                                 <v-layout row wrap class="ma-0 pa-0">
                                   <v-flex xs6 class="body-2 pa-1">
-                                    <div :class="danceChart.title === '' ? 'red lighten-3 mt-1 pa-1' : 'mt-1 pa-1'" style="border-radius: 5px;">
-                                      Title: {{ danceChart.title }}
-                                    </div>
-                                    <div :class="danceChart.artist === '' ? 'red lighten-3 mt-1 pa-1' : 'mt-1 pa-1'" style="border-radius: 5px;">
-                                      Artist: {{ danceChart.artist }}
-                                    </div>
                                     <div class="mt-1 pa-1">
                                       BPM: {{ danceChart.bpm }}
                                     </div>
@@ -165,16 +159,25 @@
                                     <div class="mt-1 pa-1">
                                       End: {{ actualVideoEnd }}
                                     </div>
-                                    <div :class="danceChart.moves.length === 0 ? 'red lighten-3 mt-1 pa-1' : 'mt-1 pa-1'" style="border-radius: 5px;">
-                                      Beats with moves: {{ danceChart.moves.length }}
-                                    </div>
-                                  </v-flex>
-                                  <v-flex xs6 class="body-2 pa-1">
                                     <div class="mt-1 pa-1">
                                       Draft: {{ draft ? 'Yes' : 'No' }}
                                     </div>
                                     <div :class="difficulty === '' ? 'red lighten-3 mt-1 pa-1' : 'mt-1 pa-1'" style="border-radius: 5px;">
                                       Difficulty: {{ difficulty === '' ? 'Not Selected' : difficulty }}
+                                    </div>
+                                    <div :class="danceChart.moves.length === 0 ? 'red lighten-3 mt-1 pa-1' : 'mt-1 pa-1'" style="border-radius: 5px;">
+                                      Beats with moves: {{ danceChart.moves.length }}
+                                    </div>
+                                  </v-flex>
+                                  <v-flex xs6 class="body-2 pa-1">
+                                    <div :class="danceChart.title === '' ? 'red lighten-3 mt-1 pa-1' : 'mt-1 pa-1'" style="border-radius: 5px;">
+                                      Title: {{ danceChart.title }}
+                                    </div>
+                                    <div :class="danceChart.artist === '' ? 'red lighten-3 mt-1 pa-1' : 'mt-1 pa-1'" style="border-radius: 5px;">
+                                      Artist: {{ danceChart.artist }}
+                                    </div>
+                                    <div :class="selectedSongDanceGenre === '' ? 'red lighten-3 mt-1 pa-1' : 'mt-1 pa-1'" style="border-radius: 5px;">
+                                      Genre: {{ selectedSongDanceGenre === '' ? 'Not Selected' : selectedSongDanceGenre }}
                                     </div>
                                   </v-flex>
                                 </v-layout>
@@ -184,9 +187,8 @@
                         </v-card-text>
                         <v-card-actions class="pb-0 mb-0">
                           <v-layout row wrap justify-space-between align-center>
-                            <v-flex xs4>
+                            <v-flex xs3>
                               <v-select
-                                 color="white"
                                  :items="difficulties"
                                  label="Difficulty"
                                  outline
@@ -194,86 +196,26 @@
                                  style="max-width: 150px; margin-right: 10px;"
                                ></v-select>
                             </v-flex>
-                            <v-flex xs4>
+                            <v-flex xs3>
+                              <v-select
+                                 :items="danceGenres"
+                                 label="Genre"
+                                 outline
+                                 v-model="danceGenre"
+                                 style="max-width: 150px; margin-right: 10px;"
+                               ></v-select>
+                            </v-flex>
+                            <v-flex xs3>
                               <v-checkbox class="ml-5" color="blue" v-model="draft" label="draft">
                               </v-checkbox>
                             </v-flex>
-                            <v-flex xs4>
+                            <v-flex xs3>
                               <v-btn dark @click="saveToFirebase" class="pt-0">Save Chart</v-btn>
                               <v-btn @click="testChart" :disabled="testable">Test</v-btn>
                               <v-btn @click="firebaseTests">FIREBASE TESTS</v-btn>
                             </v-flex>
                           </v-layout>
                         </v-card-actions>
-                        <v-snackbar
-                          auto-height
-                          v-model="duplicateChart"
-                          class="black--text"
-                          left
-                          color="yellow"
-                          :timeout="0"
-                        >
-                          <p class="pa-0 ma-0">This action will overwrite the existing version of the <span class="font-weight-bold">{{duplicate.difficulty}}</span> chart for <span class="font-weight-bold">{{duplicate.song.title}} / {{duplicate.song.artist}}</span>. Do you want do continue?</p>
-                          <v-btn dark small @click="overwriteChart">YES</v-btn><v-btn dark small @click="duplicateChart = !duplicateChart">NO</v-btn>
-                        </v-snackbar>
-                        <v-snackbar
-                          auto-height
-                          v-model="deleteChart"
-                          class="white--text"
-                          left
-                          color="red"
-                          :timeout="0"
-                          v-if="$store.state.selectedDifficulty"
-                        >
-                          <p class="pa-0 ma-0">This action will delete permanently the existing version of the <span class="font-weight-bold">{{$store.state.selectedDifficulty}}</span> chart for <span class="font-weight-bold">{{selectedSong.title}} / {{selectedSong.artist}}</span>. Do you want do continue?</p>
-                        <v-btn dark small @click="deleteSelectedChart(selectedSong, selectedChartId)">YES</v-btn><v-btn dark small @click="deleteChart = !deleteChart">NO</v-btn>
-                        </v-snackbar>
-                        <v-snackbar
-                          auto-height
-                          v-model="saved"
-                          left
-                          color="green"
-                          :timeout="3000"
-                        >
-                        <v-icon dark>done_outline</v-icon>
-                          SAVED
-                          <v-btn
-                            flat
-                            @click="saved = false"
-                          >
-                          Close
-                          </v-btn>
-                        </v-snackbar>
-                        <v-snackbar
-                          auto-height
-                          v-model="warningSnack"
-                          left
-                          :timeout="5000"
-                        >
-                        <v-icon color="yellow" left>warning</v-icon>
-                          {{ warningText }}
-                          <v-btn
-                            flat
-                            @click="warningSnack = false"
-                          >
-                          Close
-                          </v-btn>
-                        </v-snackbar>
-                        <v-snackbar
-                          v-if="$store.state.selectedSong && $store.state.selectedDifficulty"
-                          auto-height
-                          v-model="existingChart"
-                          color="blue"
-                          :timeout="8000"
-                        >
-                        <p class="pa-0 ma-0">Loading the <span class="font-weight-bold">{{$store.state.selectedDifficulty.toUpperCase()}}</span> chart for <span class="font-weight-bold">{{$store.state.selectedSong.title}} / {{$store.state.selectedSong.artist}}</span></p>
-                          <v-btn
-                            flat
-                            @click="existingChart = false"
-                          >
-                          Close
-                          </v-btn>
-                        </v-snackbar>
                       </v-card>
                     </v-expansion-panel-content>
                   </v-expansion-panel>
@@ -589,6 +531,75 @@
         <v-flex xs12 md6 class="text-xs-center ma-0 pa-0" id="player">
         </v-flex>
       </v-layout>
+      <v-snackbar
+        auto-height
+        v-model="duplicateChart"
+        class="black--text"
+        left
+        color="yellow"
+        :timeout="0"
+      >
+        <p class="pa-0 ma-0">This action will overwrite the existing version of the <span class="font-weight-bold">{{duplicate.difficulty}}</span> chart for <span class="font-weight-bold">{{duplicate.song.title}} / {{duplicate.song.artist}}</span>. Do you want do continue?</p>
+        <v-btn dark small @click="overwriteChart">YES</v-btn><v-btn dark small @click="duplicateChart = !duplicateChart">NO</v-btn>
+      </v-snackbar>
+      <v-snackbar
+        auto-height
+        v-model="deleteChart"
+        class="white--text"
+        left
+        color="red"
+        :timeout="0"
+        v-if="$store.state.selectedDifficulty"
+      >
+        <p class="pa-0 ma-0">This action will delete permanently the existing version of the <span class="font-weight-bold">{{$store.state.selectedDifficulty}}</span> chart for <span class="font-weight-bold">{{selectedSong.title}} / {{selectedSong.artist}}</span>. Do you want do continue?</p>
+      <v-btn dark small @click="deleteSelectedChart(selectedSong, selectedChartId)">YES</v-btn><v-btn dark small @click="deleteChart = !deleteChart">NO</v-btn>
+      </v-snackbar>
+      <v-snackbar
+        auto-height
+        v-model="saved"
+        left
+        color="green"
+        :timeout="3000"
+      >
+      <v-icon dark>done_outline</v-icon>
+        SAVED
+        <v-btn
+          flat
+          @click="saved = false"
+        >
+        Close
+        </v-btn>
+      </v-snackbar>
+      <v-snackbar
+        auto-height
+        v-model="warningSnack"
+        left
+        :timeout="5000"
+      >
+      <v-icon color="yellow" left>warning</v-icon>
+        {{ warningText }}
+        <v-btn
+          flat
+          @click="warningSnack = false"
+        >
+        Close
+        </v-btn>
+      </v-snackbar>
+      <v-snackbar
+        v-if="$store.state.selectedSong && $store.state.selectedDifficulty"
+        auto-height
+        v-model="existingChart"
+        color="blue"
+        :timeout="8000"
+      >
+      <p class="pa-0 ma-0">Loading the <span class="font-weight-bold">{{$store.state.selectedDifficulty.toUpperCase()}}</span> chart for <span class="font-weight-bold">{{$store.state.selectedSong.title}} / {{$store.state.selectedSong.artist}}</span></p>
+        <v-btn
+          flat
+          @click="existingChart = false"
+        >
+        Close
+        </v-btn>
+      </v-snackbar>
     </v-container>
   </div>
 </template>
@@ -631,6 +642,8 @@ export default {
       tabs: null,
       difficulties: [ 'easy', 'medium', 'hard' ],
       difficulty: '',
+      danceGenres: [ 'parapara', 'techpara', 'trapara' ],
+      danceGenre: '',
       draft: true,
       enableMetronome: false,
       player: null,
@@ -915,10 +928,11 @@ export default {
     saveToFirebase: function () { // saves chart to firebase if all information is correct and videoId is unique
       let validInformation = this.validateBeforeSaving()
       let chartDuration = this.getChartDuration()
-      if (validInformation && this.difficulties.indexOf(this.difficulty) !== -1 && chartDuration < 180 && chartDuration > 60) {
+      // the information needs to be valid, a difficulty must be selected and the song must have a genre if it is the first saving it (see selectedSongDanceGenre in computed properties)
+      if (validInformation && this.difficulties.includes(this.difficulty) && this.selectedSongDanceGenre !== '' && chartDuration < 180 && chartDuration > 60) {
         let songId = this.dataManager.getSongIdByVideoId(this.songs, this.player.videoId)
         if (songId === '') { // if there is no song with this videoId
-          this.dataManager.saveNewSong(this.danceChart, this.player, this.difficulty, this.draft, this.$store.state.user.username)
+          this.dataManager.saveNewSong(this.danceChart, this.player, this.difficulty, this.draft, this.$store.state.user.username, this.danceGenre)
           this.saved = true
         } else { // TODO: TO think about: if the videoId is not unique, the title and artist should be checked too or start and end of the video. There could be a videoId that has more than one song. Should we leave this as is - one song per videoId?
           if (!this.songs[songId].charts.hasOwnProperty(this.difficulty)) { // if the song exists, but this difficulty has not been set
@@ -1270,6 +1284,30 @@ export default {
       } else {
         return this.danceChart.videoEnd
       }
+    },
+    selectedSongDanceGenre: function () {
+      let displayDanceGenre = ''
+      if (this.player) { // check if there is a video in the player
+        for (let song in this.songs) {
+          if (this.songs[song].videoId === this.player.videoId) { // if the videoId is included in the songs
+            if (this.songs[song].genre) { // if there is a genre (genre is a new field that may not always be available)
+              displayDanceGenre = this.songs[song].genre
+              break
+            } else {
+              // genre is not available
+              displayDanceGenre = 'unknown'
+              break
+            }
+          } else {
+            // this song does not exist yet
+            displayDanceGenre = this.danceGenre
+          }
+        }
+      } else {
+        // no video is loaded
+        displayDanceGenre = this.danceGenre
+      }
+      return displayDanceGenre
     }
   }
 }
