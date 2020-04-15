@@ -4,7 +4,7 @@ editor functionalities - as beatArray, pressedKey, selectedCircles and others */
 
 var editorConfig = {
   width: 650,
-  height: 630,
+  height: 600,
   colors: {
     sharp: 0xff0659,
     hold: 0x00c2b5,

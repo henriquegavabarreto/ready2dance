@@ -18,8 +18,7 @@
           <li>Stay at least 1.8m (6ft) away from the camera, otherwise the movement detection won't work properly.</li>
           <li>Static clear backgrounds work best for detection as well as good lighting conditions.</li>
           <li>Every device has a different camera latency. Check your current device latency using your prefered method (<a href="https://www.youtube.com/watch?v=WXud3F-Cuac">this is one</a>) and change it in the settings or try the calibration on settings.</li>
-          <li>Options in settings are not stored, so you will need to set all your preferences again if the page is reloaded or whenever you visit this website again.</li>
-          <li>If you have any problems or suggestions, please send an email to ready2dancegame@gmail.com .</li>
+          <li>If you have any problems, suggestions or if you just want to contribute to this project, please send an email to ready2dancegame@gmail.com .</li>
         </ul>
         <p class="text-xs-center pt-3 pb-0 mb-0">Have fun!</p>
       </v-card-text>

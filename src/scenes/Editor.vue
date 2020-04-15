@@ -91,12 +91,12 @@
                       <v-card>
                         <v-card-text class="ma-0 pa-0">
                           <v-container fluid class="ma-0 pa-0">
-                            <v-layout row wrap justify-space-between class="scroll-y ma-0 pa-3" style="max-height: 50vh;">
+                            <v-layout row wrap justify-space-between class="scroll-y ma-0 pa-3" style="max-height: 60vh;">
                               <v-flex xs5 class="ma-1"
                                 v-for="(song, name) in songs"
                                 :key="song.chartId"
                                 @click="selectVideoId(song)">
-                                <v-card style="border-radius: 10px;" class="blue-grey lighten-5">
+                                <v-card style="border-radius: 10px;" :class="song.videoId === danceChart.videoId ? 'blue lighten-2' : 'blue lighten-5'">
                                   <v-card-title class="title font-weight-bold pb-1">
                                     {{song.title}}
                                   </v-card-title>
@@ -119,7 +119,7 @@
                           </v-container>
                         </v-card-text>
                         <v-card-actions class="justify-space-around">
-                          <v-btn dark @click="loadChart(selectedSong, selectedChartId)"
+                          <v-btn @click="loadChart(selectedSong, selectedChartId)"
                           :disabled="unableToLoad">Load</v-btn>
                           <v-btn dark v-if="$store.state.user.type === 'admin'" color="red" @click="deleteChart = true">Delete</v-btn>
                         </v-card-actions>
@@ -138,41 +138,49 @@
                       </template>
                       <v-card>
                         <v-card-text>
-                          <v-container grid-list-xs class="ma-0 pa-0">
-                            <v-layout row wrap class="ma-0 pa-0">
-                              <v-flex xs6 class="body-2">
-                                <div :class="danceChart.title === '' ? 'red lighten-3 mt-1 pa-1' : ''">
-                                  Title: {{ danceChart.title }}
-                                </div>
-                                <div :class="danceChart.artist === '' ? 'red lighten-3 mt-1 pa-1' : ''">
-                                  Artist: {{ danceChart.artist }}
-                                </div>
-                                <div class="mt-1 pa-1">
-                                  BPM: {{ danceChart.bpm }}
-                                </div>
-                                <div class="mt-1 pa-1">
-                                  Offset: {{ danceChart.offset }}
-                                </div>
-                                <div class="mt-1 pa-1">
-                                  Start: {{ danceChart.videoStart }}
-                                </div>
-                                <div class="mt-1 pa-1">
-                                  End: {{ danceChart.videoEnd }}
-                                </div>
-                                <div :class="danceChart.moves.length === 0 ? 'red lighten-3 mt-1 pa-1' : ''">
-                                  Beats with moves: {{ danceChart.moves.length }}
-                                </div>
-                              </v-flex>
-                              <v-flex xs6 class="body-2">
-                                <div class="mt-1 pa-1">
-                                  Draft: {{ draft ? 'Yes' : 'No' }}
-                                </div>
-                                <div :class="difficulty === '' ? 'red lighten-3 mt-1 pa-1' : ''">
-                                  Difficulty: {{ difficulty === '' ? 'Not Selected' : difficulty }}
-                                </div>
-                              </v-flex>
-                            </v-layout>
-                          </v-container>
+                          <v-card color="grey lighten-3">
+                            <v-card-title primary-title class="justify-center pa-2 title">
+                              Chart Information
+                            </v-card-title>
+                            <v-divider></v-divider>
+                            <v-card-text>
+                              <v-container grid-list-xs class="ma-0 pa-0">
+                                <v-layout row wrap class="ma-0 pa-0">
+                                  <v-flex xs6 class="body-2 pa-1">
+                                    <div :class="danceChart.title === '' ? 'red lighten-3 mt-1 pa-1' : 'mt-1 pa-1'" style="border-radius: 5px;">
+                                      Title: {{ danceChart.title }}
+                                    </div>
+                                    <div :class="danceChart.artist === '' ? 'red lighten-3 mt-1 pa-1' : 'mt-1 pa-1'" style="border-radius: 5px;">
+                                      Artist: {{ danceChart.artist }}
+                                    </div>
+                                    <div class="mt-1 pa-1">
+                                      BPM: {{ danceChart.bpm }}
+                                    </div>
+                                    <div class="mt-1 pa-1">
+                                      Offset: {{ danceChart.offset }}
+                                    </div>
+                                    <div class="mt-1 pa-1">
+                                      Start: {{ danceChart.videoStart }}
+                                    </div>
+                                    <div class="mt-1 pa-1">
+                                      End: {{ actualVideoEnd }}
+                                    </div>
+                                    <div :class="danceChart.moves.length === 0 ? 'red lighten-3 mt-1 pa-1' : 'mt-1 pa-1'" style="border-radius: 5px;">
+                                      Beats with moves: {{ danceChart.moves.length }}
+                                    </div>
+                                  </v-flex>
+                                  <v-flex xs6 class="body-2 pa-1">
+                                    <div class="mt-1 pa-1">
+                                      Draft: {{ draft ? 'Yes' : 'No' }}
+                                    </div>
+                                    <div :class="difficulty === '' ? 'red lighten-3 mt-1 pa-1' : 'mt-1 pa-1'" style="border-radius: 5px;">
+                                      Difficulty: {{ difficulty === '' ? 'Not Selected' : difficulty }}
+                                    </div>
+                                  </v-flex>
+                                </v-layout>
+                              </v-container>
+                            </v-card-text>
+                          </v-card>
                         </v-card-text>
                         <v-card-actions class="pb-0 mb-0">
                           <v-layout row wrap justify-space-between align-center>
@@ -187,8 +195,7 @@
                                ></v-select>
                             </v-flex>
                             <v-flex xs4>
-                              <v-checkbox class="ml-5" color="blue" v-model="draft">
-                                <template v-slot:label><span class="font-weight-bold">draft</span></template>
+                              <v-checkbox class="ml-5" color="blue" v-model="draft" label="draft">
                               </v-checkbox>
                             </v-flex>
                             <v-flex xs4>
@@ -507,9 +514,21 @@
                             </template>
                           </v-text-field>
                           <v-text-field style="width: 74%;" box label="Song BPM" prepend-inner-icon="audiotrack" :placeholder="settings.bpm" v-model="settings.bpm" :rules="timingRules"></v-text-field>
-                          <v-checkbox class="ma-0" color="blue" v-model="enableMetronome">
-                            <template v-slot:label><span class="font-weight-bold">enable metronome ({{ danceChart.bpm }} BPM)</span></template>
-                          </v-checkbox>
+                          <!-- metronome -->
+                          <v-checkbox class="ma-0" color="blue" v-model="enableMetronome" :label="metronomeLabel"></v-checkbox>
+                          <!-- tap bpm -->
+                          <v-card id="bpmCalculator" @keyup.t="calculateBpm" @click="focusOnCalculator" tabindex="0">
+                            <v-card-title primary-title class="py-2 px-0 justify-center subheading">
+                              TAP BPM CALCULATOR
+                            </v-card-title>
+                            <v-divider></v-divider>
+                            <v-card-text class="text-xs-center pa-2">
+                              {{ bpmToShow }}
+                            </v-card-text>
+                            <v-card-actions class="justify-space-around">
+                              <v-btn small color="primary" @click="calculateBpm">tap</v-btn><v-btn small color="primary" @click="resetBpmCounter(true)">reset</v-btn>
+                            </v-card-actions>
+                          </v-card>
                         </v-card-text>
                       </v-form>
                     </v-card>
@@ -645,6 +664,10 @@ export default {
       audioCtx: null,
       latestMetronomeBeat: 0,
       lastBeat: 0,
+      totalBpm: 0,
+      bpmToShow: 'Tap below or select this box and press t',
+      previousTime: 0,
+      clickCounter: 0,
       settings: { offset: '0', videoStart: '0', videoEnd: '0', bpm: '200', title: '', artist: '' },
       timingRules: [ v => !!/\d*(\.)?\d+$/g.test(v) || 'input must be a valid number.' ],
       songInfoRules: [ v => !!v || 'Required.' ],
@@ -730,6 +753,42 @@ export default {
     this.resize()
   },
   methods: {
+    calculateBpm: function () {
+      if (this.previousTime === 0) {
+        // this would be the first click
+        this.previousTime = Date.now()
+        this.bpmToShow = 0
+      } else if (Date.now() - this.previousTime > 2000) {
+        // if too much time has passed since the last click (2 seconds would be 30 bpm)
+        // reset the counter and consider this to be the first click
+        this.resetBpmCounter(true)
+        this.previousTime = Date.now()
+      } else {
+        // raises the counter
+        this.clickCounter++
+        // calculate the delta time
+        let d = Date.now() - this.previousTime
+        // sets the previous time to current time
+        this.previousTime = Date.now()
+        // bpm of the current click (considering the last and current times)
+        let clickBpm = 60 / (d / 1000)
+        // adds this click bpm to totalBpm
+        this.totalBpm = this.totalBpm + clickBpm
+        // bpm will be the average total bpm / number of clicks
+        this.bpmToShow = Math.round(this.totalBpm / this.clickCounter)
+      }
+    },
+    resetBpmCounter: function (showZero) {
+      this.previousTime = 0
+      this.totalBpm = 0
+      this.clickCounter = 0
+      if (showZero) {
+        this.bpmToShow = 0
+      }
+    },
+    focusOnCalculator: function () {
+      document.getElementById('bpmCalculator').focus()
+    },
     firebaseTests: function () {
       // let testUsername = 'rodrigo'
       // firebase.database.ref('usernames').orderByValue().equalTo(testUsername).once('value', snapshot => {
@@ -1183,17 +1242,33 @@ export default {
       }
     },
     unableToLoad: function () {
-      // TODO: maybe unable to load charts should be in red?
-      // write in about the rules to make a chart easy, medium and hard (prerequisites) and maybe check for them before saving
-      if (this.$store.state.user.type === 'admin' || this.$store.state.user.type === 'editor') {
-        return false
+      if (!this.selectedChartId) {
+        return true
       } else {
-        if (this.$store.state.selectedSong && this.$store.state.selectedDifficulty && this.$store.state.selectedSong.charts[this.$store.state.selectedDifficulty].createdBy) {
-          let condition = this.$store.state.selectedSong.charts[this.$store.state.selectedDifficulty].createdBy === this.$store.state.user.username
-          return !condition
+        if (this.$store.state.user.type === 'admin' || this.$store.state.user.type === 'editor') {
+          return false
         } else {
-          return true
+          if (this.$store.state.selectedSong && this.$store.state.selectedDifficulty && this.$store.state.selectedSong.charts[this.$store.state.selectedDifficulty].createdBy) {
+            let condition = this.$store.state.selectedSong.charts[this.$store.state.selectedDifficulty].createdBy === this.$store.state.user.username
+            return !condition
+          } else {
+            return true
+          }
         }
+      }
+    },
+    metronomeLabel: function () {
+      return `enable metronome - ${this.danceChart.bpm} BPM`
+    },
+    actualVideoEnd: function () {
+      if (this.player) {
+        if (this.danceChart.videoEnd === 0) {
+          return this.player.getDuration()
+        } else {
+          return this.danceChart.videoEnd
+        }
+      } else {
+        return this.danceChart.videoEnd
       }
     }
   }
