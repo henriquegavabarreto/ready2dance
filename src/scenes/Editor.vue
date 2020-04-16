@@ -24,17 +24,17 @@
               <v-tabs-slider color="yellow"></v-tabs-slider>
 
               <v-tab>
-                Save/Load
+                Save & Load
                 <v-icon>video_library</v-icon>
               </v-tab>
 
               <v-tab>
-                Song Settings
+                Song & Timing
                 <v-icon>audiotrack</v-icon>
               </v-tab>
 
               <v-tab>
-                About
+                Help
                 <v-icon>info</v-icon>
               </v-tab>
 
@@ -50,33 +50,6 @@
               <v-container fluid class="ma-0 pa-0">
                 <v-layout row wrap class="scroll-y">
                   <v-expansion-panel>
-                    <v-expansion-panel-content class="yellow darken-1 headline font-weight-medium">
-                      <template v-slot:header>
-                        <div>
-                          <v-icon
-                          left
-                          color="black"
-                          >
-                            video_library
-                          </v-icon>
-                          Load Video</div>
-                      </template>
-                      <v-card>
-                        <v-card-actions>
-                          <v-form ref="videoId">
-                            <v-text-field box label="Video ID" prepend-inner-icon="movie" v-model="danceChart.videoId" :rules="songIdRules"></v-text-field>
-                          </v-form>
-                          <v-tooltip right>
-                            <template v-slot:activator="{ on }">
-                              <v-btn fab dark small v-on="on" @click="loadVideoById"  class="mb-4 ml-3">
-                                <v-icon>forward</v-icon>
-                              </v-btn>
-                            </template>
-                            <span class="body-2">Load Video</span>
-                          </v-tooltip>
-                        </v-card-actions>
-                      </v-card>
-                    </v-expansion-panel-content>
                     <v-expansion-panel-content class="headline yellow darken-1 elevation-5 font-weight-medium">
                       <template v-slot:header>
                         <div>
@@ -86,35 +59,65 @@
                           >
                             queue_music
                           </v-icon>
-                          Load Chart</div>
+                          Load</div>
                       </template>
                       <v-card>
                         <v-card-text class="ma-0 pa-0">
                           <v-container fluid class="ma-0 pa-0">
-                            <v-layout row wrap justify-space-between class="scroll-y ma-0 pa-3" style="max-height: 60vh;">
-                              <v-flex xs5 class="ma-1"
-                                v-for="(song, name) in songs"
-                                :key="song.chartId"
-                                @click="selectVideoId(song)">
-                                <v-card style="border-radius: 10px;" :class="song.videoId === danceChart.videoId ? 'blue lighten-2' : 'blue lighten-5'">
-                                  <v-card-title class="title font-weight-bold pb-1">
-                                    {{song.title}}
+                            <v-layout row wrap justify-space-between class="scroll-y ma-0 pa-3" style="max-height: 70vh;">
+                              <!-- load video by id -->
+                              <v-flex xs12>
+                                <v-card>
+                                  <v-card-title>
+                                    Load Video
                                   </v-card-title>
-                                  <v-card-text class="pt-0 mt-0 body-2 pb-1">
-                                    {{song.artist}}
-                                  </v-card-text>
-                                  <v-card-actions class="ma-0">
-                                    <v-btn
-                                      v-for="(chart, dif) in song.charts"
-                                      :key="dif"
-                                      @click="selectSong(name, chart.id, dif)"
-                                      :class="[selectedChartId === chart.id ? 'darken-1' : '', !chart.editable ? 'red lighten-3 font-weight-bold' : chart.draft ? 'yellow lighten-3 font-weight-bold' : 'green lighten-3 font-weight-bold']"
-                                      small
-                                      style="min-width: 0; width: 75px;"
-                                      >{{dif}}</v-btn>
+                                  <v-card-actions class="py-0">
+                                    <v-form ref="videoId">
+                                      <v-text-field box label="Video ID" prepend-inner-icon="movie" v-model="danceChart.videoId" :rules="songIdRules"></v-text-field>
+                                    </v-form>
+                                    <v-tooltip right>
+                                      <template v-slot:activator="{ on }">
+                                        <v-btn fab dark small v-on="on" @click="loadVideoById"  class="mb-4 ml-3">
+                                          <v-icon>forward</v-icon>
+                                        </v-btn>
+                                      </template>
+                                      <span class="body-2">Load Video</span>
+                                    </v-tooltip>
                                   </v-card-actions>
                                 </v-card>
                               </v-flex>
+                              <v-card class="mt-3">
+                                <v-card-title>
+                                  Load Chart
+                                </v-card-title>
+                                <v-card-text>
+                                  <v-layout row wrap class="justify-space-around">
+                                    <v-flex xs5 class="ma-1"
+                                      v-for="(song, name) in songs"
+                                      :key="song.chartId"
+                                      @click="selectVideoId(song)">
+                                      <v-card style="border-radius: 10px;" :class="song.videoId === danceChart.videoId ? 'blue lighten-2' : 'blue lighten-5'">
+                                        <v-card-title class="title font-weight-bold pb-1">
+                                          {{song.title}}
+                                        </v-card-title>
+                                        <v-card-text class="pt-0 mt-0 body-2 pb-1">
+                                          {{song.artist}}
+                                        </v-card-text>
+                                        <v-card-actions class="ma-0">
+                                          <v-btn
+                                            v-for="(chart, dif) in song.charts"
+                                            :key="dif"
+                                            @click="selectSong(name, chart.id, dif)"
+                                            :class="[selectedChartId === chart.id ? 'darken-1' : '', !chart.editable ? 'red lighten-3 font-weight-bold' : chart.draft ? 'yellow lighten-3 font-weight-bold' : 'green lighten-3 font-weight-bold']"
+                                            small
+                                            style="min-width: 0; width: 75px;"
+                                            >{{dif}}</v-btn>
+                                        </v-card-actions>
+                                      </v-card>
+                                    </v-flex>
+                                  </v-layout>
+                                </v-card-text>
+                              </v-card>
                             </v-layout>
                           </v-container>
                         </v-card-text>
@@ -134,7 +137,7 @@
                           >
                             done_outline
                           </v-icon>
-                          Save Chart</div>
+                          Save</div>
                       </template>
                       <v-card>
                         <v-card-text>
@@ -404,9 +407,133 @@
             </v-tab-item>
 
             <v-tab-item>
-              <v-container fluid>
-                <v-layout row wrap justify-space-around>
-                  <v-flex xs5>
+              <v-container fluid class="ma-0 pa-0">
+                <v-layout row wrap justify-space-around class="ma-0 pa-0">
+                  <v-expansion-panel expand focusable>
+                    <v-expansion-panel-content class="headline yellow darken-1 elevation-5 font-weight-medium">
+                      <template v-slot:header>
+                        <div>
+                          <v-icon
+                          left
+                          color="black"
+                          >
+                            music_note
+                          </v-icon>
+                          Song Details</div>
+                      </template>
+                      <v-card>
+                        <v-form ref="songInfo">
+                          <v-card-text class="ma-0 pa-2">
+                            <v-text-field box label="Title" prepend-inner-icon="audiotrack" :placeholder="settings.title" v-model="settings.title" :rules="songInfoRules" error--text="red"></v-text-field>
+                            <v-text-field box label="Artist" prepend-inner-icon="audiotrack" :placeholder="settings.artist" v-model="settings.artist" :rules="songInfoRules"></v-text-field>
+                          </v-card-text>
+                        </v-form>
+                        <v-card-actions class="justify-center">
+                          <v-btn block large color="primary" @click="saveSongInfo">APPLY</v-btn>
+                        </v-card-actions>
+                      </v-card>
+
+                    </v-expansion-panel-content>
+                    <v-expansion-panel-content class="headline yellow darken-1 elevation-5 font-weight-medium">
+                      <template v-slot:header>
+                        <div>
+                          <v-icon
+                          left
+                          color="black"
+                          >
+                            timer
+                          </v-icon>
+                          Timing</div>
+                      </template>
+                      <v-card>
+                        <v-form ref="timing">
+                          <v-card-text class="ma-0 pa-0">
+                            <v-container class="ma-0 pa-0">
+                              <v-layout row wrap class="ma-0 pa-0">
+                                <v-flex xs6 class="px-3 pt-2 align-content-center">
+                                  <v-text-field box label="Video Starting Point" prepend-inner-icon="movie" :placeholder="settings.videoStart" v-model="settings.videoStart" :rules="timingRules">
+                                    <template v-slot:append-outer>
+                                      <v-tooltip right>
+                                        <template v-slot:activator="{ on }">
+                                          <v-btn fab dark small v-on="on" @click="settings.videoStart = player.getCurrentTime().toString()">
+                                            <v-icon>schedule</v-icon>
+                                          </v-btn>
+                                        </template>
+                                        <span class="body-2">Get Current Video Time</span>
+                                      </v-tooltip>
+                                    </template>
+                                  </v-text-field>
+                                  <v-text-field box label="Song Offset" prepend-inner-icon="audiotrack" :placeholder="settings.offset" v-model="settings.offset" :rules="timingRules">
+                                    <template v-slot:append-outer>
+                                      <v-tooltip right>
+                                        <template v-slot:activator="{ on }">
+                                          <v-btn fab dark small v-on="on" @click="settings.offset = player.getCurrentTime().toString()">
+                                            <v-icon>schedule</v-icon>
+                                          </v-btn>
+                                        </template>
+                                        <span class="body-2">Get Current Video Time</span>
+                                      </v-tooltip>
+                                    </template>
+                                  </v-text-field>
+                                </v-flex>
+                                <v-flex xs6 class="px-3 pt-2">
+                                  <v-text-field box label="Video Ending Point" prepend-inner-icon="movie" :placeholder="settings.videoEnd" v-model="settings.videoEnd" :rules="timingRules">
+                                    <template v-slot:append-outer>
+                                      <v-tooltip right>
+                                        <template v-slot:activator="{ on }">
+                                          <v-btn fab dark small v-on="on" @click="settings.videoEnd = player.getCurrentTime().toString()">
+                                            <v-icon>schedule</v-icon>
+                                          </v-btn>
+                                        </template>
+                                        <span class="body-2">Get Current Video Time</span>
+                                      </v-tooltip>
+                                    </template>
+                                  </v-text-field>
+                                  <v-text-field style="width: 74%;" box label="Song BPM" prepend-inner-icon="audiotrack" :placeholder="settings.bpm" v-model="settings.bpm" :rules="timingRules"></v-text-field>
+                                </v-flex>
+                              </v-layout>
+                            </v-container>
+                          </v-card-text>
+                        </v-form>
+                        <v-card-actions class="justify-center">
+                          <v-btn block large color="primary" @click="saveTimingInfo" :disabled="selectingArea">APPLY</v-btn>
+                        </v-card-actions>
+                      </v-card>
+
+                    </v-expansion-panel-content>
+
+                    <v-expansion-panel-content class="headline yellow darken-1 elevation-5 font-weight-medium">
+                      <template v-slot:header>
+                        <div>
+                          <v-icon
+                          left
+                          color="black"
+                          >
+                            build
+                          </v-icon>
+                          Tools</div>
+                      </template>
+                      <v-card>
+                        <v-container>
+                          <v-layout row wrap class="justify-space-around align-center">
+                            <v-flex xs5>
+                              <v-card>
+                                <v-card-text>
+                                  <!-- metronome -->
+                                  <v-checkbox class="ma-0" color="blue" v-model="enableMetronome" :label="metronomeLabel"></v-checkbox>
+                                </v-card-text>
+                              </v-card>
+                            </v-flex>
+                            <v-flex xs5>
+                              <!-- tap bpm -->
+                              <TapBpm></TapBpm>
+                            </v-flex>
+                          </v-layout>
+                        </v-container>
+                      </v-card>
+                    </v-expansion-panel-content>
+                  </v-expansion-panel>
+                  <!-- <v-flex xs5>
                     <v-card style="border-radius: 10px;">
                       <v-card-title class="justify-center yellow darken-1 headline font-weight-medium pt-2 pb-2">
                         <v-icon
@@ -417,62 +544,7 @@
                         </v-icon>
                         Timing
                       </v-card-title>
-                      <v-form ref="timing">
-                        <v-card-text>
-                          <v-text-field box label="Video Starting Point" prepend-inner-icon="movie" :placeholder="settings.videoStart" v-model="settings.videoStart" :rules="timingRules">
-                            <template v-slot:append-outer>
-                              <v-tooltip right>
-                                <template v-slot:activator="{ on }">
-                                  <v-btn fab dark small v-on="on" @click="settings.videoStart = player.getCurrentTime().toString()">
-                                    <v-icon>schedule</v-icon>
-                                  </v-btn>
-                                </template>
-                                <span class="body-2">Get Current Video Time</span>
-                              </v-tooltip>
-                            </template>
-                          </v-text-field>
-                          <v-text-field box label="Video Ending Point" prepend-inner-icon="movie" :placeholder="settings.videoEnd" v-model="settings.videoEnd" :rules="timingRules">
-                            <template v-slot:append-outer>
-                              <v-tooltip right>
-                                <template v-slot:activator="{ on }">
-                                  <v-btn fab dark small v-on="on" @click="settings.videoEnd = player.getCurrentTime().toString()">
-                                    <v-icon>schedule</v-icon>
-                                  </v-btn>
-                                </template>
-                                <span class="body-2">Get Current Video Time</span>
-                              </v-tooltip>
-                            </template>
-                          </v-text-field>
-                          <v-text-field box label="Song Offset" prepend-inner-icon="audiotrack" :placeholder="settings.offset" v-model="settings.offset" :rules="timingRules">
-                            <template v-slot:append-outer>
-                              <v-tooltip right>
-                                <template v-slot:activator="{ on }">
-                                  <v-btn fab dark small v-on="on" @click="settings.offset = player.getCurrentTime().toString()">
-                                    <v-icon>schedule</v-icon>
-                                  </v-btn>
-                                </template>
-                                <span class="body-2">Get Current Video Time</span>
-                              </v-tooltip>
-                            </template>
-                          </v-text-field>
-                          <v-text-field style="width: 74%;" box label="Song BPM" prepend-inner-icon="audiotrack" :placeholder="settings.bpm" v-model="settings.bpm" :rules="timingRules"></v-text-field>
-                          <!-- metronome -->
-                          <v-checkbox class="ma-0" color="blue" v-model="enableMetronome" :label="metronomeLabel"></v-checkbox>
-                          <!-- tap bpm -->
-                          <v-card id="bpmCalculator" @keyup.t="calculateBpm" @click="focusOnCalculator" tabindex="0">
-                            <v-card-title primary-title class="py-2 px-0 justify-center subheading">
-                              TAP BPM CALCULATOR
-                            </v-card-title>
-                            <v-divider></v-divider>
-                            <v-card-text class="text-xs-center pa-2">
-                              {{ bpmToShow }}
-                            </v-card-text>
-                            <v-card-actions class="justify-space-around">
-                              <v-btn small color="primary" @click="calculateBpm">tap</v-btn><v-btn small color="primary" @click="resetBpmCounter(true)">reset</v-btn>
-                            </v-card-actions>
-                          </v-card>
-                        </v-card-text>
-                      </v-form>
+
                     </v-card>
                   </v-flex>
                   <v-flex xs5>
@@ -486,17 +558,8 @@
                         </v-icon>
                         Song
                       </v-card-title>
-                      <v-form ref="songInfo">
-                        <v-card-text>
-                          <v-text-field box label="Title" prepend-inner-icon="audiotrack" :placeholder="settings.title" v-model="settings.title" :rules="songInfoRules" error--text="red"></v-text-field>
-                          <v-text-field box label="Artist" prepend-inner-icon="audiotrack" :placeholder="settings.artist" v-model="settings.artist" :rules="songInfoRules"></v-text-field>
-                        </v-card-text>
-                      </v-form>
                     </v-card>
-                  </v-flex>
-                  <v-flex xs12>
-                    <v-btn block large class="mt-5" @click="saveInfo" :disabled="selectingArea">APPLY</v-btn>
-                  </v-flex>
+                  </v-flex> -->
                 </v-layout>
               </v-container>
             </v-tab-item>
@@ -629,13 +692,15 @@ import * as PIXI from 'pixi.js'
 import firebase from '../tools/config/firebase'
 import dataManager from '../tools/editor/data-manager'
 import EditorInstructions from '../components/EditorInstructions'
+import TapBpm from '../components/TapBpm'
 
 const YTPlayer = require('yt-player')
 const YouTube = require('simple-youtube-api')
 
 export default {
   components: {
-    'instructions': EditorInstructions
+    'instructions': EditorInstructions,
+    'TapBpm': TapBpm
   },
   data () {
     return {
@@ -677,10 +742,6 @@ export default {
       audioCtx: null,
       latestMetronomeBeat: 0,
       lastBeat: 0,
-      totalBpm: 0,
-      bpmToShow: 'Tap below or select this box and press t',
-      previousTime: 0,
-      clickCounter: 0,
       settings: { offset: '0', videoStart: '0', videoEnd: '0', bpm: '200', title: '', artist: '' },
       timingRules: [ v => !!/\d*(\.)?\d+$/g.test(v) || 'input must be a valid number.' ],
       songInfoRules: [ v => !!v || 'Required.' ],
@@ -766,42 +827,6 @@ export default {
     this.resize()
   },
   methods: {
-    calculateBpm: function () {
-      if (this.previousTime === 0) {
-        // this would be the first click
-        this.previousTime = Date.now()
-        this.bpmToShow = 0
-      } else if (Date.now() - this.previousTime > 2000) {
-        // if too much time has passed since the last click (2 seconds would be 30 bpm)
-        // reset the counter and consider this to be the first click
-        this.resetBpmCounter(true)
-        this.previousTime = Date.now()
-      } else {
-        // raises the counter
-        this.clickCounter++
-        // calculate the delta time
-        let d = Date.now() - this.previousTime
-        // sets the previous time to current time
-        this.previousTime = Date.now()
-        // bpm of the current click (considering the last and current times)
-        let clickBpm = 60 / (d / 1000)
-        // adds this click bpm to totalBpm
-        this.totalBpm = this.totalBpm + clickBpm
-        // bpm will be the average total bpm / number of clicks
-        this.bpmToShow = Math.round(this.totalBpm / this.clickCounter)
-      }
-    },
-    resetBpmCounter: function (showZero) {
-      this.previousTime = 0
-      this.totalBpm = 0
-      this.clickCounter = 0
-      if (showZero) {
-        this.bpmToShow = 0
-      }
-    },
-    focusOnCalculator: function () {
-      document.getElementById('bpmCalculator').focus()
-    },
     firebaseTests: function () {
       // let testUsername = 'rodrigo'
       // firebase.database.ref('usernames').orderByValue().equalTo(testUsername).once('value', snapshot => {
@@ -915,7 +940,7 @@ export default {
       }
       this.dataManager.sortDanceChart(this.danceChart)
     },
-    saveInfo: function () { // this saves the input from the options tab to the danceChart
+    saveTimingInfo: function () { // this saves the input from the options tab to the danceChart
       if (this.$refs.timing.validate()) {
         this.moveManager.updateMoves(this.danceChart, parseFloat(this.settings.bpm), this.danceChart.offset - parseFloat(this.settings.offset))
         this.dataManager.updateDanceChart(this.danceChart, this.settings)
@@ -923,6 +948,12 @@ export default {
         this.noteManager.redraw(this.danceChart, this.containers, this.textures)
         // drawGuideNumbers(this.player, this.danceChart, this.songManager)
         drawStaff(this.containers, this.textures, this.player, this.danceChart, this.songManager)
+      }
+    },
+    saveSongInfo: function () {
+      if (this.$refs.songInfo.validate()) {
+        this.danceChart.title = this.settings.title
+        this.danceChart.artist = this.settings.artist
       }
     },
     saveToFirebase: function () { // saves chart to firebase if all information is correct and videoId is unique

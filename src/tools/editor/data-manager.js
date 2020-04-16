@@ -120,8 +120,6 @@ export default {
     danceChart.videoStart = parseFloat(settings.videoStart)
     danceChart.videoEnd = parseFloat(settings.videoEnd)
     danceChart.bpm = parseFloat(settings.bpm)
-    danceChart.title = settings.title
-    danceChart.artist = settings.artist
   },
   // update all managers
   // used when there are changes on the danceChart
