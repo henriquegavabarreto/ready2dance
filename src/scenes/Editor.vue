@@ -221,6 +221,52 @@
                         </v-card-actions>
                       </v-card>
                     </v-expansion-panel-content>
+                    <v-expansion-panel-content v-if="this.$store.state.user.type === 'admin' || this.$store.state.user.type === 'editor'" class="yellow darken-1 elevation-5 headline font-weight-medium">
+                      <template v-slot:header>
+                        <div>
+                          <v-icon
+                          left
+                          color="black"
+                          >
+                            cached
+                          </v-icon>
+                          Update
+                        </div>
+                      </template>
+                        <v-card>
+                          <v-card-text>
+                            <table style="width: 100%; text-align: center;" class="subheading">
+                              <thead>
+                                <tr>
+                                  <th> </th>
+                                  <th>current</th>
+                                  <th>change</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr>
+                                  <td>Title</td>
+                                  <td>{{currentPlayerSong.title || 'none'}}</td>
+                                  <td>{{danceChart.title}}</td>
+                                </tr>
+                                <tr>
+                                  <td>Artist</td>
+                                  <td>{{currentPlayerSong.artist || 'none'}}</td>
+                                  <td>{{danceChart.artist}}</td>
+                                </tr>
+                                <tr>
+                                  <td>Genre</td>
+                                  <td>{{currentPlayerSong.genre || 'none'}}</td>
+                                  <td>{{danceGenre}}</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </v-card-text>
+                          <v-card-actions>
+                            <v-btn @click="updateSongInfo" color="primary" :disabled="danceChart.title === '' || danceChart.artist === '' || danceGenre === ''">update</v-btn>
+                          </v-card-actions>
+                        </v-card>
+                    </v-expansion-panel-content>
                   </v-expansion-panel>
                   <!-- <v-flex xs12>
                     <v-card style="border-radius: 10px;">
@@ -948,12 +994,14 @@ export default {
         this.noteManager.redraw(this.danceChart, this.containers, this.textures)
         // drawGuideNumbers(this.player, this.danceChart, this.songManager)
         drawStaff(this.containers, this.textures, this.player, this.danceChart, this.songManager)
+        this.saved = true
       }
     },
     saveSongInfo: function () {
       if (this.$refs.songInfo.validate()) {
         this.danceChart.title = this.settings.title
         this.danceChart.artist = this.settings.artist
+        this.saved = true
       }
     },
     saveToFirebase: function () { // saves chart to firebase if all information is correct and videoId is unique
@@ -963,12 +1011,20 @@ export default {
       if (validInformation && this.difficulties.includes(this.difficulty) && this.selectedSongDanceGenre !== '' && chartDuration < 180 && chartDuration > 60) {
         let songId = this.dataManager.getSongIdByVideoId(this.songs, this.player.videoId)
         if (songId === '') { // if there is no song with this videoId
-          this.dataManager.saveNewSong(this.danceChart, this.player, this.difficulty, this.draft, this.$store.state.user.username, this.danceGenre)
-          this.saved = true
+          this.dataManager.saveNewSong(this.danceChart, this.player, this.difficulty, this.draft, this.$store.state.user.username, this.danceGenre).then(res => {
+            this.saved = true
+          }).catch(err => {
+            this.warningSnack = true
+            this.warningText = err.message
+          })
         } else { // TODO: TO think about: if the videoId is not unique, the title and artist should be checked too or start and end of the video. There could be a videoId that has more than one song. Should we leave this as is - one song per videoId?
           if (!this.songs[songId].charts.hasOwnProperty(this.difficulty)) { // if the song exists, but this difficulty has not been set
-            this.dataManager.saveNewChart(this.danceChart, this.player, songId, this.difficulty, this.draft, this.$store.state.user.username)
-            this.saved = true
+            this.dataManager.saveNewChart(this.danceChart, this.player, songId, this.difficulty, this.draft, this.$store.state.user.username).then(res => {
+              this.saved = true
+            }).catch(err => {
+              this.warningSnack = true
+              this.warningText = err.message
+            })
           } else { // if there is the set difficulty for this song id
             // check if user is allowed to save the chart under the selected difficulty
             if (this.songs[songId].charts[this.difficulty].editable) {
@@ -1007,13 +1063,25 @@ export default {
     overwriteChart: function () { // updates a danceChart with existing video Id in the database
       let validInformation = this.validateBeforeSaving()
       if (validInformation && this.$refs.videoId.validate() && this.$refs.timing.validate() && this.$refs.songInfo.validate()) {
-        this.dataManager.overwriteChart(this.danceChart, this.duplicate.song.charts[this.difficulty].id, this.duplicate.id, this.duplicate.difficulty, this.draft, this.$store.state.user.username)
-        this.duplicateChart = false
-        this.saved = true
+        this.dataManager.overwriteChart(this.danceChart, this.duplicate.song.charts[this.difficulty].id, this.duplicate.id, this.duplicate.difficulty, this.draft, this.$store.state.user.username).then(res => {
+          this.duplicateChart = false
+          this.saved = true
+        }).catch(err => {
+          this.warningSnack = true
+          this.warningText = err.message
+        })
       } else {
         this.warningText = 'Can\'t save if any information is missing. Check all fields.'
         this.warningSnack = true
       }
+    },
+    updateSongInfo: function () {
+      this.dataManager.updateSongInformation(this.songs, this.player.videoId, this.danceChart, this.danceGenre).then(res => {
+        this.saved = true
+      }).catch(err => {
+        this.warningSnack = true
+        this.warningText = err.message
+      })
     },
     loadVideoById: function () { // loads a video according to the input id
       if (this.$refs.videoId.validate()) {
@@ -1339,6 +1407,38 @@ export default {
         displayDanceGenre = this.danceGenre
       }
       return displayDanceGenre
+    },
+    currentPlayerSong: function () {
+      if (this.player) {
+        if (this.player.videoId) {
+          let songId = this.dataManager.getSongIdByVideoId(this.songs, this.player.videoId)
+          if (songId !== '') {
+            // return the song that has the loaded video id
+            return this.songs[songId]
+          } else {
+            // there is no song with this video id
+            return {
+              title: 'N/A',
+              artist: 'N/A',
+              genre: 'N/A'
+            }
+          }
+        } else {
+          // there is no videoId in the player
+          return {
+            title: 'N/A',
+            artist: 'N/A',
+            genre: 'N/A'
+          }
+        }
+      } else {
+        // the player is not yet loaded
+        return {
+          title: 'N/A',
+          artist: 'N/A',
+          genre: 'N/A'
+        }
+      }
     }
   }
 }
@@ -1347,5 +1447,9 @@ export default {
 #background {
   background: rgb(3,3,3);
   background: linear-gradient(140deg, rgba(3,3,3,1) 0%, rgba(139,0,232,1) 6%, rgba(211,146,255,1) 12%, rgba(139,0,232,1) 18%, rgba(0,0,0,1) 46%, rgba(0,0,0,1) 55% ,rgba(29,240,255,1) 82%, rgba(146,250,255,1) 92%, rgba(29,240,255,1) 96%, rgba(0,0,0,1) 100%);
+}
+
+th {
+  padding-bottom: 15px;
 }
 </style>

@@ -24,7 +24,7 @@ export default {
   saveNewSong: function (danceChart, player, difficulty, draft, user, genre) {
     this.sortDanceChart(danceChart)
     // save chart to firebase first
-    firebase.database.ref('charts').push({
+    return firebase.database.ref('charts').push({
       offset: danceChart.offset,
       bpm: danceChart.bpm,
       videoId: player.videoId,
@@ -36,7 +36,7 @@ export default {
     }).then((chartRef) => {
       danceChart.chartId = chartRef.key
       // after having the chart saved, save the song
-      firebase.database.ref('songs').push({
+      return firebase.database.ref('songs').push({
         title: danceChart.title,
         artist: danceChart.artist,
         createdAt: new Date().getTime(),
@@ -51,13 +51,13 @@ export default {
         videoId: player.videoId
       }).then((songRef) => {
         danceChart.songId = songRef.key
-      }).catch(err => alert(err))
-    }).catch(err => alert(err))
+      })
+    })
   },
   // save new chart to existing song - songId exists
   saveNewChart: function (danceChart, player, songId, difficulty, draft, user) {
     this.sortDanceChart(danceChart)
-    firebase.database.ref('charts').push({
+    return firebase.database.ref('charts').push({
       offset: danceChart.offset,
       bpm: danceChart.bpm,
       videoId: player.videoId,
@@ -69,7 +69,7 @@ export default {
     }).then((chartRef) => {
       danceChart.chartId = chartRef.key
       // add the created chartId to the existing songId
-      firebase.database.ref('songs/' + songId).child('charts').update({
+      return firebase.database.ref('songs/' + songId).child('charts').update({
         [difficulty]: {
           id: chartRef.key,
           draft: draft,
@@ -77,13 +77,14 @@ export default {
         }
       }).then(() => {
         danceChart.songId = songId
-      }).catch(err => alert(err))
-    }).catch(err => alert(err))
+      })
+    })
   },
   // overwrites an existing danceChart
   overwriteChart: function (danceChart, chartId, songId, difficulty, draft, user) {
     this.sortDanceChart(danceChart)
-    firebase.database.ref('charts').child(`${chartId}`).update({
+    let promises = []
+    promises.push(firebase.database.ref('charts').child(`${chartId}`).update({
       offset: danceChart.offset,
       bpm: danceChart.bpm,
       videoStart: danceChart.videoStart,
@@ -91,10 +92,21 @@ export default {
       moves: danceChart.moves.join(' '),
       updatedAt: new Date().getTime(),
       lastUpdatedBy: user
-    }).catch((err) => { alert(err) })
-    firebase.database.ref(`songs/${songId}/charts`).child(`${difficulty}`).update({
+    }))
+
+    promises.push(firebase.database.ref(`songs/${songId}/charts`).child(`${difficulty}`).update({
       draft: draft
-    }).catch((err) => { alert(err) })
+    }))
+
+    return Promise.all(promises)
+  },
+  updateSongInformation: function (songs, videoId, danceChart, genre) {
+    let songId = this.getSongIdByVideoId(songs, videoId)
+    return firebase.database.ref('songs/' + songId).update({
+      title: danceChart.title,
+      artist: danceChart.artist,
+      genre: genre
+    })
   },
   // updates danceChart locally based on a loadedChart
   // updates settings based on the updated danceChart
