@@ -12,7 +12,7 @@ export default class CueManager {
 
   // this function litteraly draws the cues in the canvas
   // Helper function to be used in the functions below
-  drawCue (handMove, size, cues) { // draw circle cues
+  drawCue (hand, handMove, size, cues) { // draw circle cues
     if (handMove[0] === 'S' && handMove.length > 1) {
       cues.lineStyle(this.config.cue.lineWidth, this.config.colors.sharp, 1)
       cues.drawCircle(this.grid[handMove[1]].x, this.grid[handMove[1]].y, size)
@@ -59,8 +59,8 @@ export default class CueManager {
           let rightHand = this.movesToDraw[i][3]
 
           let size = this.config.cue.size * proportion
-          if (rightHand !== 'X') this.drawCue(rightHand, size, cues)
-          if (leftHand !== 'X') this.drawCue(leftHand, size, cues)
+          if (rightHand !== 'X') this.drawCue('R', rightHand, size, cues)
+          if (leftHand !== 'X') this.drawCue('L', leftHand, size, cues)
         }
       }
     }

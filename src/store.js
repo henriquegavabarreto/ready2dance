@@ -12,12 +12,13 @@ export default new Vuex.Store({
     welcome: false,
     welcomeShown: false,
     user: null,
-    signInState: null,
+    uid: null,
     net: null,
     songs: null,
     songScores: 'Select a song!',
     somethingWentWrong: false,
     wrongMessage: '',
+    selectedSongId: null,
     selectedSong: null,
     selectedChartId: null,
     selectedChart: null,
@@ -43,6 +44,10 @@ export default new Vuex.Store({
     // change user according to user that logged in
     changeUser: (state, data) => {
       state.user = data
+    },
+    // change selectedSongId
+    selectSongId: (state, data) => {
+      state.selectedSongId = data
     },
     // changes selected song object
     selectSong: (state, data) => {
@@ -122,7 +127,7 @@ export default new Vuex.Store({
     },
     // change sign in state of an user
     changeState: (state, data) => {
-      state.signInState = state
+      state.uid = data
     },
     dismissWelcome: state => {
       // welcome is shown one time only
@@ -215,11 +220,11 @@ export default new Vuex.Store({
         if (userState) {
           firebase.database.ref(`users/${userState.uid}`).once('value').then((value) => {
             context.commit('changeUser', value.val())
-            context.commit('changeState', userState)
+            context.commit('changeState', userState.uid)
             context.commit('goToScene', 'song-selection')
           })
         } else {
-          context.commit('changeState', userState)
+          context.commit('changeState', null)
           context.commit('goToScene', 'home')
         }
       })

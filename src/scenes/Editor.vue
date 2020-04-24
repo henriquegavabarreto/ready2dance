@@ -124,7 +124,7 @@
                         <v-card-actions class="justify-space-around">
                           <v-btn @click="loadChart(selectedSong, selectedChartId)"
                           :disabled="unableToLoad">Load</v-btn>
-                          <v-btn dark v-if="$store.state.user.type === 'admin'" color="red" @click="deleteChart = true">Delete</v-btn>
+                          <v-btn dark v-if="$store.state.user.type === 'admin'" color="red" @click="selectToDelete()">Delete</v-btn>
                         </v-card-actions>
                       </v-card>
                     </v-expansion-panel-content>
@@ -660,8 +660,8 @@
         :timeout="0"
         v-if="$store.state.selectedDifficulty"
       >
-        <p class="pa-0 ma-0">This action will delete permanently the existing version of the <span class="font-weight-bold">{{$store.state.selectedDifficulty}}</span> chart for <span class="font-weight-bold">{{selectedSong.title}} / {{selectedSong.artist}}</span>. Do you want do continue?</p>
-      <v-btn dark small @click="deleteSelectedChart(selectedSong, selectedChartId)">YES</v-btn><v-btn dark small @click="deleteChart = !deleteChart">NO</v-btn>
+        <p class="pa-0 ma-0">This action will delete permanently the existing version of the <span class="font-weight-bold">{{toDelete.dif}}</span> chart for <span v-if="songs[toDelete.songId]" class="font-weight-bold">{{songs[toDelete.songId].title}} / {{songs[toDelete.songId].artist}}</span>. Do you want do continue?</p>
+      <v-btn dark small @click="deleteSelectedChart()">YES</v-btn><v-btn dark small @click="deleteChart = !deleteChart">NO</v-btn>
       </v-snackbar>
       <v-snackbar
         auto-height
@@ -683,7 +683,7 @@
         auto-height
         v-model="warningSnack"
         left
-        :timeout="5000"
+        :timeout="0"
       >
       <v-icon color="yellow" left>warning</v-icon>
         {{ warningText }}
@@ -778,6 +778,11 @@ export default {
           title: '',
           artist: ''
         }
+      },
+      toDelete: {
+        songId: '',
+        chartId: '',
+        dif: ''
       },
       deleteChart: false,
       saved: false,
@@ -1011,7 +1016,7 @@ export default {
       if (validInformation && this.difficulties.includes(this.difficulty) && this.selectedSongDanceGenre !== '' && chartDuration < 180 && chartDuration > 60) {
         let songId = this.dataManager.getSongIdByVideoId(this.songs, this.player.videoId)
         if (songId === '') { // if there is no song with this videoId
-          this.dataManager.saveNewSong(this.danceChart, this.player, this.difficulty, this.draft, this.$store.state.user.username, this.danceGenre).then(res => {
+          this.dataManager.saveNewSong(this.danceChart, this.player, this.difficulty, this.draft, this.$store.state.user.username, this.danceGenre, this.$store.state.uid).then(res => {
             this.saved = true
           }).catch(err => {
             this.warningSnack = true
@@ -1158,6 +1163,7 @@ export default {
       }
     },
     selectSong: function (songId, chartId, dif) { // changes selected song in the store with the given song id
+      this.$store.commit('selectSongId', songId)
       this.$store.commit('selectSong', this.songs[songId])
       this.$store.commit('selectDifficulty', dif)
       this.$store.commit('selectChart', chartId)
@@ -1195,17 +1201,43 @@ export default {
         })
       }
     },
-    deleteSelectedChart: function (song, chartId) { // removes selected chart from the database
+    // select chart that user wants to delete
+    selectToDelete: function () {
+      this.toDelete.songId = this.$store.state.selectedSongId
+      this.toDelete.chartId = this.$store.state.selectedChartId
+      this.toDelete.dif = this.$store.state.selectedDifficulty
+
+      this.deleteChart = true
+    },
+    deleteSelectedChart: function () { // removes selected chart from the database
       // check if user is allowed to do that
-      let songId = this.dataManager.getSongIdByVideoId(this.songs, song.videoId)
+      let songId = this.toDelete.songId
+      let chartId = this.toDelete.chartId
+      let selectedDif = this.toDelete.dif
+
       if (chartId !== '') {
-        let key = Object.keys(this.songs[songId].charts).find(key => this.songs[songId].charts[key].id === chartId)
         if (Object.keys(this.songs[songId].charts).length === 1) {
+          // scores should all be deleted if the song is deleted
+          if (this.songs[songId].scores) {
+            for (let dif in this.songs[songId].scores) {
+              firebase.database.ref(`scores/${this.songs[songId].scores[dif]}`).remove()
+            }
+          }
           firebase.database.ref(`charts/${chartId}`).remove()
           firebase.database.ref(`songs/${songId}`).remove()
+          firebase.database.ref(`users/${this.$store.state.uid}/createdSongs/${songId}`).remove()
+          // When the songId is added to user/createdSongs, it should be removed at this time
         } else {
+          // remove score if the chart is removed and if it exists
+          if (this.songs[songId].scores) {
+            if (this.songs[songId].scores[selectedDif]) {
+              firebase.database.ref(`scores/${this.songs[songId].scores[selectedDif]}`).remove()
+            }
+          }
+          // remove chart from database
           firebase.database.ref(`charts/${chartId}`).remove()
-          firebase.database.ref(`songs/${songId}/charts/${key}`).remove()
+          // remove chart reference from the song
+          firebase.database.ref(`songs/${songId}/charts/${selectedDif}`).remove()
         }
         this.deleteChart = false
       }
