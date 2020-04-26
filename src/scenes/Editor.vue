@@ -1267,7 +1267,6 @@ export default {
           this.destroyAll()
           this.$store.commit('goToScene', 'game')
         }, error => {
-          console.log(error)
           this.$store.commit('changeWrongMessage', 'Due to a problem with PoseNet the game is not available right now. Please try it again later.')
           this.$store.commit('somethingWentWrong')
         })

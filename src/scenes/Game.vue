@@ -309,7 +309,10 @@ export default {
                 this.holdingLeft = false
               }
               if (this.gameOptions.showAnimation) giveFeedback(leftHandMove, rightHandMove, leftHitType, rightHitType, this.containers.feedback, this.textures)
-            }).catch((err) => { console.log(err) })
+            }).catch((err) => {
+              this.$store.commit('somethingWentWrong')
+              this.$store.commit('changeWrongMessage', `Couldn't save scores at this time. \n ${err.message}`)
+            })
             this.promiseArray = []
           }
           this.moveIndex++
@@ -396,8 +399,14 @@ export default {
                   scores: {
                     [this.$store.state.selectedDifficulty]: scoreRef.key
                   }
-                }).catch((err) => { console.log(err) })
-              }).catch((err) => { console.log(err) })
+                }).catch((err) => {
+                  this.$store.commit('somethingWentWrong')
+                  this.$store.commit('changeWrongMessage', `Couldn't save scores at this time. \n ${err.message}`)
+                })
+              }).catch((err) => {
+                this.$store.commit('somethingWentWrong')
+                this.$store.commit('changeWrongMessage', `Couldn't save scores at this time. \n ${err.message}`)
+              })
             } else { // if there are scores for the song
               // if selected difficulty already has scores
               if (this.$store.state.songs[song].scores.hasOwnProperty(this.$store.state.selectedDifficulty)) {
@@ -408,7 +417,10 @@ export default {
                       [this.$store.state.user.username]: this.score
                     }).then(() => {
                       this.$store.dispatch('updateSongScores', scoreId)
-                    }).catch((err) => { console.log(err) })
+                    }).catch((err) => {
+                      this.$store.commit('somethingWentWrong')
+                      this.$store.commit('changeWrongMessage', `Couldn't save scores at this time. \n ${err.message}`)
+                    })
                   } else { // if the user has a score already
                     let currentScore = data.val()[this.$store.state.user.username]
                     if (this.score > currentScore) { // update only if score is larger
@@ -416,7 +428,10 @@ export default {
                         [this.$store.state.user.username]: this.score
                       }).then(() => {
                         this.$store.dispatch('updateSongScores', scoreId)
-                      }).catch((err) => { console.log(err) })
+                      }).catch((err) => {
+                        this.$store.commit('somethingWentWrong')
+                        this.$store.commit('changeWrongMessage', `Couldn't save scores at this time. \n ${err.message}`)
+                      })
                     } else {
                       this.$store.dispatch('updateSongScores', scoreId)
                     }
@@ -430,8 +445,14 @@ export default {
                   this.$store.dispatch('updateSongScores', scoreRef.key)
                   firebase.database.ref(`songs/${song}/scores`).update({
                     [this.$store.state.selectedDifficulty]: scoreRef.key
-                  }).catch((err) => { console.log(err) })
-                }).catch((err) => { console.log(err) })
+                  }).catch((err) => {
+                    this.$store.commit('somethingWentWrong')
+                    this.$store.commit('changeWrongMessage', `Couldn't save scores at this time. \n ${err.message}`)
+                  })
+                }).catch((err) => {
+                  this.$store.commit('somethingWentWrong')
+                  this.$store.commit('changeWrongMessage', `Couldn't save scores at this time. \n ${err.message}`)
+                })
               }
             }
           }
@@ -582,7 +603,6 @@ export default {
             } else {
               errorMessage = 'Something went wrong... Check if you have a camera, if it\'s working and that this website can use it. Check your settings and try again.'
             }
-            console.log(err.name, err.message)
             this.$store.commit('changeWrongMessage', errorMessage)
             this.$store.commit('somethingWentWrong')
             this.$store.commit('goToScene', 'song-selection')
