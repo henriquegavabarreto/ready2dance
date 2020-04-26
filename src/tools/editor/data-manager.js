@@ -8,18 +8,6 @@ export default {
       return a[0] - b[0]
     })
   },
-  // returns the songId for a given videoId from the song list
-  // used when loading, saving and deleting charts
-  getSongIdByVideoId: function (songs, videoId) {
-    if (songs !== null) {
-      for (var songId in songs) {
-        if (songs[songId].videoId === videoId) {
-          return songId
-        }
-      }
-    }
-    return ''
-  },
   // save non existing song - there is no songId
   saveNewSong: function (danceChart, player, difficulty, draft, user, genre, uid) {
     this.sortDanceChart(danceChart)
@@ -36,23 +24,25 @@ export default {
       danceChart.chartId = chartRef.key
       // after having the chart saved, save the song
       return firebase.database.ref('songs').push({
-        title: danceChart.title,
-        artist: danceChart.artist,
-        createdAt: new Date().getTime(),
-        updatedAt: new Date().getTime(),
-        createdBy: user,
-        genre: genre,
+        general: {
+          title: danceChart.title,
+          artist: danceChart.artist,
+          createdAt: new Date().getTime(),
+          updatedAt: new Date().getTime(),
+          createdBy: user,
+          genre: genre,
+          videoId: player.videoId
+        },
         charts: {
           [difficulty]: {
             id: chartRef.key,
             draft: draft
           }
-        },
-        videoId: player.videoId
+        }
       }).then((songRef) => {
         danceChart.songId = songRef.key
-        // TODO: set in user createdSongs songId: true
-        return firebase.database.ref(`users/${uid}/createdSongs`).set({ [songRef.key]: true })
+        // add songId to user created songs
+        return firebase.database.ref(`users/${uid}/createdSongs`).update({ [songRef.key]: true })
       })
     })
   },
@@ -77,7 +67,7 @@ export default {
         }
       }).then(() => {
         danceChart.songId = songId
-        return firebase.database.ref('songs/' + songId).update({
+        return firebase.database.ref('songs/' + songId + '/general').update({
           updatedAt: new Date().getTime()
         })
       })
@@ -101,7 +91,7 @@ export default {
       draft: draft
     }))
 
-    promises.push(firebase.database.ref('songs/' + songId).update({
+    promises.push(firebase.database.ref(`songs/${songId}/general`).update({
       updatedAt: new Date().getTime()
     }))
 
@@ -110,7 +100,7 @@ export default {
   // updates title, artist and genre in the song
   updateSongInformation: function (songs, videoId, danceChart, genre) {
     let songId = this.getSongIdByVideoId(songs, videoId)
-    return firebase.database.ref('songs/' + songId).update({
+    return firebase.database.ref(`songs/${songId}/general`).update({
       title: danceChart.title,
       artist: danceChart.artist,
       genre: genre,

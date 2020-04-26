@@ -32,6 +32,7 @@ import Results from './scenes/Results'
 import Home from './scenes/Home'
 import LatencyTest from './scenes/LatencyTest'
 import ErrorPage from './scenes/ErrorPage'
+import Maintenance from './scenes/Maintenance'
 
 export default {
   name: 'App',
@@ -42,11 +43,22 @@ export default {
     'results': Results,
     'home': Home,
     'latency-test': LatencyTest,
-    'error': ErrorPage
+    'error': ErrorPage,
+    'maintenance': Maintenance
   },
-  beforeCreate () {
-    this.$store.commit('loadLocalStorage')
-    this.$store.dispatch('onStateChange')
+  data () {
+    return {
+      maintenanceMode: true
+    }
+  },
+  created () {
+    if (this.maintenanceMode) {
+      this.$store.commit('goToScene', 'maintenance')
+    } else {
+      this.$store.commit('goToScene', 'home')
+      this.$store.commit('loadLocalStorage')
+      this.$store.dispatch('onStateChange')
+    }
   },
   methods: {
     toggleWrong: function () {

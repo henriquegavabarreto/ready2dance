@@ -33,7 +33,7 @@ export default new Vuex.Store({
       imageScale: 0.5,
       speed: 1
     },
-    currentScene: 'home',
+    currentScene: '',
     previousScene: ''
   },
   mutations: {
