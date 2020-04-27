@@ -95,7 +95,7 @@ export default new Vuex.Store({
     },
     // toggle something went wrong to show error message
     somethingWentWrong: state => {
-      state.somethingWentWrong = true
+      state.somethingWentWrong = !state.somethingWentWrong
     },
     // change wrong message content
     changeWrongMessage: (state, data) => {

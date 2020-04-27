@@ -38,7 +38,7 @@
                 <li class="pb-2"><h3 class="title font-weight-bold">SONG</h3></li>
                 <li>
                   <ul style="list-style-type: none; border: 2px solid white; border-radius: 5px;" class="pa-2 headline font-weight-regular">
-                    <li>{{song.title}} / {{song.artist}}</li>
+                    <li>{{song.general.title}} / {{song.general.artist}}</li>
                   </ul>
                 </li>
               </ul>
@@ -311,7 +311,7 @@ export default {
               if (this.gameOptions.showAnimation) giveFeedback(leftHandMove, rightHandMove, leftHitType, rightHitType, this.containers.feedback, this.textures)
             }).catch((err) => {
               this.$store.commit('somethingWentWrong')
-              this.$store.commit('changeWrongMessage', `Couldn't save scores at this time. \n ${err.message}`)
+              this.$store.commit('changeWrongMessage', `${err.message}`)
             })
             this.promiseArray = []
           }

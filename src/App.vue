@@ -48,7 +48,7 @@ export default {
   },
   data () {
     return {
-      maintenanceMode: true
+      maintenanceMode: false
     }
   },
   created () {

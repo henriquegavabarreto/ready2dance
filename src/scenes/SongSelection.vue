@@ -39,10 +39,6 @@
           </v-list-tile>
         </v-list>
         <v-list class="py-0" v-if="$store.state.user !== null">
-          <v-list-tile v-if="$store.state.user.type === 'admin'" @click="manageUsers = true">
-            <v-list-tile-title><v-icon left>assignment_ind</v-icon><span>Users</span></v-list-tile-title>
-          </v-list-tile>
-          <!-- OLD CONDITION: v-if="$store.state.user.type === 'admin' || $store.state.user.type === 'editor'" -->
           <v-list-tile v-if="$store.state.user !== null" @click="goToEditor">
             <v-list-tile-title><v-icon left>edit</v-icon><span>Editor</span></v-list-tile-title>
           </v-list-tile>
@@ -54,34 +50,6 @@
         </v-list>
       </v-menu>
     </v-toolbar>
-    <!-- user management dialog - fill text field with user name and click button with the desired user type -->
-    <v-dialog
-      v-model="manageUsers"
-      max-width="400"
-      min-height="500"
-    >
-      <v-card style="border-radius: 10px;">
-        <v-card-title class="cyan headline justify-center white--text font-weight-medium">
-          Manage Users
-        </v-card-title>
-
-        <v-card-text class="mb-0 pb-0">
-          <v-text-field
-            label="username"
-            outline
-            v-model="usernameToChange"
-          ></v-text-field>
-        </v-card-text>
-        <v-card-text class="mt-0 pt-0 subheading font-weight-bold justify-center">
-          Change user status to:
-        </v-card-text>
-        <v-card-actions class="justify-center">
-          <v-btn dark small @click="changeUserStatus('user')">user</v-btn>
-          <v-btn dark small @click="changeUserStatus('editor')">editor</v-btn>
-          <v-btn dark small @click="changeUserStatus('admin')">admin</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
     <!-- snackbars to show change of user status or not
     TODO: this could be only one snackbar that would change depending on the changeUserStatus response -->
     <v-snackbar
@@ -240,7 +208,7 @@
                 >
                   queue_music
                 </v-icon>
-                <span class="display-1 font-weight-medium">Select a Song</span>
+                <span class="display-1 font-weight-medium ma-0 pa-0">Select a Song</span>
               </v-card-title>
               <v-divider></v-divider>
               <v-container style="max-height: 75vh;" fluid grid-list-lg class="scroll-y">
@@ -248,17 +216,20 @@
                   <v-flex
                   xs12
                   v-for="song in filteredSongs"
-                  :key="song.videoId"
+                  :key="song.general.title + song.general.artist"
                   @click="selectSong(song)">
                     <v-card
                       style="border-radius: 15px;"
                       hover
                       id="cardBackground"
-                      :class="selectedSong.title === song.title ? 'pink darken-1 white--text' : 'blue lighten-4'">
-                      <v-card-title primary-title>
+                      :class="selectedSong.general.title === song.general.title ? 'pink darken-1 white--text' : 'blue lighten-4'">
+                      <v-card-title primary-title class="pa-3">
                         <div>
-                          <h3 class="headline mb-0 font-weight-bold">{{song.title}}</h3>
-                          <div class="pt-2 title font-weight-regular">{{song.artist}}</div>
+                          <h3><span class="headline mb-0 font-weight-bold">{{song.general.title.toUpperCase()}}</span></h3>
+                          <div class="mt-2">
+                            <span class="title font-weight-normal">{{song.general.artist}}</span>
+                          </div>
+                          <div class="pt-2 body-2 font-weight-regular">chart by {{song.general.createdBy}}</div>
                         </div>
                       </v-card-title>
                     </v-card>
@@ -268,13 +239,13 @@
             </v-card>
           </v-flex>
           <!-- v-flex that show videos and available chart difficulties for the selected song -->
-          <v-flex sm12 md6 :class="!$vuetify.breakpoint.smAndDown ? 'pl-3' : 'pt-3'" v-show="selectedSong.title">
+          <v-flex sm12 md6 :class="!$vuetify.breakpoint.smAndDown ? 'pl-3' : 'pt-3'" v-show="selectedSong.general.title">
             <v-layout row wrap>
               <v-flex xs12 id="currentlySelected">
                 <v-card style="border-radius: 10px;" class="blue-grey lighten-5 text-xs-center">
                   <v-card-title primary-title class="justify-center cyan pb-1">
                     <div>
-                      <h3 class="display-1 mb-2 font-weight-bold">{{selectedSong.title}} / {{selectedSong.artist}}</h3>
+                      <h3 class="display-1 mb-2 font-weight-bold">{{selectedSong.general.title}} / {{selectedSong.general.artist}}</h3>
                     </div>
                   </v-card-title>
                   <v-card-text>
@@ -284,12 +255,9 @@
                   <v-card-text style="display: inline;" class="justify-center pl-0">
                     <div style="display: inline;" v-for="(chart, dif) in songCharts" :key="dif">
                       <v-btn
-                        @click="selectChart(chart.id, dif); getCreator(dif);"
+                        @click="selectChart(chart.id, dif)"
                         :class="selectedChart === chart.id ? 'blue lighten' : ''"
-                        :disabled="chart.draft && ($store.state.user === null || $store.state.user.type === 'user')">{{dif}}<span v-if="chart.draft">(SOON)</span></v-btn>
-                    </div>
-                    <div v-if="selectedChart" class="justify-center ma-1">
-                      Created by: {{ createdBy }}
+                        :disabled="chart.draft && ($store.state.user === null || $store.state.user.username !== selectedSong.general.createdBy)">{{dif}}<span v-if="chart.draft">(SOON)</span></v-btn>
                     </div>
                     <v-spacer></v-spacer>
                     <v-btn
@@ -351,7 +319,11 @@ export default {
     return {
       createdBy: '',
       search: '',
-      selectedSong: {},
+      selectedSong: {
+        general: {},
+        charts: {},
+        scores: {}
+      },
       selectedChart: '',
       settings: false,
       multipliers: [0.5, 0.75, 1.0],
@@ -425,7 +397,7 @@ export default {
       this.selectedSong = song
       this.selectedChart = ''
       this.$store.commit('selectSong', song)
-      this.player.load(song.videoId)
+      this.player.load(song.general.videoId)
       this.$store.commit('changeSongScores', 'Select a difficulty')
       this.$store.commit('selectChart', null)
       if (this.$vuetify.breakpoint.xs) document.getElementById('currentlySelected').scrollIntoView()
@@ -482,13 +454,6 @@ export default {
         }
       }
     },
-    getCreator: function (dif) {
-      if (this.selectedSong.charts[dif].createdBy) {
-        this.createdBy = this.selectedSong.charts[dif].createdBy
-      } else {
-        this.createdBy = 'unknown'
-      }
-    },
     toggleSettings: function () { // show settings dialog
       this.settings = !this.settings
     },
@@ -501,21 +466,6 @@ export default {
         this.$store.commit('goToScene', 'home')
       }).catch((err) => {
         alert(err)
-      })
-    },
-    changeUserStatus: function (status) { // change user status in the database
-      firebase.database.ref('users').orderByChild('username').equalTo(`${this.usernameToChange}`).once('value', snapshot => {
-        if (snapshot.val() !== null) { // if the user exists
-          firebase.database.ref('users/' + Object.keys(snapshot.val())[0]).update({
-            type: status
-          }).then(() => {
-            this.userStatusChanged = true
-            this.manageUsers = false
-          })
-        } else { // if this user name was not found
-          this.usernameNotFound = true
-          this.usernameNotFoundText = 'There is no user with this username.'
-        }
       })
     },
     goToLatencyCalibration: function () { // similar to goToGame function, but instead loads webcam latency calibration
@@ -561,8 +511,8 @@ export default {
       }
 
       songArray.filter((songs) => {
-        if (songs.title !== 'Latency Test') {
-          if (songs.title.toLowerCase().includes(this.search.toLowerCase()) || songs.artist.toLowerCase().includes(this.search.toLowerCase())) {
+        if (songs.general.title !== 'Latency Test') {
+          if (songs.general.title.toLowerCase().includes(this.search.toLowerCase()) || songs.general.artist.toLowerCase().includes(this.search.toLowerCase())) {
             filteredSongs.push(songs)
           }
         }

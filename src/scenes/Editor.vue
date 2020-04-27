@@ -64,7 +64,7 @@
                       <v-card>
                         <v-card-text class="ma-0 pa-0">
                           <v-container fluid class="ma-0 pa-0">
-                            <v-layout row wrap justify-space-between class="scroll-y ma-0 pa-3" style="max-height: 63vh;">
+                            <v-layout row wrap justify-space-between class="scroll-y ma-0 pa-3" style="max-height: 70vh;">
                               <!-- load video by id -->
                               <v-flex xs12>
                                 <v-card>
@@ -96,19 +96,19 @@
                                       v-for="(song, name) in songs"
                                       :key="song.chartId"
                                       @click="selectSongAndVideoId(song, name)">
-                                      <v-card style="border-radius: 10px;" :class="song.videoId === danceChart.videoId ? 'blue lighten-2' : 'blue lighten-5'">
+                                      <v-card style="border-radius: 10px;" :class="song.general.videoId === danceChart.videoId ? 'blue lighten-2' : 'blue lighten-5'">
                                         <v-card-title class="title font-weight-bold pb-1">
-                                          {{song.title}}
+                                          {{song.general.title}}
                                         </v-card-title>
                                         <v-card-text class="pt-0 mt-0 body-2 pb-1">
-                                          {{song.artist}}
+                                          {{song.general.artist}}
                                         </v-card-text>
                                         <v-card-actions class="ma-0">
                                           <v-btn
                                             v-for="(chart, dif) in song.charts"
                                             :key="dif"
                                             @click="selectChart(name, chart.id, dif)"
-                                            :class="[selectedChartId === chart.id ? 'darken-1' : '', !chart.editable ? 'red lighten-3 font-weight-bold' : chart.draft ? 'yellow lighten-3 font-weight-bold' : 'green lighten-3 font-weight-bold']"
+                                            :class="chart.draft ? 'yellow lighten-3 font-weight-bold' : 'green lighten-3 font-weight-bold'"
                                             small
                                             style="min-width: 0; width: 75px;"
                                             >{{dif}}</v-btn>
@@ -122,9 +122,8 @@
                           </v-container>
                         </v-card-text>
                         <v-card-actions class="justify-space-around">
-                          <v-btn @click="loadChart(selectedSong, selectedChartId)"
-                          :disabled="unableToLoad">Load</v-btn>
-                          <v-btn dark v-if="$store.state.user.type === 'admin'" color="red" @click="selectToDelete()">Delete</v-btn>
+                          <v-btn @click="loadChart(selectedSong, selectedChartId)">Load</v-btn>
+                          <v-btn dark color="red" @click="selectToDelete()">Delete</v-btn>
                         </v-card-actions>
                       </v-card>
                     </v-expansion-panel-content>
@@ -179,8 +178,8 @@
                                     <div :class="danceChart.artist === '' ? 'red lighten-3 mt-1 pa-1' : 'mt-1 pa-1'" style="border-radius: 5px;">
                                       Artist: {{ danceChart.artist }}
                                     </div>
-                                    <div :class="selectedSongDanceGenre === '' ? 'red lighten-3 mt-1 pa-1' : 'mt-1 pa-1'" style="border-radius: 5px;">
-                                      Genre: {{ selectedSongDanceGenre === '' ? 'Not Selected' : selectedSongDanceGenre }}
+                                    <div :class="danceGenre === '' ? 'red lighten-3 mt-1 pa-1' : 'mt-1 pa-1'" style="border-radius: 5px;">
+                                      Genre: {{ danceGenre === '' ? 'Not Selected' : danceGenre }}
                                     </div>
                                   </v-flex>
                                 </v-layout>
@@ -220,52 +219,6 @@
                           </v-layout>
                         </v-card-actions>
                       </v-card>
-                    </v-expansion-panel-content>
-                    <v-expansion-panel-content v-if="this.$store.state.user.type === 'admin' || this.$store.state.user.type === 'editor'" class="yellow darken-1 elevation-5 headline font-weight-medium">
-                      <template v-slot:header>
-                        <div>
-                          <v-icon
-                          left
-                          color="black"
-                          >
-                            cached
-                          </v-icon>
-                          Update Song Information
-                        </div>
-                      </template>
-                        <v-card>
-                          <v-card-text>
-                            <table style="width: 100%; text-align: center;" class="subheading">
-                              <thead>
-                                <tr>
-                                  <th> </th>
-                                  <th>current</th>
-                                  <th>change</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                <tr>
-                                  <td>Title</td>
-                                  <td>{{currentPlayerSong.title || 'none'}}</td>
-                                  <td>{{danceChart.title}}</td>
-                                </tr>
-                                <tr>
-                                  <td>Artist</td>
-                                  <td>{{currentPlayerSong.artist || 'none'}}</td>
-                                  <td>{{danceChart.artist}}</td>
-                                </tr>
-                                <tr>
-                                  <td>Genre</td>
-                                  <td>{{currentPlayerSong.genre || 'none'}}</td>
-                                  <td>{{danceGenre}}</td>
-                                </tr>
-                              </tbody>
-                            </table>
-                          </v-card-text>
-                          <v-card-actions>
-                            <v-btn @click="updateSongInfo" color="primary" :disabled="danceChart.title === '' || danceChart.artist === '' || danceGenre === ''">update</v-btn>
-                          </v-card-actions>
-                        </v-card>
                     </v-expansion-panel-content>
                   </v-expansion-panel>
                   <!-- <v-flex xs12>
@@ -648,7 +601,7 @@
         color="yellow"
         :timeout="0"
       >
-        <p class="pa-0 ma-0">This action will overwrite the existing version of the <span class="font-weight-bold">{{duplicate.difficulty}}</span> chart for <span class="font-weight-bold">{{duplicate.song.title}} / {{duplicate.song.artist}}</span>. Do you want do continue?</p>
+        <p class="pa-0 ma-0">This action will overwrite the existing version of the <span class="font-weight-bold">{{duplicate.difficulty}}</span> chart for <span class="font-weight-bold">{{duplicate.song.general.title}} / {{duplicate.song.general.artist}}</span>. Do you want do continue?</p>
         <v-btn dark small @click="overwriteChart">YES</v-btn><v-btn dark small @click="duplicateChart = !duplicateChart">NO</v-btn>
       </v-snackbar>
       <v-snackbar
@@ -660,7 +613,7 @@
         :timeout="0"
         v-if="$store.state.selectedDifficulty"
       >
-        <p class="pa-0 ma-0">This action will delete permanently the existing version of the <span class="font-weight-bold">{{toDelete.dif}}</span> chart for <span v-if="songs[toDelete.songId]" class="font-weight-bold">{{songs[toDelete.songId].title}} / {{songs[toDelete.songId].artist}}</span>. Do you want do continue?</p>
+        <p class="pa-0 ma-0">This action will delete permanently the existing version of the <span class="font-weight-bold">{{toDelete.dif}}</span> chart for <span v-if="songs[toDelete.songId]" class="font-weight-bold">{{songs[toDelete.songId].general.title}} / {{songs[toDelete.songId].general.artist}}</span>. Do you want do continue?</p>
       <v-btn dark small @click="deleteSelectedChart()">YES</v-btn><v-btn dark small @click="deleteChart = !deleteChart">NO</v-btn>
       </v-snackbar>
       <v-snackbar
@@ -775,8 +728,10 @@ export default {
         id: '',
         difficulty: '',
         song: {
-          title: '',
-          artist: ''
+          general: {
+            title: '',
+            artist: ''
+          }
         }
       },
       toDelete: {
@@ -824,10 +779,11 @@ export default {
       loadedChart.videoEnd = this.$store.state.selectedChart.videoEnd
       loadedChart.videoStart = this.$store.state.selectedChart.videoStart
       loadedChart.bpm = this.$store.state.selectedChart.bpm
-      loadedChart.videoId = this.$store.state.selectedSong.videoId
+      loadedChart.videoId = this.$store.state.selectedSong.general.videoId
 
-      loadedChart.title = this.$store.state.selectedSong.title
-      loadedChart.artist = this.$store.state.selectedSong.artist
+      loadedChart.title = this.$store.state.selectedSong.general.title
+      loadedChart.artist = this.$store.state.selectedSong.general.artist
+      this.danceGenre = this.$store.state.selectedSong.general.genre
       this.danceChart.songId = ''
       this.danceChart.chartId = ''
 
@@ -1008,11 +964,12 @@ export default {
     saveToFirebase: function () { // saves chart to firebase if all information is correct and videoId is unique
       let validInformation = this.validateBeforeSaving()
       // the information needs to be valid, a difficulty must be selected and the song must have a genre if it is the first saving it (see selectedSongDanceGenre in computed properties)
-      if (validInformation && this.difficulties.includes(this.difficulty) && this.selectedSongDanceGenre !== '') {
+      if (validInformation && this.difficulties.includes(this.difficulty)) {
         let songId = this.$store.state.selectedSongId
         if (songId === '') { // if there is no song loaded
           this.dataManager.saveNewSong(this.danceChart, this.player, this.difficulty, this.draft, this.$store.state.user.username, this.danceGenre, this.$store.state.uid).then(res => {
             this.saved = true
+            this.$store.commit('selectSongId', res)
           }).catch(err => {
             this.warningSnack = true
             this.warningText = err.message
@@ -1027,7 +984,7 @@ export default {
             })
           } else { // if there is the set difficulty for this song id
             // check if user is allowed to save the chart under the selected difficulty
-            if (this.songs[songId].charts[this.difficulty].editable) {
+            if (this.songs[songId].general.createdBy === this.$store.state.user.username) {
               this.duplicate.song = this.songs[songId]
               this.duplicate.id = songId
               this.duplicate.difficulty = this.difficulty
@@ -1045,13 +1002,13 @@ export default {
     },
     // returns true if the danceChart has at least title, artist and one move on the chart
     validateBeforeSaving: function () {
-      let valid = this.danceChart.artist !== '' && this.danceChart.title !== '' && this.danceChart.moves.length !== 0 && this.danceChart.artist === this.settings.artist && this.danceChart.title === this.settings.title && this.danceChart.bpm === parseFloat(this.settings.bpm)
+      let valid = this.danceChart.artist !== '' && this.danceChart.title !== '' && this.danceChart.moves.length !== 0 && this.danceChart.artist === this.settings.artist && this.danceChart.title === this.settings.title && this.danceChart.bpm === parseFloat(this.settings.bpm) && this.danceGenre !== ''
       return valid
     },
     overwriteChart: function () { // updates a danceChart with existing video Id in the database
       let validInformation = this.validateBeforeSaving()
       if (validInformation && this.$refs.videoId.validate() && this.$refs.timing.validate() && this.$refs.songInfo.validate()) {
-        this.dataManager.overwriteChart(this.danceChart, this.duplicate.song.charts[this.difficulty].id, this.duplicate.id, this.duplicate.difficulty, this.draft, this.$store.state.user.username).then(res => {
+        this.dataManager.overwriteChart(this.danceChart, this.duplicate.song.charts[this.difficulty].id, this.duplicate.id, this.duplicate.difficulty, this.draft, this.$store.state.user.username, this.danceGenre).then(res => {
           this.duplicateChart = false
           this.saved = true
         }).catch(err => {
@@ -1062,14 +1019,6 @@ export default {
         this.warningText = 'Can\'t save if any information is missing. Check all fields.'
         this.warningSnack = true
       }
-    },
-    updateSongInfo: function () {
-      this.dataManager.updateSongInformation(this.songs, this.player.videoId, this.danceChart, this.danceGenre).then(res => {
-        this.saved = true
-      }).catch(err => {
-        this.warningSnack = true
-        this.warningText = err.message
-      })
     },
     loadVideoById: function () { // loads a video according to the input id
       if (this.$refs.videoId.validate()) {
@@ -1116,10 +1065,9 @@ export default {
       this.$store.commit('selectChart', chartId)
     },
     loadChart: function (song, chartId) { // pulls chart info from the database and applies to the danceChart and settings tab
-      // TODO: check if user is allowed to do that?
-      let songId = this.selectedSongId
-      this.$store.commit('selectSongId', this.selectedSongId)
-      if (chartId !== '') {
+      if (chartId) {
+        let songId = this.selectedSongId
+        this.$store.commit('selectSongId', this.selectedSongId)
         let loadedChart = {}
         firebase.database.ref(`charts/${chartId}`).once('value', (data) => {
           let value = data.val()
@@ -1130,10 +1078,11 @@ export default {
           loadedChart.videoId = value.videoId
           loadedChart.bpm = value.bpm
 
-          loadedChart.title = this.$store.state.songs[songId].title
-          loadedChart.artist = this.$store.state.songs[songId].artist
+          loadedChart.title = this.$store.state.songs[songId].general.title
+          loadedChart.artist = this.$store.state.songs[songId].general.artist
           this.danceChart.songId = songId
           this.danceChart.chartId = chartId
+          this.danceGenre = this.$store.state.songs[songId].general.genre
         }).then(() => {
           this.dataManager.updateChartAndSettings(this.danceChart, this.settings, loadedChart)
           this.dataManager.updateManagers(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.cueManager)
@@ -1151,6 +1100,7 @@ export default {
     },
     // select chart that user wants to delete
     selectToDelete: function () {
+      this.$store.commit('selectSongId', this.selectedSongId)
       this.toDelete.songId = this.$store.state.selectedSongId
       this.toDelete.chartId = this.$store.state.selectedChartId
       this.toDelete.dif = this.$store.state.selectedDifficulty
@@ -1187,6 +1137,7 @@ export default {
           // remove chart reference from the song
           firebase.database.ref(`songs/${songId}/charts/${selectedDif}`).remove()
         }
+        this.$store.commit('selectSongId', '')
         this.deleteChart = false
       }
     },
@@ -1255,9 +1206,12 @@ export default {
       }
       // create dummy selected song
       let dummySong = {
-        artist: this.danceChart.artist,
-        title: this.danceChart.title,
-        videoId: this.player.videoId
+        general: {
+          artist: this.danceChart.artist,
+          title: this.danceChart.title,
+          videoId: this.player.videoId,
+          genre: this.danceGenre
+        }
       }
       if (this.$store.state.net === null) {
         this.$store.dispatch('loadNet', this.$store.state.gameOptions.multiplier).then(response => {
@@ -1267,7 +1221,7 @@ export default {
           this.destroyAll()
           this.$store.commit('goToScene', 'game')
         }, error => {
-          this.$store.commit('changeWrongMessage', 'Due to a problem with PoseNet the game is not available right now. Please try it again later.')
+          this.$store.commit('changeWrongMessage', `Due to a problem with PoseNet the game is not available right now. Please try it again later. \n ${error.message}`)
           this.$store.commit('somethingWentWrong')
         })
       } else {
@@ -1278,7 +1232,7 @@ export default {
       }
     },
     selectSongAndVideoId: function (song, songId) {
-      this.danceChart.videoId = song.videoId
+      this.danceChart.videoId = song.general.videoId
       this.selectedSongId = songId
     }
   },
@@ -1293,35 +1247,36 @@ export default {
         sortedDif[song] = info
       }
 
-      // let userSongs = {}
+      let userSongs = {}
 
       // add information if song is editable or not - it will show up in the client as a color code
       for (let song in sortedDif) {
-        // if (sortedDif[song].general.createdBy === this.$store.state.user.username) {
-        //   userSongs[song] = sortedDif[song]
-        // }
-        for (let chart in sortedDif[song].charts) {
-          if (this.$store.state.user.type === 'admin') { // admins can edit anything
-            sortedDif[song].charts[chart].editable = true
-          } else if (this.$store.state.user.type === 'editor') { // editors can't edit the latency test
-            if (sortedDif[song].title === 'Latency Test') {
-              sortedDif[song].charts[chart].editable = false
-            } else {
-              sortedDif[song].charts[chart].editable = true
-            }
-          } else {
-            if (sortedDif[song].charts[chart].createdBy) {
-              if (sortedDif[song].charts[chart].createdBy === this.$store.state.user.username) {
-                sortedDif[song].charts[chart].editable = true
-              }
-            } else {
-              sortedDif[song].charts[chart].editable = false
-            }
-          }
+        if (sortedDif[song].general.createdBy === this.$store.state.user.username) {
+          userSongs[song] = sortedDif[song]
         }
       }
-      return sortedDif
-      // return userSongs
+      //   for (let chart in sortedDif[song].charts) {
+      //     if (this.$store.state.user.type === 'admin') { // admins can edit anything
+      //       sortedDif[song].charts[chart].editable = true
+      //     } else if (this.$store.state.user.type === 'editor') { // editors can't edit the latency test
+      //       if (sortedDif[song].title === 'Latency Test') {
+      //         sortedDif[song].charts[chart].editable = false
+      //       } else {
+      //         sortedDif[song].charts[chart].editable = true
+      //       }
+      //     } else {
+      //       if (sortedDif[song].charts[chart].createdBy) {
+      //         if (sortedDif[song].charts[chart].createdBy === this.$store.state.user.username) {
+      //           sortedDif[song].charts[chart].editable = true
+      //         }
+      //       } else {
+      //         sortedDif[song].charts[chart].editable = false
+      //       }
+      //     }
+      //   }
+      // }
+      // return sortedDif
+      return userSongs
     },
     selectedSong: function () { // changes the selected song from the list
       return this.$store.state.selectedSong
@@ -1340,22 +1295,6 @@ export default {
         return true
       }
     },
-    unableToLoad: function () {
-      if (!this.selectedChartId) {
-        return true
-      } else {
-        if (this.$store.state.user.type === 'admin' || this.$store.state.user.type === 'editor') {
-          return false
-        } else {
-          if (this.$store.state.selectedSong && this.$store.state.selectedDifficulty && this.$store.state.selectedSong.charts[this.$store.state.selectedDifficulty].createdBy) {
-            let condition = this.$store.state.selectedSong.charts[this.$store.state.selectedDifficulty].createdBy === this.$store.state.user.username
-            return !condition
-          } else {
-            return true
-          }
-        }
-      }
-    },
     metronomeLabel: function () {
       return `enable metronome - ${this.danceChart.bpm} BPM`
     },
@@ -1368,62 +1307,6 @@ export default {
         }
       } else {
         return this.danceChart.videoEnd
-      }
-    },
-    selectedSongDanceGenre: function () {
-      let displayDanceGenre = ''
-      if (this.player) { // check if there is a video in the player
-        for (let song in this.songs) {
-          if (this.songs[song].videoId === this.player.videoId) { // if the videoId is included in the songs
-            if (this.songs[song].genre) { // if there is a genre (genre is a new field that may not always be available)
-              displayDanceGenre = this.songs[song].genre
-              break
-            } else {
-              // genre is not available
-              displayDanceGenre = 'unknown'
-              break
-            }
-          } else {
-            // this song does not exist yet
-            displayDanceGenre = this.danceGenre
-          }
-        }
-      } else {
-        // no video is loaded
-        displayDanceGenre = this.danceGenre
-      }
-      return displayDanceGenre
-    },
-    currentPlayerSong: function () {
-      if (this.player) {
-        if (this.player.videoId) {
-          let songId = this.$store.state.selectedSongId
-          if (songId !== '') {
-            // return the song that has the loaded video id
-            return this.songs[songId]
-          } else {
-            // there is no song with this video id
-            return {
-              title: 'N/A',
-              artist: 'N/A',
-              genre: 'N/A'
-            }
-          }
-        } else {
-          // there is no videoId in the player
-          return {
-            title: 'N/A',
-            artist: 'N/A',
-            genre: 'N/A'
-          }
-        }
-      } else {
-        // the player is not yet loaded
-        return {
-          title: 'N/A',
-          artist: 'N/A',
-          genre: 'N/A'
-        }
       }
     }
   }
