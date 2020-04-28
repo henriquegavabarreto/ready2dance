@@ -17,6 +17,12 @@
         class="mt-2"
         flat
       ></v-text-field>
+      <v-select
+        class="mt-3 ml-5"
+        :items="filters"
+        v-model="filter"
+        label="order by"
+      ></v-select>
       <!-- h3 that shows username (if registered user) or guest (if decided not to sign in / sign up) -->
       <h3 class="ml-5" v-if="$store.state.user !== null">Hello, {{$store.state.user.username}}!</h3>
       <h3 class="ml-5" v-else>Hello, Guest!</h3>
@@ -78,23 +84,19 @@
     TODO: when updated to posenet 2.0, change these options to match the package as well -->
     <v-dialog
       v-model="settings"
-      max-width="400"
+      max-width="500"
     >
       <v-card style="border-radius: 10px;">
         <v-card-title class="cyan headline justify-center white--text font-weight-medium">
-          Settings
+          SETTINGS
         </v-card-title>
 
         <v-card-text>
-          <h3>Animations</h3>
+          <h3>ANIMATIONS</h3>
           <v-checkbox
             color="blue"
-            v-model="options.showAnimation">
-            <template v-slot:label>
-              <div class="black--text">
-                Show animations
-              </div>
-            </template>
+            v-model="options.showAnimation"
+            label="Show animations">
           </v-checkbox>
           <v-select
             :disabled="!options.showAnimation"
@@ -105,15 +107,11 @@
             hint="Speed of the circles appearing on screen"
           ></v-select>
           <v-divider></v-divider>
-          <h3 class="mt-4">Camera</h3>
+          <h3 class="mt-4">CAMERA</h3>
           <v-checkbox
             color="blue"
-            v-model="options.showWebcam">
-            <template v-slot:label>
-              <div class="black--text">
-                Show webcam video
-              </div>
-            </template>
+            v-model="options.showWebcam"
+            label="Show webcam video">
           </v-checkbox>
           <v-text-field
             outline
@@ -122,11 +120,10 @@
             hint="ex: 0.32"
           >
           </v-text-field>
-          <a href="https://www.youtube.com/watch?v=WXud3F-Cuac"><p>Check out this video if you are having any trouble to find your camera's latency</p></a>
-          <p class="text-xs-center">OR</p>
           <v-btn block @click="goToLatencyCalibration">Calibrate Latency (WIP)</v-btn>
+          <a href="https://www.youtube.com/watch?v=WXud3F-Cuac" target="_blank"><p class="mt-2">More about latency</p></a>
           <v-divider></v-divider>
-          <h3 class="mt-4">Change pose detection precision <a href="https://www.npmjs.com/package/@tensorflow-models/posenet">(advanced)</a></h3>
+          <h3 class="mt-4">POSE DETECTION <a href="https://www.npmjs.com/package/@tensorflow-models/posenet">(advanced)</a></h3>
           <v-select
             outline
             class="mt-4"
@@ -215,7 +212,7 @@
                 <v-layout row wrap>
                   <v-flex
                   xs12
-                  v-for="song in filteredSongs"
+                  v-for="song in orderedSongs"
                   :key="song.general.title + song.general.artist"
                   @click="selectSong(song)">
                     <v-card
@@ -225,11 +222,13 @@
                       :class="selectedSong.general.title === song.general.title ? 'pink darken-1 white--text' : 'blue lighten-4'">
                       <v-card-title primary-title class="pa-3">
                         <div>
-                          <h3><span class="headline mb-0 font-weight-bold">{{song.general.title.toUpperCase()}}</span></h3>
-                          <div class="mt-2">
-                            <span class="title font-weight-normal">{{song.general.artist}}</span>
+                          <h3 class="my-1"><span class="headline font-weight-bold">{{song.general.title.toUpperCase() + ' - ' + song.general.artist.toUpperCase()}}</span></h3>
+                          <v-chip :color="song.general.genre === 'parapara' ? 'pink' : song.general.genre === 'techpara' ? 'blue' : 'yellow'" text-color="white" class="text-xs-center">{{song.general.genre.toUpperCase()}}</v-chip>
+                          <v-chip v-for="(charts,name) in song.charts" :key="name" color="black" text-color="white" class="text-xs-center">{{name.toUpperCase()}}</v-chip>
+                          <div class="body-2 font-weight-regular">
+                            <span>created by {{song.general.createdBy}}</span>
+                            <span class="ml-5"><v-icon>favorite</v-icon></span><span class="ml-1">{{3}}</span>
                           </div>
-                          <div class="pt-2 body-2 font-weight-regular">chart by {{song.general.createdBy}}</div>
                         </div>
                       </v-card-title>
                     </v-card>
@@ -257,7 +256,7 @@
                       <v-btn
                         @click="selectChart(chart.id, dif)"
                         :class="selectedChart === chart.id ? 'blue lighten' : ''"
-                        :disabled="chart.draft && ($store.state.user === null || $store.state.user.username !== selectedSong.general.createdBy)">{{dif}}<span v-if="chart.draft">(SOON)</span></v-btn>
+                        :disabled="chart.draft && ($store.state.user === null || $store.state.user.username !== selectedSong.general.createdBy)">{{dif}}<span v-if="chart.draft">{{' (SOON)'}}</span></v-btn>
                     </div>
                     <v-spacer></v-spacer>
                     <v-btn
@@ -348,7 +347,9 @@ export default {
       manageUsers: false,
       selectedUser: '',
       users: null,
-      player: null
+      player: null,
+      filters: ['release date', 'last updated', 'A-Z', 'favorites only', 'most popular'],
+      filter: ''
     }
   },
   beforeCreate () {
@@ -391,6 +392,8 @@ export default {
     goToEditor: function () { // go to editor
       this.player.stop()
       this.player.destroy()
+      this.$store.commit('changeOptions', this.options)
+      this.$store.commit('saveOptionsOnStorage')
       this.$store.commit('goToScene', 'editor')
     },
     selectSong: function (song) { // get song info from the list of filtered songs
@@ -501,6 +504,42 @@ export default {
   computed: {
     songs: function () { // loads all songs from the $store
       return this.$store.state.songs
+    },
+    orderedSongs: function () {
+      let orderedSongs = this.filteredSongs
+      // returns ordered from A-Z by default
+      orderedSongs.sort((a, b) => {
+        if (a.general.title > b.general.title) {
+          return 1
+        }
+        if (a.general.title < b.general.title) {
+          return -1
+        }
+        return 0
+      })
+
+      if (this.filter === 'release date') {
+        orderedSongs.sort((a, b) => {
+          if (a.general.createdAt < b.general.createdAt) {
+            return 1
+          }
+          if (a.general.createdAt > b.general.createdAt) {
+            return -1
+          }
+          return 0
+        })
+      } else if (this.filter === 'last updated') {
+        orderedSongs.sort((a, b) => {
+          if (a.general.updatedAt < b.general.updatedAt) {
+            return 1
+          }
+          if (a.general.updatedAt > b.general.updatedAt) {
+            return -1
+          }
+          return 0
+        })
+      }
+      return orderedSongs
     },
     filteredSongs: function () { // Returns array of songs based on the search - filtered from the songs computed property above
       let songArray = []

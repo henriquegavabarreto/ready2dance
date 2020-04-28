@@ -105,11 +105,14 @@ export default new Vuex.Store({
     changeOptions: (state, data) => {
       state.gameOptions.showAnimation = data.showAnimation
       state.gameOptions.showWebcam = data.showWebcam
-      state.gameOptions.latency = parseFloat(data.latency)
       state.gameOptions.multiplier = data.multiplier
       state.gameOptions.speed = parseInt(data.speed)
       state.gameOptions.outputStride = parseInt(data.outputStride)
       state.gameOptions.imageScale = parseFloat(data.imageScale)
+      // latency is changed only if latency is a number
+      if (!isNaN(data.latency)) {
+        state.gameOptions.latency = parseFloat(data.latency)
+      }
     },
     // change only posenet multiplier
     changeMultiplier: (state, data) => {
@@ -212,7 +215,10 @@ export default new Vuex.Store({
         // sort scores by value
         let sortedScores = Object.entries(scores).sort((a, b) => b[1] - a[1])
         context.commit('changeSongScores', sortedScores)
-      }, (err) => console.log(err))
+      }, (err) => {
+        context.commit('somethingWentWrong')
+        context.commit('changeWrongMessage', err.message)
+      })
     },
     // react to auth state change
     onStateChange: context => {
