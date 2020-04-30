@@ -132,7 +132,7 @@ export default {
     // })
   },
   // overwrites an existing danceChart
-  overwriteChart: function (danceChart, chartId, songId, difficulty, draft, user, genre) {
+  overwriteChart: function (danceChart, chartId, songId, difficulty, draft, genre) {
     this.sortDanceChart(danceChart)
 
     let updates = {}
@@ -151,26 +151,6 @@ export default {
     updates[`${songPath}/general/updatedAt`] = new Date().getTime()
 
     return firebase.database.ref().update(updates)
-    // let promises = []
-    // // updates the chart
-    // promises.push(firebase.database.ref('charts').child(`${chartId}`).update({
-    //   offset: danceChart.offset,
-    //   bpm: danceChart.bpm,
-    //   videoStart: danceChart.videoStart,
-    //   videoEnd: danceChart.videoEnd,
-    //   moves: danceChart.moves.join(' ')
-    // }))
-    //
-    // // update information in the song
-    // promises.push(firebase.database.ref(`songs/${songId}/charts`).child(`${difficulty}`).update({
-    //   draft: draft
-    // }))
-    //
-    // promises.push(firebase.database.ref(`songs/${songId}/general`).update({
-    //   updatedAt: new Date().getTime()
-    // }))
-    //
-    // return Promise.all(promises)
   },
   // updates danceChart locally based on a loadedChart
   // updates settings based on the updated danceChart

@@ -128,10 +128,6 @@ export default new Vuex.Store({
     changeSongScores: (state, data) => {
       state.songScores = data
     },
-    // change sign in state of an user
-    changeState: (state, data) => {
-      state.uid = data
-    },
     dismissWelcome: state => {
       // welcome is shown one time only
       state.welcomeShown = true
@@ -222,11 +218,12 @@ export default new Vuex.Store({
     },
     // react to auth state change
     onStateChange: context => {
+      // TODO: this should reflect the changes done in the user node
+      // onChildAdded and onChildRemoved for likedSongs and createdSongs would be nice
       firebase.auth.onAuthStateChanged((userState) => {
         if (userState) {
           firebase.database.ref(`users/${userState.uid}`).once('value').then((value) => {
             context.commit('changeUser', value.val())
-            context.commit('changeState', userState.uid)
             context.commit('goToScene', 'song-selection')
           })
         } else {

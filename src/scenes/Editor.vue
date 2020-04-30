@@ -967,7 +967,7 @@ export default {
       if (validInformation && this.difficulties.includes(this.difficulty)) {
         let songId = this.$store.state.selectedSongId
         if (songId === '') { // if there is no song loaded
-          this.dataManager.saveNewSong(this.danceChart, this.player, this.difficulty, this.draft, this.$store.state.user.username, this.danceGenre, this.$store.state.uid).then(res => {
+          this.dataManager.saveNewSong(this.danceChart, this.player, this.difficulty, this.draft, this.$store.state.user.username, this.danceGenre, firebase.auth.currentUser.uid).then(res => {
             this.saved = true
             this.$store.commit('selectSongId', res)
           }).catch(err => {
@@ -1008,7 +1008,7 @@ export default {
     overwriteChart: function () { // updates a danceChart with existing video Id in the database
       let validInformation = this.validateBeforeSaving()
       if (validInformation && this.$refs.videoId.validate() && this.$refs.timing.validate() && this.$refs.songInfo.validate()) {
-        this.dataManager.overwriteChart(this.danceChart, this.duplicate.song.charts[this.difficulty].id, this.duplicate.id, this.duplicate.difficulty, this.draft, this.$store.state.user.username, this.danceGenre).then(res => {
+        this.dataManager.overwriteChart(this.danceChart, this.duplicate.song.charts[this.difficulty].id, this.duplicate.id, this.duplicate.difficulty, this.draft, this.danceGenre).then(res => {
           this.duplicateChart = false
           this.saved = true
         }).catch(err => {
@@ -1112,6 +1112,7 @@ export default {
       let songId = this.toDelete.songId
       let chartId = this.toDelete.chartId
       let selectedDif = this.toDelete.dif
+      let uid = firebase.auth.currentUser.uid
 
       if (chartId !== '') {
         if (Object.keys(this.songs[songId].charts).length === 1) {
@@ -1123,7 +1124,7 @@ export default {
           }
           firebase.database.ref(`charts/${chartId}`).remove()
           firebase.database.ref(`songs/${songId}`).remove()
-          firebase.database.ref(`users/${this.$store.state.uid}/createdSongs/${songId}`).remove()
+          firebase.database.ref(`users/${uid}/createdSongs/${songId}`).remove()
           // When the songId is added to user/createdSongs, it should be removed at this time
         } else {
           // remove score if the chart is removed and if it exists
@@ -1255,27 +1256,6 @@ export default {
           userSongs[song] = sortedDif[song]
         }
       }
-      //   for (let chart in sortedDif[song].charts) {
-      //     if (this.$store.state.user.type === 'admin') { // admins can edit anything
-      //       sortedDif[song].charts[chart].editable = true
-      //     } else if (this.$store.state.user.type === 'editor') { // editors can't edit the latency test
-      //       if (sortedDif[song].title === 'Latency Test') {
-      //         sortedDif[song].charts[chart].editable = false
-      //       } else {
-      //         sortedDif[song].charts[chart].editable = true
-      //       }
-      //     } else {
-      //       if (sortedDif[song].charts[chart].createdBy) {
-      //         if (sortedDif[song].charts[chart].createdBy === this.$store.state.user.username) {
-      //           sortedDif[song].charts[chart].editable = true
-      //         }
-      //       } else {
-      //         sortedDif[song].charts[chart].editable = false
-      //       }
-      //     }
-      //   }
-      // }
-      // return sortedDif
       return userSongs
     },
     selectedSong: function () { // changes the selected song from the list

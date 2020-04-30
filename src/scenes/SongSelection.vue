@@ -227,7 +227,7 @@
                           <v-chip v-for="(charts,name) in song.charts" :key="name" color="black" text-color="white" class="text-xs-center">{{name.toUpperCase()}}</v-chip>
                           <div class="body-2 font-weight-regular">
                             <span>created by {{song.general.createdBy}}</span>
-                            <span class="ml-5"><v-icon>favorite</v-icon></span><span class="ml-1">{{3}}</span>
+                            <span class="ml-5"><v-btn fab small :color="!$store.state.user ? 'red lighten-2' : !$store.state.user.likedSongs ? 'red lighten-2' : $store.state.user.likedSongs[song.general.songId] ? 'red' : 'red lighten-2'" @click="likeThisSong(song.general.songId)"><v-icon color="white">favorite</v-icon></v-btn></span><span class="ml-1">{{song.general.likedBy ? song.general.likedBy : 0 }}</span>
                           </div>
                         </div>
                       </v-card-title>
@@ -405,6 +405,14 @@ export default {
       this.$store.commit('selectChart', null)
       if (this.$vuetify.breakpoint.xs) document.getElementById('currentlySelected').scrollIntoView()
     },
+    likeThisSong: function (songId) {
+      let toggleLike = firebase.functions.httpsCallable('toggleLike')
+      toggleLike({ songId: songId }).then(res => {
+        console.log(res.data)
+      }).catch(err => {
+        console.log(err)
+      })
+    },
     goToGame: function () { // goes to the game after the chart is loaded
       if (this.selectedSong !== {} && this.selectedChart !== '') { // makes sure there is a selected song and a selected chart
         this.loading = true
@@ -506,7 +514,12 @@ export default {
       return this.$store.state.songs
     },
     orderedSongs: function () {
-      let orderedSongs = this.filteredSongs
+      let orderedSongs = []
+      for (let songId in this.filteredSongs) {
+        let song = this.filteredSongs[songId]
+        song.general.songId = songId
+        orderedSongs.push(song)
+      }
       // returns ordered from A-Z by default
       orderedSongs.sort((a, b) => {
         if (a.general.title > b.general.title) {
@@ -538,24 +551,35 @@ export default {
           }
           return 0
         })
+      } else if (this.filter === 'most popular') {
+        orderedSongs.sort((a, b) => {
+          if (a.general.likedBy) {
+            if (b.general.likedBy) {
+              if (a.general.likedBy < b.general.likedBy) {
+                return 1
+              }
+              if (a.general.likedBy > b.general.likedBy) {
+                return -1
+              }
+            } else {
+              return -1
+            }
+          }
+          return 0
+        })
       }
       return orderedSongs
     },
     filteredSongs: function () { // Returns array of songs based on the search - filtered from the songs computed property above
-      let songArray = []
-      let filteredSongs = []
+      let filteredSongs = {}
 
-      for (let song in this.songs) {
-        songArray.push(this.songs[song])
-      }
-
-      songArray.filter((songs) => {
-        if (songs.general.title !== 'Latency Test') {
-          if (songs.general.title.toLowerCase().includes(this.search.toLowerCase()) || songs.general.artist.toLowerCase().includes(this.search.toLowerCase())) {
-            filteredSongs.push(songs)
+      for (let songId in this.songs) {
+        if (songId !== '-LhMV2ryLrMUmubVy8wq') {
+          if (this.songs[songId].general.title.toLowerCase().includes(this.search.toLowerCase()) || this.songs[songId].general.artist.toLowerCase().includes(this.search.toLowerCase())) {
+            filteredSongs[songId] = this.songs[songId]
           }
         }
-      })
+      }
       return filteredSongs
     },
     songCharts: function () { // returns charts object with charts ordered by difficulty

@@ -384,6 +384,8 @@ export default {
       this.stopAndDestroy()
 
       if (this.$store.state.user !== null) { // if the user is registered
+        // TODO: fix below. The song is already selected in $store.state.songId
+        // and make this a cloud function saveScore
         for (let song in this.$store.state.songs) {
           // search for the video that was selected, making sure the chart is not a draft
           if (this.$store.state.selectedSong.videoId === this.$store.state.songs[song].videoId && this.$store.state.songs[song].charts[this.$store.state.selectedDifficulty].draft !== true) {
