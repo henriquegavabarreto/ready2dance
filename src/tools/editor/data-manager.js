@@ -11,11 +11,12 @@ export default {
   // save non existing song - there is no songId
   saveNewSong: function (danceChart, player, difficulty, draft, user, genre, uid) {
     this.sortDanceChart(danceChart)
-    // save chart to firebase first
+    // get a chart and a song key from firebase
     let chartKey = firebase.database.ref('charts').push().key
     let songKey = firebase.database.ref('songs').push().key
 
     let updates = {}
+    // update the new chart using the chartKey
     updates[`charts/${chartKey}`] = {
       offset: danceChart.offset,
       bpm: danceChart.bpm,
@@ -26,6 +27,7 @@ export default {
       createdBy: user
     }
 
+    // update the new song using the songKey
     updates[`songs/${songKey}`] = {
       general: {
         title: danceChart.title.toUpperCase(),
@@ -44,51 +46,22 @@ export default {
       }
     }
 
+    // add songKey to user createdSongs
     updates[`users/${uid}/createdSongs/${songKey}`] = true
 
+    // return new songID
     return firebase.database.ref().update(updates).then(() => {
       return songKey
     })
-    // return firebase.database.ref('charts').push({
-    //   offset: danceChart.offset,
-    //   bpm: danceChart.bpm,
-    //   videoId: player.videoId,
-    //   videoStart: danceChart.videoStart,
-    //   videoEnd: danceChart.videoEnd,
-    //   moves: danceChart.moves.join(' '),
-    //   createdBy: user
-    // }).then((chartRef) => {
-    //   danceChart.chartId = chartRef.key
-    //   // after having the chart saved, save the song
-    //   return firebase.database.ref('songs').push({
-    //     general: {
-    //       title: danceChart.title,
-    //       artist: danceChart.artist,
-    //       createdAt: new Date().getTime(),
-    //       updatedAt: new Date().getTime(),
-    //       createdBy: user,
-    //       genre: genre,
-    //       videoId: player.videoId
-    //     },
-    //     charts: {
-    //       [difficulty]: {
-    //         id: chartRef.key,
-    //         draft: draft
-    //       }
-    //     }
-    //   }).then((songRef) => {
-    //     danceChart.songId = songRef.key
-    //     // add songId to user created songs
-    //     return firebase.database.ref(`users/${uid}/createdSongs`).update({ [songRef.key]: true })
-    //   })
-    // })
   },
   // save new chart to existing song - songId exists
   saveNewChart: function (danceChart, player, songId, difficulty, draft, user) {
     this.sortDanceChart(danceChart)
+    // get a new chart key
     let chartKey = firebase.database.ref('charts').push().key
 
     let updates = {}
+    // update the new chart using the chartKey
     updates[`charts/${chartKey}`] = {
       offset: danceChart.offset,
       bpm: danceChart.bpm,
@@ -99,43 +72,23 @@ export default {
       createdBy: user
     }
 
+    // add chart key to the song
     updates[`songs/${songId}/charts/${difficulty}`] = {
       id: chartKey,
       draft: draft
     }
 
+    // update updatedAt at the changed song
     updates[`songs/${songId}/general/updatedAt`] = new Date().getTime()
 
     return firebase.database.ref().update(updates)
-    // return firebase.database.ref('charts').push({
-    //   offset: danceChart.offset,
-    //   bpm: danceChart.bpm,
-    //   videoId: player.videoId,
-    //   videoStart: danceChart.videoStart,
-    //   videoEnd: danceChart.videoEnd,
-    //   moves: danceChart.moves.join(' '),
-    //   createdBy: user
-    // }).then((chartRef) => {
-    //   danceChart.chartId = chartRef.key
-    //   // add the created chartId to the existing songId
-    //   return firebase.database.ref('songs/' + songId).child('charts').update({
-    //     [difficulty]: {
-    //       id: chartRef.key,
-    //       draft: draft
-    //     }
-    //   }).then(() => {
-    //     danceChart.songId = songId
-    //     return firebase.database.ref('songs/' + songId + '/general').update({
-    //       updatedAt: new Date().getTime()
-    //     })
-    //   })
-    // })
   },
   // overwrites an existing danceChart
   overwriteChart: function (danceChart, chartId, songId, difficulty, draft, genre) {
     this.sortDanceChart(danceChart)
 
     let updates = {}
+    // update current loaded chart
     let chartPath = `charts/${chartId}`
     updates[`${chartPath}/offset`] = danceChart.offset
     updates[`${chartPath}/bpm`] = danceChart.bpm
@@ -144,6 +97,7 @@ export default {
     updates[`${chartPath}/moves`] = danceChart.moves.join(' ')
 
     let songPath = `songs/${songId}`
+    // update current loaded song
     updates[`${songPath}/charts/${difficulty}/draft`] = draft
     updates[`${songPath}/general/title`] = danceChart.title.toUpperCase()
     updates[`${songPath}/general/artist`] = danceChart.artist.toUpperCase()

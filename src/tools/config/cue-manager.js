@@ -29,7 +29,10 @@ export default class CueManager {
 
   // selects the moves that should be drawn this frame and pushes to specific array
   drawDynamicCues (moves, cues) {
-    cues.clear()
+    // clear only when necessary
+    if (this.movesToDraw.length !== 0 || this.holdsToDraw.length !== 0) {
+      cues.clear()
+    }
 
     if (this.holdIndex < moves.length) {
       if (moves[this.holdIndex][0] === this.songManager.nearestBeat) {

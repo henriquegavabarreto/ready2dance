@@ -151,6 +151,8 @@ export default {
   },
   // after mounting elements
   mounted () {
+    // create video capture to use stream as a parameter to posenet
+    this.createCapture()
     // append youtube player
     this.player = new YTPlayer('#player', playerConfig)
     // create song manager based on player loaded song
@@ -345,8 +347,10 @@ export default {
       if (this.player.getCurrentTime() >= parseFloat(this.videoEnd) && parseFloat(this.videoEnd) !== 0) {
         if (this.$store.state.previousScene !== 'editor') {
           this.goToResults()
+          this.ticker.stop()
         } else {
           this.backToPrevious()
+          this.ticker.stop()
         }
       }
     })
@@ -354,8 +358,10 @@ export default {
     this.player.on('ended', () => {
       if (this.$store.state.previousScene !== 'editor') {
         this.goToResults()
+        this.ticker.stop()
       } else {
         this.backToPrevious()
+        this.ticker.stop()
       }
     })
 
@@ -375,104 +381,9 @@ export default {
 
     // set volume to 0 on mount to fade music in when video starts
     this.player.setVolume(0)
-
-    // create video capture to use stream as a parameter to posenet
-    this.createCapture()
   },
   methods: {
     goToResults: function () {
-      this.stopAndDestroy()
-
-      if (this.$store.state.user !== null) { // if the user is registered
-        // TODO: fix below. The song is already selected in $store.state.songId
-        // and make this a cloud function saveScore
-        for (let song in this.$store.state.songs) {
-          // search for the video that was selected, making sure the chart is not a draft
-          if (this.$store.state.selectedSong.videoId === this.$store.state.songs[song].videoId && this.$store.state.songs[song].charts[this.$store.state.selectedDifficulty].draft !== true) {
-            // if there are no scores for this song
-            if (!this.$store.state.songs[song].hasOwnProperty('scores')) {
-              // create new score in the database
-              firebase.database.ref('scores').push({
-                [this.$store.state.user.username]: this.score
-              }).then((scoreRef) => {
-                this.$store.dispatch('updateSongScores', scoreRef.key)
-                // create new reference for the score created in the respective song and difficulty
-                firebase.database.ref(`songs/${song}`).update({
-                  scores: {
-                    [this.$store.state.selectedDifficulty]: scoreRef.key
-                  }
-                }).catch((err) => {
-                  this.$store.commit('somethingWentWrong')
-                  this.$store.commit('changeWrongMessage', `Couldn't save scores at this time. \n ${err.message}`)
-                })
-              }).catch((err) => {
-                this.$store.commit('somethingWentWrong')
-                this.$store.commit('changeWrongMessage', `Couldn't save scores at this time. \n ${err.message}`)
-              })
-            } else { // if there are scores for the song
-              // if selected difficulty already has scores
-              if (this.$store.state.songs[song].scores.hasOwnProperty(this.$store.state.selectedDifficulty)) {
-                let scoreId = this.$store.state.songs[song].scores[this.$store.state.selectedDifficulty]
-                firebase.database.ref(`scores/${scoreId}`).orderByKey().equalTo(this.$store.state.user.username).once('value', data => {
-                  if (data.val() === null) { // if the user has no scores add the new score to the database
-                    firebase.database.ref(`scores/${scoreId}`).update({
-                      [this.$store.state.user.username]: this.score
-                    }).then(() => {
-                      this.$store.dispatch('updateSongScores', scoreId)
-                    }).catch((err) => {
-                      this.$store.commit('somethingWentWrong')
-                      this.$store.commit('changeWrongMessage', `Couldn't save scores at this time. \n ${err.message}`)
-                    })
-                  } else { // if the user has a score already
-                    let currentScore = data.val()[this.$store.state.user.username]
-                    if (this.score > currentScore) { // update only if score is larger
-                      firebase.database.ref(`scores/${scoreId}`).update({
-                        [this.$store.state.user.username]: this.score
-                      }).then(() => {
-                        this.$store.dispatch('updateSongScores', scoreId)
-                      }).catch((err) => {
-                        this.$store.commit('somethingWentWrong')
-                        this.$store.commit('changeWrongMessage', `Couldn't save scores at this time. \n ${err.message}`)
-                      })
-                    } else {
-                      this.$store.dispatch('updateSongScores', scoreId)
-                    }
-                  }
-                })
-              } else { // if there are no scores for the selectedDifficulty
-                // create new score in database and update it in the song
-                firebase.database.ref('scores').push({
-                  [this.$store.state.user.username]: this.score
-                }).then((scoreRef) => {
-                  this.$store.dispatch('updateSongScores', scoreRef.key)
-                  firebase.database.ref(`songs/${song}/scores`).update({
-                    [this.$store.state.selectedDifficulty]: scoreRef.key
-                  }).catch((err) => {
-                    this.$store.commit('somethingWentWrong')
-                    this.$store.commit('changeWrongMessage', `Couldn't save scores at this time. \n ${err.message}`)
-                  })
-                }).catch((err) => {
-                  this.$store.commit('somethingWentWrong')
-                  this.$store.commit('changeWrongMessage', `Couldn't save scores at this time. \n ${err.message}`)
-                })
-              }
-            }
-          }
-        }
-      } else { // for non registered users
-        if (this.$store.state.selectedSong.hasOwnProperty('scores')) { // if has scores
-          if (this.$store.state.selectedSong.scores.hasOwnProperty(this.$store.state.selectedDifficulty)) { // if there are scores for the difficulty
-            this.$store.dispatch('updateSongScores', this.$store.state.selectedSong.scores[this.$store.state.selectedDifficulty])
-          } else { // no scores for difficulty
-            this.$store.commit('changeSongScores', 'No scores here yet. Register and be the first in the scoreboard!')
-          }
-        } else { // if no scores at all
-          this.$store.commit('changeSongScores', 'No scores here yet. Register and be the first in the scoreboard!')
-        }
-      }
-
-      // go to results scene
-      this.$store.commit('goToScene', 'results')
       // change detailed results in score
       this.$store.commit('changeResults', {
         perfect: this.perfect,
@@ -484,12 +395,46 @@ export default {
         maxPoints: this.maxPoints,
         report: this.report
       })
+
+      if (this.$store.state.user !== null) { // if the user is registered
+        let saveScore = firebase.functions.httpsCallable('saveScore')
+        let toUpdate = {
+          difficulty: this.$store.state.selectedDifficulty,
+          songId: this.$store.state.selectedSongId,
+          userScore: this.score
+        }
+        saveScore(toUpdate).then(results => {
+          this.$store.dispatch('updateSongScores', results.data.scoreId)
+        }).catch(err => {
+          this.$store.commit('somethingWentWrong')
+          this.$store.commit('changeWrongMessage', `Couldn't save scores at this time. \n ${err.message}`)
+        }).finally(() => {
+          this.stopAndDestroy()
+          // go to results scene
+          this.$store.commit('goToScene', 'results')
+        })
+      } else { // for non registered users
+        if (this.$store.state.selectedSong.hasOwnProperty('scores')) { // if has scores
+          if (this.$store.state.selectedSong.scores.hasOwnProperty(this.$store.state.selectedDifficulty)) { // if there are scores for the difficulty
+            this.$store.dispatch('updateSongScores', this.$store.state.selectedSong.scores[this.$store.state.selectedDifficulty])
+          } else { // no scores for difficulty
+            this.$store.commit('changeSongScores', 'No scores here yet. Register and be the first in the scoreboard!')
+          }
+        } else { // if no scores at all
+          this.$store.commit('changeSongScores', 'No scores here yet. Register and be the first in the scoreboard!')
+        }
+        this.stopAndDestroy()
+        // go to results scene
+        this.$store.commit('goToScene', 'results')
+      }
     },
     // stop capture of the webcam
     stopCapture: function () {
-      this.stream.srcObject.getVideoTracks().forEach((track) => {
-        track.stop()
-      })
+      if (this.stream) {
+        this.stream.srcObject.getVideoTracks().forEach((track) => {
+          track.stop()
+        })
+      }
     },
     // listen to window resize
     resizeWindow: function () {
@@ -615,6 +560,7 @@ export default {
       /* stop player ticker and capture
       destroy player, ticker and animation helpers if necessary
       remove resize event listener */
+      this.ticker.stop()
       this.player.stop()
       this.player.destroy()
       if (this.gameOptions.showAnimation) {
@@ -626,13 +572,12 @@ export default {
         }
         this.app.destroy()
       }
-      this.ticker.stop()
-      this.ticker.destroy()
 
       this.stopCapture()
 
       window.removeEventListener('resize', this.resizeWindow)
       window.onresize = null
+      this.ticker.destroy()
     },
     backToPrevious: function () {
       // interrupts the game and goes back to previous scene

@@ -9,7 +9,7 @@
             </v-card-title>
             <v-divider></v-divider>
             <div class="text-xs-center headline font-weight-medium mb-3 mt-3">
-              {{$store.state.selectedSong.title}} - {{$store.state.selectedSong.artist}}<br/>{{$store.state.selectedDifficulty.toUpperCase()}}
+              {{$store.state.selectedSong.general.title}} - {{$store.state.selectedSong.general.artist}}<br/>{{$store.state.selectedDifficulty.toUpperCase()}}
             </div>
             <v-divider></v-divider>
             <v-card-text :class="!$vuetify.breakpoint.xs ? 'display-1 font-weight-medium' : 'headline'">
@@ -346,7 +346,7 @@ export default {
       return cl + ' mt-5'
     },
     twitterText: function () {
-      return 'https://twitter.com/intent/tweet?text=' + encodeURI(`I played ${this.$store.state.selectedSong.title.toUpperCase()} (${this.$store.state.selectedDifficulty.toUpperCase()}) on Ready2Dance and scored ${this.results.score} (${this.grade})! You think you can beat me? ⭕ https://parapara-game.web.app ⭕`)
+      return 'https://twitter.com/intent/tweet?text=' + encodeURI(`I played ${this.$store.state.selectedSong.general.title.toUpperCase()} (${this.$store.state.selectedDifficulty.toUpperCase()}) on Ready2Dance and scored ${this.results.score} (${this.grade})! You think you can beat me? ⭕ https://parapara-game.web.app ⭕`)
     }
   }
 }

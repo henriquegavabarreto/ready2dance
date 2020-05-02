@@ -160,7 +160,7 @@
           <v-spacer></v-spacer>
 
           <v-btn
-          class="white"
+            class="white"
             color="green darken-1"
             flat
             @click="settings = false"
@@ -227,7 +227,7 @@
                           <v-chip v-for="(charts,name) in song.charts" :key="name" color="black" text-color="white" class="text-xs-center">{{name.toUpperCase()}}</v-chip>
                           <div class="body-2 font-weight-regular">
                             <span>created by {{song.general.createdBy}}</span>
-                            <span class="ml-5"><v-btn fab small :color="!$store.state.user ? 'red lighten-2' : !$store.state.user.likedSongs ? 'red lighten-2' : $store.state.user.likedSongs[song.general.songId] ? 'red' : 'red lighten-2'" @click="likeThisSong(song.general.songId)"><v-icon color="white">favorite</v-icon></v-btn></span><span class="ml-1">{{song.general.likedBy ? song.general.likedBy : 0 }}</span>
+                            <span class="ml-5"><v-btn fab small :color="!$store.state.user ? 'red lighten-2' : !$store.state.user.likedSongs ? 'red lighten-2' : $store.state.user.likedSongs[song.general.songId] ? 'red' : 'red lighten-2'" @click="likeThisSong(song.general.songId)" :loading="processingLike" :disabled="processingLike"><v-icon color="white">favorite</v-icon></v-btn></span><span class="ml-1">{{song.general.likedBy ? song.general.likedBy : 0 }}</span>
                           </div>
                         </div>
                       </v-card-title>
@@ -264,6 +264,7 @@
                       class="ml-4 lighten-2"
                       :disabled="$store.state.selectedChartId === null"
                       @click="goToGame"><v-icon left>play_arrow</v-icon>PLAY</v-btn>
+                      <v-btn color="primary" @click="testScore">test score</v-btn>
                   </v-card-text>
                 </v-card>
               </v-flex>
@@ -339,6 +340,7 @@ export default {
         speed: 1
       },
       loading: false,
+      processingLike: false,
       usernameToChange: '',
       usernameNotFound: false,
       userNameNotFoundText: '',
@@ -389,6 +391,19 @@ export default {
     this.player = new YTPlayer('#player', playerConfig)
   },
   methods: {
+    testScore: function () {
+      let saveScore = firebase.functions.httpsCallable('saveScore')
+      let toUpdate = {
+        difficulty: this.$store.state.selectedDifficulty,
+        songId: this.$store.state.selectedSongId,
+        userScore: 1200
+      }
+      saveScore(toUpdate).then(results => {
+        console.log(results.data)
+      }).catch(err => {
+        console.log(err)
+      })
+    },
     goToEditor: function () { // go to editor
       this.player.stop()
       this.player.destroy()
@@ -403,14 +418,18 @@ export default {
       this.player.load(song.general.videoId)
       this.$store.commit('changeSongScores', 'Select a difficulty')
       this.$store.commit('selectChart', null)
+      this.$store.commit('selectSongId', song.general.songId)
       if (this.$vuetify.breakpoint.xs) document.getElementById('currentlySelected').scrollIntoView()
     },
     likeThisSong: function (songId) {
+      this.processingLike = true
       let toggleLike = firebase.functions.httpsCallable('toggleLike')
       toggleLike({ songId: songId }).then(res => {
         console.log(res.data)
+        this.processingLike = false
       }).catch(err => {
         console.log(err)
+        this.processingLike = false
       })
     },
     goToGame: function () { // goes to the game after the chart is loaded
@@ -480,7 +499,7 @@ export default {
       })
     },
     goToLatencyCalibration: function () { // similar to goToGame function, but instead loads webcam latency calibration
-      if (this.options.multiplier !== this.$store.state.gameOptions.multiplier || this.$store.state.net) {
+      if (this.options.multiplier !== this.$store.state.gameOptions.multiplier || this.$store.state.net === null) {
         this.$store.dispatch('loadNet', this.options.multiplier).then(response => {
           this.$store.commit('loadNet', response)
           this.$store.commit('changeOptions', this.options)

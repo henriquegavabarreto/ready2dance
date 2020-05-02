@@ -227,7 +227,7 @@ export default new Vuex.Store({
             context.commit('goToScene', 'song-selection')
           })
         } else {
-          context.commit('changeState', null)
+          context.commit('changeUser', null)
           context.commit('goToScene', 'home')
         }
       })
