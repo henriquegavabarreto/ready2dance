@@ -246,7 +246,7 @@
                     <v-layout class="justify-space-between align-center">
                       <h3 v-if="selectedSong.general.title" class="headline font-weight-bold">{{selectedSong.general.title.toUpperCase()}} - {{selectedSong.general.artist.toUpperCase()}}
                       </h3>
-                      <v-btn fab small :color="!$store.state.user ? 'red lighten-2' : !$store.state.user.likedSongs ? 'red lighten-2' : $store.state.user.likedSongs[$store.state.selectedSongId] ? 'red' : 'red lighten-2'" @click="toggleLike(song.general.songId)" :loading="processingLike" :disabled="processingLike"><v-icon color="white">favorite</v-icon></v-btn>
+                      <v-btn fab small :color="!$store.state.user ? 'red lighten-2' : !$store.state.user.likedSongs ? 'red lighten-2' : $store.state.user.likedSongs[$store.state.selectedSongId] ? 'red' : 'red lighten-2'" @click="toggleLike($store.state.selectedSongId)" :loading="processingLike" :disabled="processingLike"><v-icon color="white">favorite</v-icon></v-btn>
                     </v-layout>
                   </v-card-title>
                   <v-card-text>
@@ -411,10 +411,10 @@ export default {
       this.processingLike = true
       let toggleLike = firebase.functions.httpsCallable('toggleLike')
       toggleLike({ songId: songId }).then(res => {
-        console.log(res.data)
         this.processingLike = false
       }).catch(err => {
-        console.log(err)
+        this.$store.commit('changeWrongMessage', `${err.message}`)
+        this.$store.commit('somethingWentWrong')
         this.processingLike = false
       })
     },
