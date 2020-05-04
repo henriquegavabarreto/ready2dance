@@ -199,35 +199,35 @@
             <v-card style="max-height: 100%; border-radius: 10px;" class="blue-grey lighten-5">
               <v-card-title class="justify-center teal lighten-2">
                 <v-icon
-                  large
+                  medium
                   left
                   color="black"
                 >
                   queue_music
                 </v-icon>
-                <span class="display-1 font-weight-medium ma-0 pa-0">Select a Song</span>
+                <span class="headline font-weight-bold ma-0 pa-0">SELECT A SONG</span>
               </v-card-title>
               <v-divider></v-divider>
-              <v-container style="max-height: 75vh;" fluid grid-list-lg class="scroll-y">
+              <v-container style="max-height: 78vh;" fluid grid-list-lg class="scroll-y">
                 <v-layout row wrap>
                   <v-flex
                   xs12
-                  v-for="song in orderedSongs"
-                  :key="song.general.title + song.general.artist"
+                  v-for="(song, i) in orderedSongs"
+                  :key="song.general.title + song.general.artist + i"
                   @click="selectSong(song)">
                     <v-card
                       style="border-radius: 15px;"
                       hover
                       id="cardBackground"
                       :class="selectedSong.general.title === song.general.title ? 'pink darken-1 white--text' : 'blue lighten-4'">
-                      <v-card-title primary-title class="pa-3">
+                      <v-card-title primary-title class="px-3 py-1">
                         <div>
-                          <h3 class="my-1"><span class="headline font-weight-bold">{{song.general.title.toUpperCase() + ' - ' + song.general.artist.toUpperCase()}}</span></h3>
-                          <v-chip :color="song.general.genre === 'parapara' ? 'pink' : song.general.genre === 'techpara' ? 'blue' : 'yellow'" text-color="white" class="text-xs-center">{{song.general.genre.toUpperCase()}}</v-chip>
-                          <v-chip v-for="(charts,name) in song.charts" :key="name" color="black" text-color="white" class="text-xs-center">{{name.toUpperCase()}}</v-chip>
+                          <h3 class="my-1"><span class="headline font-weight-medium">{{song.general.title.toUpperCase() + ' - ' + song.general.artist.toUpperCase()}}</span></h3>
+                          <v-chip small :color="song.general.genre === 'parapara' ? 'pink' : song.general.genre === 'techpara' ? 'blue' : 'yellow'" text-color="white" class="text-xs-center">{{song.general.genre.toUpperCase()}}</v-chip>
+                          <v-chip small v-for="(charts,name) in song.charts" :key="name" color="black" text-color="white" class="text-xs-center">{{name.toUpperCase()}}</v-chip>
                           <div class="body-2 font-weight-regular">
                             <span>created by {{song.general.createdBy}}</span>
-                            <span class="ml-5"><v-btn fab small :color="!$store.state.user ? 'red lighten-2' : !$store.state.user.likedSongs ? 'red lighten-2' : $store.state.user.likedSongs[song.general.songId] ? 'red' : 'red lighten-2'" @click="likeThisSong(song.general.songId)" :loading="processingLike" :disabled="processingLike"><v-icon color="white">favorite</v-icon></v-btn></span><span class="ml-1">{{song.general.likedBy ? song.general.likedBy : 0 }}</span>
+                            <span class="ml-5"><v-icon color="white">favorite</v-icon></span><span class="ml-1">{{song.general.likedBy ? song.general.likedBy : 0 }}</span>
                           </div>
                         </div>
                       </v-card-title>
@@ -242,30 +242,29 @@
             <v-layout row wrap>
               <v-flex xs12 id="currentlySelected">
                 <v-card style="border-radius: 10px;" class="blue-grey lighten-5 text-xs-center">
-                  <v-card-title primary-title class="justify-center cyan pb-1">
-                    <div>
-                      <h3 class="display-1 mb-2 font-weight-bold">{{selectedSong.general.title}} / {{selectedSong.general.artist}}</h3>
-                    </div>
+                  <v-card-title primary-title class="justify-center align-center cyan py-1">
+                    <v-layout class="justify-space-between align-center">
+                      <h3 v-if="selectedSong.general.title" class="headline font-weight-bold">{{selectedSong.general.title.toUpperCase()}} - {{selectedSong.general.artist.toUpperCase()}}
+                      </h3>
+                      <v-btn fab small :color="!$store.state.user ? 'red lighten-2' : !$store.state.user.likedSongs ? 'red lighten-2' : $store.state.user.likedSongs[$store.state.selectedSongId] ? 'red' : 'red lighten-2'" @click="toggleLike(song.general.songId)" :loading="processingLike" :disabled="processingLike"><v-icon color="white">favorite</v-icon></v-btn>
+                    </v-layout>
                   </v-card-title>
                   <v-card-text>
                     <div id="player" style="max-height: 300px;"></div>
                   </v-card-text>
-                  <v-divider></v-divider>
-                  <v-card-text style="display: inline;" class="justify-center pl-0">
+                  <v-card-text style="display: inline;" class="justify-center">
                     <div style="display: inline;" v-for="(chart, dif) in songCharts" :key="dif">
                       <v-btn
                         @click="selectChart(chart.id, dif)"
                         :class="selectedChart === chart.id ? 'blue lighten' : ''"
                         :disabled="chart.draft && ($store.state.user === null || $store.state.user.username !== selectedSong.general.createdBy)">{{dif}}<span v-if="chart.draft">{{' (SOON)'}}</span></v-btn>
                     </div>
-                    <v-spacer></v-spacer>
+                  </v-card-text>
+                  <v-card-actions class="justify-center mt-2">
                     <v-btn
-                      dark
-                      class="ml-4 lighten-2"
                       :disabled="$store.state.selectedChartId === null"
                       @click="goToGame"><v-icon left>play_arrow</v-icon>PLAY</v-btn>
-                      <v-btn color="primary" @click="testScore">test score</v-btn>
-                  </v-card-text>
+                  </v-card-actions>
                 </v-card>
               </v-flex>
               <!-- scoreboard for the selected chart -->
@@ -350,7 +349,7 @@ export default {
       selectedUser: '',
       users: null,
       player: null,
-      filters: ['release date', 'last updated', 'A-Z', 'favorites only', 'most popular'],
+      filters: ['creation date', 'last updated', 'A-Z', 'favorites only', 'most popular'],
       filter: ''
     }
   },
@@ -391,19 +390,6 @@ export default {
     this.player = new YTPlayer('#player', playerConfig)
   },
   methods: {
-    testScore: function () {
-      let saveScore = firebase.functions.httpsCallable('saveScore')
-      let toUpdate = {
-        difficulty: this.$store.state.selectedDifficulty,
-        songId: this.$store.state.selectedSongId,
-        userScore: 1200
-      }
-      saveScore(toUpdate).then(results => {
-        console.log(results.data)
-      }).catch(err => {
-        console.log(err)
-      })
-    },
     goToEditor: function () { // go to editor
       this.player.stop()
       this.player.destroy()
@@ -421,7 +407,7 @@ export default {
       this.$store.commit('selectSongId', song.general.songId)
       if (this.$vuetify.breakpoint.xs) document.getElementById('currentlySelected').scrollIntoView()
     },
-    likeThisSong: function (songId) {
+    toggleLike: function (songId) {
       this.processingLike = true
       let toggleLike = firebase.functions.httpsCallable('toggleLike')
       toggleLike({ songId: songId }).then(res => {
@@ -550,7 +536,7 @@ export default {
         return 0
       })
 
-      if (this.filter === 'release date') {
+      if (this.filter === 'creation date') {
         orderedSongs.sort((a, b) => {
           if (a.general.createdAt < b.general.createdAt) {
             return 1
