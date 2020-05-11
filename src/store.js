@@ -14,7 +14,8 @@ export default new Vuex.Store({
     user: null,
     uid: null,
     net: null,
-    songs: null,
+    songs: [],
+    showSongs: [],
     songScores: 'Select a song!',
     somethingWentWrong: false,
     wrongMessage: '',
@@ -34,7 +35,11 @@ export default new Vuex.Store({
       speed: 1
     },
     currentScene: '',
-    previousScene: ''
+    previousScene: '',
+    queryState: null,
+    lastQuery: null,
+    pageCounter: 1,
+    currentSongFilter: 'Most Popular'
   },
   mutations: {
     // show welcome message or not
@@ -61,20 +66,77 @@ export default new Vuex.Store({
     selectDifficulty: (state, data) => {
       state.selectedDifficulty = data
     },
+    resetSongs: state => {
+      state.songs = []
+    },
+    resetShowSongs: state => {
+      state.showSongs = []
+    },
     // add song to songs - set initially or if a song is pushed to the database
     addSong: (state, data) => {
-      if (state.songs === null) {
-        state.songs = {}
-      }
-      Vue.set(state.songs, data.key, data.val)
+      state.songs.push(data)
+    },
+    addSongToShowSongs: (state, data) => {
+      state.showSongs.push(data)
     },
     // make changes to a song and updates it
     changeSong: (state, data) => {
-      Vue.set(state.songs, data.key, data.val)
+      // remove song from its original place
+      for (let i = 0; i < state.songs.length; i++) {
+        if (data.song.general.songId === state.songs[i].general.songId) {
+          state.songs.splice(i, 1)
+          break
+        }
+      }
+      // if prevChild is null, this song is the first in the array
+      if (data.prevChild === null) {
+        state.songs.splice(0, 0, data.song)
+      } else {
+        // place the song after the previous child
+        for (let i = 0; i < state.songs.length; i++) {
+          if (data.prevChild === state.songs[i].general.songId) {
+            state.songs.splice(i + 1, 0, data.song)
+            return
+          }
+        }
+      }
+    },
+    changeSongToShowInPlace: (state, data) => {
+      // place new data in place of old song data
+      for (let i = 0; i < state.showSongs.length; i++) {
+        if (data.general.songId === state.showSongs[i].general.songId) {
+          state.showSongs.splice(i, 1, data)
+          return
+        }
+      }
     },
     // remove song locally
     removeSong: (state, data) => {
-      Vue.delete(state.songs, data.key)
+      for (let i = 0; i < state.songs.length; i++) {
+        if (data.general.songId === state.songs[i].general.songId) {
+          state.songs.splice(i, 1)
+          return
+        }
+      }
+    },
+    // manually like a song if it was removed from the songs list
+    manuallyToggleLike: (state, data) => {
+      // look for the removed songId
+      for (let i = 0; i < state.showSongs.length; i++) {
+        if (data.songId === state.showSongs[i].general.songId) {
+          // if the song was liked, add 1
+          if (data.likeState === 'like') {
+            if (state.showSongs[i].general.likedBy) {
+              state.showSongs[i].general.likedBy++
+            } else {
+              state.showSongs[i].general.likedBy = 1
+            }
+          } else {
+            // remove 1 if unliked
+            state.showSongs[i].general.likedBy--
+          }
+        }
+      }
     },
     // change scene to be dynamically loaded by vue
     goToScene: (state, data) => {
@@ -161,38 +223,144 @@ export default new Vuex.Store({
       localStorage.setItem('speed', state.gameOptions.speed)
       localStorage.setItem('outputStride', state.gameOptions.outputStride)
       localStorage.setItem('imageScale', state.gameOptions.imageScale)
+    },
+    changeQueryState: (state, data) => {
+      state.queryState = data
+    },
+    changeLastQuery: (state, data) => {
+      state.lastQuery = data
+    },
+    changePage: (state, data) => {
+      state.pageCounter = state.pageCounter + data
+    },
+    resetPage: state => {
+      state.pageCounter = 1
+    },
+    changeSongFilter: (state, data) => {
+      state.currentSongFilter = data
     }
   },
   actions: {
-    // update songs locally based on database changes
-    loadSongs: context => {
-      firebase.database.ref('songs').orderByChild('title').on('child_added', (data) => {
-        let values = {
-          key: data.key,
-          val: data.val()
+    // load songs from database in batches - payload should have properties filter, loadMore, requestedPage
+    loadSongs: (context, payload) => {
+      // ignore calls for previous if in page 1 and for next if in the last page
+      if ((payload.requestedPage === 'next' && context.state.queryState === 'last') || (payload.requestedPage === 'previous' && context.state.pageCounter === 1)) {
+        return
+      }
+      let oldQuery = context.state.showSongs.slice(0)
+      let pageSize = 25
+      let query = null
+      if (payload.requestedPage === 'first') {
+        // indicate that this is the first request and first page
+        context.commit('changeQueryState', 'first')
+        // reset page counter to 1
+        context.commit('resetPage')
+        // change query according to the selected filter
+        if (payload.filter === 'Recently Updated') {
+          query = firebase.database.ref('songs').orderByChild('general/updatedAt').limitToLast(pageSize)
+        } else if (payload.filter === 'Title (A-Z)') {
+          query = firebase.database.ref('songs').orderByChild('general/title').limitToFirst(pageSize)
+        } else if (payload.filter === 'Most Popular') {
+          query = firebase.database.ref('songs').orderByChild('general/likedBy').limitToLast(pageSize)
         }
-        context.commit('addSong', values)
-      })
-      firebase.database.ref('songs').on('child_changed', (data) => {
-        let values = {
-          key: data.key,
-          val: data.val()
+      } else if (payload.requestedPage === 'next') {
+        // indicate that this is not the first request
+        context.commit('changeQueryState', 'cont')
+        // add 1 to page counter
+        context.commit('changePage', 1)
+        // change query according to the selected filter
+        if (payload.filter === 'Recently Updated') {
+          query = firebase.database.ref('songs').orderByChild('general/updatedAt').endAt(context.state.songs[0].general.updatedAt, context.state.songs[0].general.songId).limitToLast(pageSize + 1)
+        } else if (payload.filter === 'Title (A-Z)') {
+          query = firebase.database.ref('songs').orderByChild('general/title').startAt(context.state.songs[context.state.songs.length - 1].general.title, context.state.songs[context.state.songs.length - 1].general.songId).limitToFirst(pageSize + 1)
+        } else if (payload.filter === 'Most Popular') {
+          query = firebase.database.ref('songs').orderByChild('general/likedBy').endAt(context.state.songs[0].general.likedBy, context.state.songs[0].general.songId).limitToLast(pageSize + 1)
         }
-        context.commit('changeSong', values)
-      })
-      firebase.database.ref('songs').on('child_removed', (data) => {
-        let values = {
-          key: data.key,
-          val: data.val()
+      } else { // previous page
+        // indicate that this is not the first request
+        context.commit('changeQueryState', 'cont')
+        // remove one from page counting
+        context.commit('changePage', -1)
+        // change query according to the selected filter
+        if (payload.filter === 'Recently Updated') {
+          query = firebase.database.ref('songs').orderByChild('general/updatedAt').startAt(context.state.songs[context.state.songs.length - 1].general.updatedAt, context.state.songs[context.state.songs.length - 1].general.songId).limitToFirst(pageSize + 1)
+        } else if (payload.filter === 'Title (A-Z)') {
+          query = firebase.database.ref('songs').orderByChild('general/title').endAt(context.state.songs[0].general.title, context.state.songs[0].general.songId).limitToLast(pageSize + 1)
+        } else if (payload.filter === 'Most Popular') {
+          query = firebase.database.ref('songs').orderByChild('general/likedBy').startAt(context.state.songs[context.state.songs.length - 1].general.likedBy, context.state.songs[context.state.songs.length - 1].general.songId).limitToFirst(pageSize + 1)
         }
-        context.commit('removeSong', values)
+      }
+      // reset loaded songs, sonce we will not listen for their changes anymore
+      context.commit('resetSongs')
+      context.commit('resetShowSongs')
+      // get the required page from database
+      query.once('value', data => {
+        data.forEach(value => {
+          let song = value.val()
+          song.general.songId = value.key
+          context.commit('addSong', song)
+          context.commit('addSongToShowSongs', song)
+        })
+      }).then(() => {
+        // check number of repeated items in new query (expected to be one)
+        let repeatedItems = 0
+        for (let i = 0; i < context.state.songs.length; i++) {
+          for (let j = 0; j < oldQuery.length; j++) {
+            if (context.state.songs[i].general.songId === oldQuery[j].general.songId) {
+              repeatedItems++
+            }
+          }
+        }
+        // if all items of the new query were included in the old query
+        if (repeatedItems === context.state.songs.length) {
+          // this is the last page and the old query should be kept
+          context.commit('changeQueryState', 'last')
+          // remove all songs from the array
+          context.commit('resetSongs')
+          context.commit('resetShowSongs')
+          // put back all songs from old query and keep listeners
+          oldQuery.forEach(song => {
+            context.commit('addSong', song)
+            context.commit('addSongToShowSongs', song)
+          })
+        } else {
+          if (context.state.songs.length < pageSize) {
+            // if there are less items than expected in the query this is the last page and the last query
+            context.commit('changeQueryState', 'last')
+          }
+          if (context.state.lastQuery !== null) {
+            context.state.lastQuery.off()
+          }
+          query.on('child_removed', data => {
+            let song = data.val()
+            song.general.songId = data.key
+            context.commit('removeSong', song)
+          })
+          // listen for child changed events
+          query.on('child_changed', (data, prevChild) => {
+            let song = data.val()
+            song.general.songId = data.key
+            context.commit('changeSong', { song: song, prevChild: prevChild })
+            context.commit('changeSongToShowInPlace', song)
+          })
+          // listen for child moved events
+          query.on('child_moved', (data, prevChild) => {
+            let song = data.val()
+            song.general.songId = data.key
+            context.commit('changeSong', { song: song, prevChild: prevChild })
+          })
+          context.commit('changeLastQuery', query)
+        }
       })
     },
     // load specific chart from firebase
     changeSelectedChart: (context, payload) => {
       return firebase.database.ref(`charts/${payload}`).once('value', (data) => {
         context.commit('changeSelectedChart', data.val())
-      }, (err) => { console.log(err) })
+      }, (err) => {
+        context.commit('somethingWentWrong')
+        context.commit('changeWrongMessage', err.message)
+      })
     },
     // load posenet based on multiplier
     loadNet: (context, payload) => {

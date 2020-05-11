@@ -30,8 +30,8 @@ export default {
     // update the new song using the songKey
     updates[`songs/${songKey}`] = {
       general: {
-        title: danceChart.title.toUpperCase(),
-        artist: danceChart.artist.toUpperCase(),
+        title: danceChart.title.toLowerCase(),
+        artist: danceChart.artist.toLowerCase(),
         createdAt: new Date().getTime(),
         updatedAt: new Date().getTime(),
         createdBy: user,
@@ -99,8 +99,8 @@ export default {
     let songPath = `songs/${songId}`
     // update current loaded song
     updates[`${songPath}/charts/${difficulty}/draft`] = draft
-    updates[`${songPath}/general/title`] = danceChart.title.toUpperCase()
-    updates[`${songPath}/general/artist`] = danceChart.artist.toUpperCase()
+    updates[`${songPath}/general/title`] = danceChart.title.toLowerCase()
+    updates[`${songPath}/general/artist`] = danceChart.artist.toLowerCase()
     updates[`${songPath}/general/genre`] = genre
     updates[`${songPath}/general/updatedAt`] = new Date().getTime()
 

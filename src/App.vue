@@ -60,6 +60,11 @@ export default {
       this.$store.dispatch('onStateChange')
     }
   },
+  beforeDestroy () {
+    if (this.$store.state.lastQuery !== null) {
+      this.$store.state.lastQuery.off()
+    }
+  },
   methods: {
     toggleWrong: function () {
       this.$store.commit('somethingWentWrong')

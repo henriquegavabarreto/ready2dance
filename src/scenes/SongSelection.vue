@@ -17,12 +17,6 @@
         class="mt-2"
         flat
       ></v-text-field>
-      <v-select
-        class="mt-3 ml-5"
-        :items="filters"
-        v-model="filter"
-        label="order by"
-      ></v-select>
       <!-- h3 that shows username (if registered user) or guest (if decided not to sign in / sign up) -->
       <h3 class="ml-5" v-if="$store.state.user !== null">Hello, {{$store.state.user.username}}!</h3>
       <h3 class="ml-5" v-else>Hello, Guest!</h3>
@@ -192,7 +186,7 @@
       </v-card>
     </v-dialog>
     <v-content style="min-height: 100vh;">
-      <v-container fluid fill-height>
+      <v-container fluid fill-height class="pa-2">
         <v-layout row wrap>
           <!-- v-flex that shows all current songs in the database to be chosen to play by the users -->
           <v-flex sm12 md6>
@@ -208,12 +202,18 @@
                 <span class="headline font-weight-bold ma-0 pa-0">SELECT A SONG</span>
               </v-card-title>
               <v-divider></v-divider>
-              <v-container style="max-height: 78vh;" fluid grid-list-lg class="scroll-y">
+              <v-container style="max-height: 80vh;" fluid grid-list-lg class="scroll-y">
                 <v-layout row wrap>
+                  <v-select
+                    :items="filters"
+                    v-model="filter"
+                    label="order by"
+                    @change="logChange(filter)"
+                  ></v-select>
                   <v-flex
                   xs12
-                  v-for="(song, i) in orderedSongs"
-                  :key="song.general.title + song.general.artist + i"
+                  v-for="song in filteredSongs"
+                  :key="song.general.songId"
                   @click="selectSong(song)">
                     <v-card
                       style="border-radius: 15px;"
@@ -233,6 +233,10 @@
                       </v-card-title>
                     </v-card>
                   </v-flex>
+                  <v-flex xs12 class="text-sm-center">
+                    <v-btn :disabled="$store.state.pageCounter === 1 || $store.state.queryState === 'first'" color="primary" @click="loadPreviousPage()">Previous</v-btn>
+                    <v-btn :disabled="$store.state.queryState === 'last'" color="primary" @click="loadNextPage()">Next</v-btn>
+                  </v-flex>
                 </v-layout>
               </v-container>
             </v-card>
@@ -246,7 +250,7 @@
                     <v-layout class="justify-space-between align-center">
                       <h3 v-if="selectedSong.general.title" class="headline font-weight-bold">{{selectedSong.general.title.toUpperCase()}} - {{selectedSong.general.artist.toUpperCase()}}
                       </h3>
-                      <v-btn fab small :color="!$store.state.user ? 'red lighten-2' : !$store.state.user.likedSongs ? 'red lighten-2' : $store.state.user.likedSongs[$store.state.selectedSongId] ? 'red' : 'red lighten-2'" @click="toggleLike($store.state.selectedSongId)" :loading="processingLike" :disabled="processingLike"><v-icon color="white">favorite</v-icon></v-btn>
+                      <v-btn v-if="$store.state.user !== null" fab small :color="!$store.state.user ? 'red lighten-2' : !$store.state.user.likedSongs ? 'red lighten-2' : $store.state.user.likedSongs[$store.state.selectedSongId] ? 'red' : 'red lighten-2'" @click="toggleLike($store.state.selectedSongId)" :loading="processingLike" :disabled="processingLike"><v-icon color="white">favorite</v-icon></v-btn>
                     </v-layout>
                   </v-card-title>
                   <v-card-text>
@@ -349,20 +353,19 @@ export default {
       selectedUser: '',
       users: null,
       player: null,
-      filters: ['creation date', 'last updated', 'A-Z', 'favorites only', 'most popular'],
-      filter: ''
+      filters: ['Title (A-Z)', 'Recently Updated', 'Most Popular'],
+      filter: 'Most Popular'
     }
   },
-  beforeCreate () {
-    // load all songs from the database in the store on before create lifecicle
-    if (this.$store.state.songs === null) {
-      this.$store.dispatch('loadSongs')
+  created () {
+    this.filter = this.$store.state.currentSongFilter
+    // load all songs from the database in the store on create lifecicle
+    if (this.$store.state.songs.length === 0 || this.$store.state.songs.length === 1) {
+      this.$store.dispatch('loadSongs', { filter: this.filter, requestedPage: 'first' })
     }
     if (!this.$store.state.welcomeShown) {
       this.$store.commit('toggleWelcome', true)
     }
-  },
-  created () {
     // when this view is loaded, substitute the local setting options according to the options saved at the store / localStorage
     this.options.showAnimation = this.$store.state.gameOptions.showAnimation
     this.options.showWebcam = this.$store.state.gameOptions.showWebcam
@@ -390,6 +393,16 @@ export default {
     this.player = new YTPlayer('#player', playerConfig)
   },
   methods: {
+    loadNextPage: function () {
+      this.$store.dispatch('loadSongs', { filter: this.filter, requestedPage: 'next' })
+    },
+    loadPreviousPage: function () {
+      this.$store.dispatch('loadSongs', { filter: this.filter, requestedPage: 'previous' })
+    },
+    logChange: function (selection) {
+      this.$store.commit('changeSongFilter', selection)
+      this.$store.dispatch('loadSongs', { filter: this.filter, requestedPage: 'first' })
+    },
     goToEditor: function () { // go to editor
       this.player.stop()
       this.player.destroy()
@@ -412,6 +425,17 @@ export default {
       let toggleLike = firebase.functions.httpsCallable('toggleLike')
       toggleLike({ songId: songId }).then(res => {
         this.processingLike = false
+        setTimeout(() => {
+          let foundSong = false
+          for (let song of this.$store.state.songs) {
+            if (song.general.songId === songId) {
+              foundSong = true
+            }
+          }
+          if (!foundSong) {
+            this.$store.commit('manuallyToggleLike', { songId: songId, likeState: res.data })
+          }
+        }, 200)
       }).catch(err => {
         this.$store.commit('changeWrongMessage', `${err.message}`)
         this.$store.commit('somethingWentWrong')
@@ -516,37 +540,30 @@ export default {
   },
   computed: {
     songs: function () { // loads all songs from the $store
-      return this.$store.state.songs
+      return this.$store.state.showSongs.slice(0)
     },
     orderedSongs: function () {
+      let allSongs = this.songs.slice(0)
       let orderedSongs = []
-      for (let songId in this.filteredSongs) {
-        let song = this.filteredSongs[songId]
-        song.general.songId = songId
-        orderedSongs.push(song)
-      }
-      // returns ordered from A-Z by default
-      orderedSongs.sort((a, b) => {
-        if (a.general.title > b.general.title) {
-          return 1
+      // do not show latency test and songs that have no playable charts (unless it was created by the user)
+      allSongs.forEach(song => {
+        // ignore latencyTest
+        if (song.general.songId !== '-LhMV2ryLrMUmubVy8wq') {
+          // check for songs with only drafts
+          let onlyDrafts = true
+          for (let chart in song.charts) {
+            if (song.charts[chart].draft === false) {
+              onlyDrafts = false
+            }
+          }
+          // ignore songs with only drafts that were not created by the user (not playable)
+          if (!onlyDrafts || song.general.createdBy === this.$store.state.user.username) {
+            orderedSongs.push(song)
+          }
         }
-        if (a.general.title < b.general.title) {
-          return -1
-        }
-        return 0
       })
 
-      if (this.filter === 'creation date') {
-        orderedSongs.sort((a, b) => {
-          if (a.general.createdAt < b.general.createdAt) {
-            return 1
-          }
-          if (a.general.createdAt > b.general.createdAt) {
-            return -1
-          }
-          return 0
-        })
-      } else if (this.filter === 'last updated') {
+      if (this.filter === 'Recently Updated') {
         orderedSongs.sort((a, b) => {
           if (a.general.updatedAt < b.general.updatedAt) {
             return 1
@@ -556,33 +573,42 @@ export default {
           }
           return 0
         })
-      } else if (this.filter === 'most popular') {
+        // orderedSongs = orderedSongs.reverse()
+      } else if (this.filter === 'Most Popular') {
         orderedSongs.sort((a, b) => {
-          if (a.general.likedBy) {
-            if (b.general.likedBy) {
-              if (a.general.likedBy < b.general.likedBy) {
-                return 1
-              }
-              if (a.general.likedBy > b.general.likedBy) {
-                return -1
-              }
-            } else {
-              return -1
-            }
+          if (!a.general.likedBy) a.general.likedBy = 0
+          if (!b.general.likedBy) b.general.likedBy = 0
+          if (a.general.likedBy < b.general.likedBy) {
+            return 1
+          }
+          if (a.general.likedBy > b.general.likedBy) {
+            return -1
+          }
+          return 0
+        })
+        // orderedSongs = orderedSongs.reverse()
+      } else if (this.filter === 'Title (A-Z)') {
+        orderedSongs.sort((a, b) => {
+          if (a.general.title > b.general.title) {
+            return 1
+          }
+          if (a.general.title < b.general.title) {
+            return -1
           }
           return 0
         })
       }
+      if (this.$store.state.queryState !== 'first' && this.$store.state.pageCounter !== 1) {
+        orderedSongs.shift()
+      }
       return orderedSongs
     },
     filteredSongs: function () { // Returns array of songs based on the search - filtered from the songs computed property above
-      let filteredSongs = {}
+      let filteredSongs = []
 
-      for (let songId in this.songs) {
-        if (songId !== '-LhMV2ryLrMUmubVy8wq') {
-          if (this.songs[songId].general.title.toLowerCase().includes(this.search.toLowerCase()) || this.songs[songId].general.artist.toLowerCase().includes(this.search.toLowerCase())) {
-            filteredSongs[songId] = this.songs[songId]
-          }
+      for (let song of this.orderedSongs) {
+        if (song.general.title.toLowerCase().includes(this.search.toLowerCase()) || song.general.artist.toLowerCase().includes(this.search.toLowerCase())) {
+          filteredSongs.push(song)
         }
       }
       return filteredSongs
