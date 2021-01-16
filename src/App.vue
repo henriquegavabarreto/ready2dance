@@ -12,7 +12,6 @@
       <v-icon color="yellow" dark left>warning</v-icon>
       <span class="red--text"></span>
         {{$store.state.wrongMessage}}
-        If this problem persists or this is not your problem, contact the webmaster.
         <v-btn
           flat
           @click="toggleWrong"
@@ -63,6 +62,9 @@ export default {
   beforeDestroy () {
     if (this.$store.state.lastQuery !== null) {
       this.$store.state.lastQuery.off()
+    }
+    if (this.$store.state.likedSongsRef !== null) {
+      this.$store.state.likedSongsRef.off()
     }
   },
   methods: {

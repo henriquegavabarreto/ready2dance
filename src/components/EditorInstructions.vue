@@ -115,6 +115,45 @@
       <v-flex xs12 class="mt-4">
         <v-card style="border-radius: 10px;">
           <v-card-title class="justify-center yellow darken-1 headline font-weight-medium pa-2">
+            Positions
+          </v-card-title>
+          <v-card-text>
+            The silly drawing below shows roughly how the positions are defined by the player's body parts.
+            <svg width="335" height="256" viewBox="0 0 335 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <line x1="169.125" y1="0.5" x2="169.125" y2="255.249" stroke="#00C2FF"/>
+              <line x1="137.985" y1="116.5" x2="202.985" y2="114.5" stroke="black"/>
+              <line x1="202.655" y1="114.638" x2="267.655" y2="52.6382" stroke="black"/>
+              <line x1="138.462" y1="115.19" x2="117.462" y2="166.19" stroke="black"/>
+              <line x1="116.705" y1="165.596" x2="190.205" y2="126.596" stroke="black"/>
+              <line x1="170.998" y1="104.049" x2="161.498" y2="200.049" stroke="black"/>
+              <line x1="161.494" y1="200.076" x2="152.985" y2="255.325" stroke="black"/>
+              <line x1="161.497" y1="199.941" x2="168.122" y2="255.941" stroke="black"/>
+              <path d="M185.5 82C185.5 87.9774 183.682 93.3697 180.767 97.2563C177.852 101.143 173.864 103.5 169.5 103.5C165.136 103.5 161.148 101.143 158.233 97.2563C155.318 93.3697 153.5 87.9774 153.5 82C153.5 76.0226 155.318 70.6303 158.233 66.7437C161.148 62.8571 165.136 60.5 169.5 60.5C173.864 60.5 177.852 62.8571 180.767 66.7437C183.682 70.6303 185.5 76.0226 185.5 82Z" stroke="black"/>
+              <line x1="0.25" y1="83.5" x2="335" y2="83.5" stroke="#FF0000"/>
+              <line x1="123.5" y1="0.5" x2="123.5" y2="256" stroke="#FF0000"/>
+              <line x1="214.5" y1="0.5" x2="214.5" y2="256" stroke="#FF0000"/>
+              <line x1="0.25" y1="158" x2="335" y2="158" stroke="#FF0000"/>
+              <rect x="0.75" y="1" width="333.75" height="254.5" stroke="black"/>
+            </svg>
+            <div>
+              <p>Top - Above nose</p>
+              <p>Middle - Between nose and stomach</p>
+              <p>Bottom - Below stomach</p>
+
+              <p>Right - To the right side of the nose</p>
+              <p>Center - Between the shoulders</p>
+              <p>Left - To the left side of the nose</p>
+            </div>
+            <div class="mt-5">
+              <p>Considering the above, the player's left hand could be considered in middle + center position or middle + right position.</p>
+              <p>The right hand would be on the top + right.</p>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-flex>
+      <v-flex xs12 class="mt-4">
+        <v-card style="border-radius: 10px;">
+          <v-card-title class="justify-center yellow darken-1 headline font-weight-medium pa-2">
             Usage
           </v-card-title>
           <v-card-text class="subheading">

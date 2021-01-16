@@ -7,6 +7,14 @@ function moveToBeat (player, songManager, moveManager, noteManager, cueManager, 
   if (player.getState() === 'paused' && !editorConfig.areaSelect) {
     // seek video to the beat it is supposed to be
     player.seek(songManager.getNearestBeatTime(skippedBeats))
+    // clear ToDraw before setting new index to draw new circles
+    cueManager.holdsToDraw = []
+    cueManager.movesToDraw = []
+    cueManager.setCurrentIndex(danceChart)
+    // TODO: staff scroll
+    // two lines below try to implement scrolling mousewheel and using arrow keys at the same time
+    // player.seek(songManager.getExactQuarterBeatTime(skippedBeats))
+    // containers.master.dynamicContainer.pivot.y += (56 / 4) * skippedBeats
     // it reduces errors when using the functions inside a setTimeout
     setTimeout(() => {
       // if creating a new move

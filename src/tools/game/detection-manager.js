@@ -3,8 +3,8 @@ export default {
   detect: function (hand, position, pose) {
     // set relevant body parts based on keypoints
     let nose = pose.keypoints[0].position
-    let leftEar = pose.keypoints[3].position
-    let rightEar = pose.keypoints[4].position
+    // let leftEar = pose.keypoints[3].position
+    // let rightEar = pose.keypoints[4].position
     let leftShoulder = pose.keypoints[5].position
     let rightShoulder = pose.keypoints[6].position
     let leftHip = pose.keypoints[11].position
@@ -36,22 +36,22 @@ export default {
     let bottom = false
 
     // check which conditions based on body parts and the idea of 3x3 grid are true
-    if (checkingHand.x > leftEar.x) {
+    if (checkingHand.x > nose.x) {
       left = true
     }
     if (checkingHand.x < leftShoulder.x + 20 && checkingHand.x > rightShoulder.x - 20) {
       center = true
     }
-    if (checkingHand.x < rightEar.x) {
+    if (checkingHand.x < nose.x) {
       right = true
     }
-    if (checkingHand.y < shouldersY) {
+    if (checkingHand.y < nose.y) {
       top = true
     }
-    if (checkingHand.y < hipsY && checkingHand.y > nose.y) {
+    if (checkingHand.y < hipsY && checkingHand.y > nose.y - 10) {
       middle = true
     }
-    if (checkingHand.y > stomach - 10) {
+    if (checkingHand.y > stomach) {
       bottom = true
     }
 

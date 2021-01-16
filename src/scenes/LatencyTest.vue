@@ -22,6 +22,7 @@
         </v-flex>
       </v-layout>
     </v-container>
+    <loading-screen :dialog="loading"></loading-screen>
   </div>
 </template>
 
@@ -36,10 +37,14 @@ import createTextures from '../tools/game/create-textures'
 import addContainers from '../tools/game/add-containers'
 import addGraphics from '../tools/game/add-graphics'
 import * as PIXI from 'pixi.js'
+import LoadingScreen from '../components/LoadingScreen.vue'
 
 const YTPlayer = require('yt-player')
 
 export default {
+  components: {
+    'loading-screen': LoadingScreen
+  },
   data () {
     return {
       app: null,
@@ -52,7 +57,8 @@ export default {
       stream: null,
       promiseArray: [],
       timeStamps: {},
-      latencies: []
+      latencies: [],
+      loading: false
     }
   },
   created () {
@@ -63,16 +69,67 @@ export default {
     addGraphics(this.containers, this.textures)
   },
   mounted () {
-    this.player = new YTPlayer('#player', playerConfig)
-    this.songManager = new SongManager(this.player, this.$store.state.selectedChart)
-    document.getElementById('canvas').appendChild(this.app.view)
-    this.cueManager = new CueManager(this.songManager, gameConfig, grid, this.gameOptions.speed)
-    this.ticker.add(() => {
-      this.cueManager.drawDynamicCues(this.moves, this.textures.cues)
+    this.loading = true
+    this.createCapture().then(response => {
+      if (response) {
+        this.player = new YTPlayer('#player', playerConfig)
+        this.player.load(this.$store.state.selectedChart.videoId, false)
+        this.songManager = new SongManager(this.player, this.$store.state.selectedChart)
+        document.getElementById('canvas').appendChild(this.app.view)
+        this.cueManager = new CueManager(this.songManager, gameConfig, grid, this.gameOptions.speed)
+
+        window.addEventListener('resize', this.resizeWindow())
+        this.resize()
+        this.ticker.add(() => {
+          this.cueManager.drawDynamicCues(this.moves, this.textures.cues)
+          this.getMoves()
+          // fade in
+          this.fadeIn()
+          // fade out
+          this.fadeOut()
+          // end test
+          if (this.player.getCurrentTime() >= parseFloat(this.videoEnd) && parseFloat(this.videoEnd) !== 0) {
+            this.changeScene()
+          }
+        })
+
+        this.player.on('ended', () => {
+          this.changeScene()
+        })
+
+        this.ticker.stop()
+
+        this.player.on('playing', () => {
+          // if this is the start of the video and there is a time set for the video to start, seek to that time
+          if (parseFloat(this.videoStart) !== 0 && this.player.getCurrentTime() < 0.5) this.player.seek(parseFloat(this.videoStart))
+          this.ticker.start()
+        })
+
+        this.player.on('paused', () => {
+          this.ticker.stop()
+        })
+
+        this.player.on('cued', () => {
+          this.loading = false
+        })
+
+        this.player.setVolume(0)
+      }
     })
-    window.addEventListener('resize', this.resizeWindow())
-    this.resize()
-    this.ticker.add(() => {
+    this.getMovesStamps()
+  },
+  methods: {
+    fadeOut: function () {
+      if (this.player.getCurrentTime() >= parseFloat(this.videoEnd) - 2 && parseFloat(this.videoEnd) !== 0) {
+        this.player.setVolume(this.player.getVolume() - 1)
+      }
+    },
+    fadeIn: function () {
+      if (this.player.getCurrentTime() <= parseFloat(this.videoStart) + 5) {
+        this.player.setVolume(this.player.getVolume() + 1)
+      }
+    },
+    getMoves: function () {
       if (this.moveIndex < this.moves.length) { // index value is not higher than the array length
         if (this.moves[this.moveIndex][0] + 6 <= this.songManager.currentQuarterBeat) { // if the beat of the current index has passed the current beat + 6
           this.promiseArray.push(this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride))
@@ -109,7 +166,11 @@ export default {
               // only push to latencies if it is a number
               if (typeof latency === 'number' && !isNaN(latency)) this.latencies.push(latency)
             }
-          }).catch((err) => { console.log(err) })
+          }).catch((err) => {
+            alert(err)
+            this.$store.commit('changeWrongMessage', 'Something went wrong. Please reload the page and try again.')
+            this.$store.commit('somethingWentWrong')
+          })
           this.promiseArray = []
           this.moveIndex++
         }
@@ -120,42 +181,7 @@ export default {
           }
         }
       }
-      // fade in
-      if (this.player.getCurrentTime() <= parseFloat(this.videoStart) + 5) {
-        this.player.setVolume(this.player.getVolume() + 1)
-      }
-      // fade out
-      if (this.player.getCurrentTime() >= parseFloat(this.videoEnd) - 2 && parseFloat(this.videoEnd) !== 0) {
-        this.player.setVolume(this.player.getVolume() - 1)
-      }
-      // end test
-      if (this.player.getCurrentTime() >= parseFloat(this.videoEnd) && parseFloat(this.videoEnd) !== 0) {
-        this.changeScene()
-      }
-    })
-
-    this.player.on('ended', () => {
-      this.changeScene()
-    })
-
-    this.ticker.stop()
-
-    this.player.on('playing', () => {
-      // if this is the start of the video and there is a time set for the video to start, seek to that time
-      if (parseFloat(this.videoStart) !== 0 && this.player.getCurrentTime() < 0.5) this.player.seek(parseFloat(this.videoStart))
-      this.ticker.start()
-    })
-
-    this.player.on('paused', () => {
-      this.ticker.stop()
-    })
-
-    this.player.setVolume(0)
-
-    this.createCapture()
-    this.getMovesStamps()
-  },
-  methods: {
+    },
     changeScene: function () {
       this.stopAndDestroy()
       this.latencies = this.latencies.sort((a, b) => { return b - a }).splice(3, 10)
@@ -214,42 +240,47 @@ export default {
         }
       }
 
-      if (!navigator.mediaDevices) { // if there is no mediaDevices
-        // try to use getUserMedia
+      if (!navigator.mediaDevices) { // if there is no mediaDevices try to use getUserMedia (fallback for older browsers)
         navigator.getUserMedia = navigator.getUserMedia ||
                          navigator.webkitGetUserMedia ||
                          navigator.mozGetUserMedia
 
-        if (navigator.getUserMedia) {
-          navigator.getUserMedia({ audio: false, video: { width: 300, height: 300 } }, (stream) => {
+        if (navigator.getUserMedia) { // if we were able to access getUserMedia
+          return navigator.getUserMedia({ audio: false, video: { width: 300, height: 300 } }).then(stream => {
+            // create stream
             this.stream = document.getElementById('videoStream')
             this.stream.srcObject = stream
             this.stream.onloadedmetadata = (e) => {
               this.stream.play()
+              /* as there is a delay in posenet first estimations, 2 estimations are done at the time the stream starts
+              to prevent delay when estimations are supposed to occur quickly during the game */
               this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride)
               setTimeout(() => {
                 this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride)
               }, 2000)
             }
-          }, (err) => {
+            return true
+          }).catch(err => {
             let errorMessage = 'The following error occurred: ' + err.name
             this.stopAndDestroy()
             this.$store.commit('changeWrongMessage', errorMessage)
             this.$store.commit('somethingWentWrong')
             this.$store.commit('goToScene', 'song-selection')
+            return false
           })
         } else {
-          let errorMessage = 'This browser has no camera support.'
+          let errorMessage = 'This browser has no camera support. Check your browser settings or try another browser.'
           this.stopAndDestroy()
           this.$store.commit('changeWrongMessage', errorMessage)
           this.$store.commit('somethingWentWrong')
           this.$store.commit('goToScene', 'song-selection')
+          return Promise.resolve(false)
         }
       } else {
-        navigator.mediaDevices.getUserMedia(constraints)
+        return navigator.mediaDevices.getUserMedia(constraints)
           .then((stream) => {
-            this.player.load(this.$store.state.selectedChart.videoId, false)
             this.stream = document.getElementById('videoStream')
+            // make sure stream is autoplay with no audio
             this.stream.setAttribute('autoplay', '')
             this.stream.setAttribute('muted', '')
             this.stream.setAttribute('playsinline', '')
@@ -258,14 +289,15 @@ export default {
               this.stream.width = 300
               this.stream.height = 300
               this.stream.play()
-              // do 2 pose estimations (for some reason the first estimations slow everything down)
+              // estimate poses to prevent delays on first estimation in game
               this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride)
               setTimeout(() => {
                 this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride)
               }, 2000)
             }
+            return true
           })
-          .catch((err) => {
+          .catch((err) => { // catch error from mediaDevices
             this.stopAndDestroy()
 
             let errorMessage = 'Something went wrong...'
@@ -286,26 +318,45 @@ export default {
             this.$store.commit('changeWrongMessage', errorMessage)
             this.$store.commit('somethingWentWrong')
             this.$store.commit('goToScene', 'song-selection')
+            return false
           })
       }
     },
     stopAndDestroy: function () {
-      this.player.stop()
-      this.player.destroy()
-      for (let texture in this.textures) {
-        this.textures[texture].destroy()
+      /* stop player ticker and capture
+      destroy player, ticker and animation helpers if necessary
+      remove resize event listener */
+      if (this.ticker !== null) {
+        this.ticker.stop()
       }
-      for (let container in this.containers) {
-        this.containers[container].destroy(true)
+
+      if (this.player !== null) {
+        this.player.stop()
+        this.player.destroy()
       }
-      this.app.destroy()
-      this.ticker.stop()
-      this.ticker.destroy()
+
+      if (this.gameOptions.showAnimation) {
+        for (let texture in this.textures) {
+          this.textures[texture].destroy()
+        }
+        for (let container in this.containers) {
+          this.containers[container].destroy(true)
+        }
+        this.app.destroy()
+      }
 
       this.stopCapture()
 
       window.removeEventListener('resize', this.resizeWindow)
       window.onresize = null
+
+      if (this.ticker !== null) {
+        this.ticker.destroy()
+      }
+
+      if (this.loading) {
+        this.loading = false
+      }
     },
     backToSelection: function () {
       // interrupts the game and goes back to song selection

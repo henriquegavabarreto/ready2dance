@@ -363,6 +363,23 @@ export default class MoveManager {
     editorConfig.beatArray.sort(function (a, b) { return a - b })
   }
 
+  // corrects the beatArray if necessary and returns true for corrected and false otherwise
+  correctBeatArray () {
+    let firstBeat = editorConfig.beatArray[0]
+    let lastBeat = editorConfig.beatArray[editorConfig.beatArray.length - 1]
+    let correctArray = []
+    for (let i = firstBeat; i <= lastBeat; i++) {
+      correctArray.push(i)
+    }
+    if (editorConfig.beatArray.length === correctArray.length) {
+      return false
+    } else {
+      this.clearBeatArray()
+      editorConfig.beatArray = correctArray.slice(0)
+      return true
+    }
+  }
+
   /*
   sets editorConfig.circleCount to 1 or 2 depending on the length of the beatArray
   if the beat array has one element, just one position will need to be selected, otherwise

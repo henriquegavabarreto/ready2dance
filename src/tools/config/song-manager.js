@@ -16,6 +16,11 @@ export default class SongManager {
     return currentBeat
   }
 
+  get currentAbsoluteBeat () {
+    let currentAbsoluteBeat = this.player.getCurrentTime() / this.tempo
+    return currentAbsoluteBeat
+  }
+
   // returns the round current beat
   get currentRoundBeat () {
     return Math.round(this.currentBeat)
@@ -37,6 +42,12 @@ export default class SongManager {
   getNearestBeatTime (t = 0) {
     let nearestBeatTime = (((this.nearestBeat + t) / 4) * this.tempo) + this.danceChart.offset
     return nearestBeatTime
+  }
+
+  // returns exact video time of a given quarter beat
+  getExactQuarterBeatTime (t = 0) {
+    let exactQuarterBeatTime = (((this.currentQuarterBeat + t) / 4) * this.tempo) + this.danceChart.offset
+    return exactQuarterBeatTime
   }
 
   // returns video time of a particular beat

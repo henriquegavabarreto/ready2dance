@@ -14,7 +14,6 @@ export default class NoteManager {
   draws notes to selected beat when creating moves dynamically
   if beats are selected, instead of quarter beats, the gaps are filled
 
-  TODO: if a gap is created for some reason, they should be filled to avoid errors
   The beat array and this function can be used to accomplish that
   notes are not tinted at this point
   */
@@ -108,11 +107,11 @@ export default class NoteManager {
     danceChart.moves.forEach(move => { // insert all elements again
       if (move[2] !== 'X') {
         this.drawNote(22, move[0], containers, textures)
-        this.tintNotes(containers, move[0], 'L', move[2][0])
+        this.tintNotes(containers, danceChart, move[0], 'L', move[2][0])
       }
       if (move[3] !== 'X') {
         this.drawNote(108, move[0], containers, textures)
-        this.tintNotes(containers, move[0], 'R', move[3][0])
+        this.tintNotes(containers, danceChart, move[0], 'R', move[3][0])
       }
     })
   }
@@ -167,7 +166,7 @@ export default class NoteManager {
   }
 
   // tint a specific note or all notes from the beat array according to moveType (call after the information is added to chart)
-  tintNotes (containers, beatToTint, hand, moveType) {
+  tintNotes (containers, danceChart, beatToTint, hand, moveType) {
     if (!beatToTint && !hand && !moveType) {
       hand = 'L'
       if (editorConfig.pressedKey === 'x') hand = 'R'
@@ -175,23 +174,33 @@ export default class NoteManager {
       editorConfig.beatArray.forEach((beat) => {
         let noteName = `${beat}${hand}`
         let note = containers.auxiliary.noteElements.getChildByName(noteName)
-        this.tint(moveType, note)
+        let progress = this.getProgress(danceChart, beat, hand)
+        this.tint(moveType, note, progress)
       })
     } else {
       let noteName = `${beatToTint}${hand}`
       let note = containers.auxiliary.noteElements.getChildByName(noteName)
-      this.tint(moveType, note)
+      let progress = this.getProgress(danceChart, beatToTint, hand)
+      this.tint(moveType, note, progress)
     }
   }
 
   // internal - actually tints the note Sprite
-  tint (moveType, note) {
+  tint (moveType, note, progress) {
     if (moveType === 'S') {
       note.tint = editorConfig.colors.sharp
     } else if (moveType === 'H') {
-      note.tint = editorConfig.colors.hold
+      if (progress) {
+        note.tint = editorConfig.colors.holdProgress
+      } else {
+        note.tint = editorConfig.colors.hold
+      }
     } else {
-      note.tint = editorConfig.colors.motion
+      if (progress) {
+        note.tint = editorConfig.colors.motionProgress
+      } else {
+        note.tint = editorConfig.colors.motion
+      }
     }
   }
 
@@ -203,6 +212,26 @@ export default class NoteManager {
       return 'M'
     } else if (editorConfig.beatArray.length > 1 && editorConfig.selectedCircles[0] === editorConfig.selectedCircles[1]) {
       return 'H'
+    }
+  }
+
+  getProgress (danceChart, beat, hand) {
+    for (let move of danceChart.moves) {
+      if (move[0] === beat) {
+        if (hand === 'R') {
+          if (move[3][1] === 'P') {
+            return true
+          } else {
+            return false
+          }
+        } else {
+          if (move[2][1] === 'P') {
+            return true
+          } else {
+            return false
+          }
+        }
+      }
     }
   }
 

@@ -23,7 +23,7 @@ export default function addGraphics (containers, textures) {
   the feedback.texture can be changed (and it is) in the giveFeedback function as necessary
   */
   for (let i = 1; i < grid.length; i++) {
-    let feedback = new PIXI.Sprite(textures.perfect)
+    let feedback = new PIXI.Sprite(textures.perfect.texture)
     feedback.visible = false
     feedback.anchor.set(0.5)
     feedback.x = grid[i].x

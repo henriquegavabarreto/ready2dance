@@ -15,7 +15,7 @@ export default function createTextures (app, textures, gameConfig) {
   textures.cues = new PIXI.Graphics()
 
   // creates textures for feedback text
-  textures.perfectText = new PIXI.Text('PERFECT', {
+  textures.perfect = new PIXI.Text('PERFECT', {
     fontFamily: 'Arial',
     fontSize: 30,
     fill: ['#FFB90D', '#eeeeee', '#FFB90D'],
@@ -24,7 +24,7 @@ export default function createTextures (app, textures, gameConfig) {
     align: 'center'
   })
 
-  textures.awesomeText = new PIXI.Text('AWESOME', {
+  textures.awesome = new PIXI.Text('AWESOME', {
     fontFamily: 'Arial',
     fontSize: 30,
     fill: ['#0EB800', '#eeeeee', '#0EB800'],
@@ -33,7 +33,7 @@ export default function createTextures (app, textures, gameConfig) {
     align: 'center'
   })
 
-  textures.goodText = new PIXI.Text('GOOD', {
+  textures.good = new PIXI.Text('GOOD', {
     fontFamily: 'Arial',
     fontSize: 30,
     fill: ['#0051D5', '#eeeeee', '#0051D5'],
@@ -42,7 +42,7 @@ export default function createTextures (app, textures, gameConfig) {
     align: 'center'
   })
 
-  textures.missText = new PIXI.Text('MISS', {
+  textures.miss = new PIXI.Text('MISS', {
     fontFamily: 'Arial',
     fontSize: 30,
     fill: ['#E30000', '#eeeeee', '#E30000'],
@@ -51,13 +51,8 @@ export default function createTextures (app, textures, gameConfig) {
     align: 'center'
   })
 
-  textures.perfectText.updateText()
-  textures.awesomeText.updateText()
-  textures.goodText.updateText()
-  textures.missText.updateText()
-
-  textures.perfect = textures.perfectText.texture
-  textures.awesome = textures.awesomeText.texture
-  textures.good = textures.goodText.texture
-  textures.miss = textures.missText.texture
+  textures.perfect.updateText()
+  textures.awesome.updateText()
+  textures.good.updateText()
+  textures.miss.updateText()
 }

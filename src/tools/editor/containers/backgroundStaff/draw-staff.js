@@ -78,4 +78,8 @@ export default function drawStaff (containers, textures, player, danceChart, son
       }
     }
   }
+  // Adds filter to background staff
+  PIXI.settings.PRECISION_FRAGMENT = PIXI.PRECISION.HIGH
+  var fxaaFilter = new PIXI.filters.FXAAFilter()
+  containers.auxiliary.backgroundStaff.filters = [fxaaFilter]
 }

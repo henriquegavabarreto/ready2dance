@@ -11,8 +11,11 @@ export default new Vuex.Store({
   state: {
     welcome: false,
     welcomeShown: false,
-    user: null,
-    uid: null,
+    user: {
+      username: '',
+      likedSongs: []
+    },
+    changingState: true,
     net: null,
     songs: [],
     showSongs: [],
@@ -39,7 +42,8 @@ export default new Vuex.Store({
     queryState: null,
     lastQuery: null,
     pageCounter: 1,
-    currentSongFilter: 'Most Popular'
+    currentSongFilter: 'Most Popular',
+    likedSongsRef: null
   },
   mutations: {
     // show welcome message or not
@@ -74,6 +78,18 @@ export default new Vuex.Store({
     },
     // add song to songs - set initially or if a song is pushed to the database
     addSong: (state, data) => {
+      // if (state.songs.length === 0) {
+      //   state.songs.push(data)
+      // } else {
+      //   let repeated = false
+      //   for (let song of state.songs) {
+      //     if (data.general.songId === song.general.songId) {
+      //       repeated = true
+      //       break
+      //     }
+      //   }
+      //   if (!repeated) state.songs.push(data)
+      // }
       state.songs.push(data)
     },
     addSongToShowSongs: (state, data) => {
@@ -115,6 +131,15 @@ export default new Vuex.Store({
       for (let i = 0; i < state.songs.length; i++) {
         if (data.general.songId === state.songs[i].general.songId) {
           state.songs.splice(i, 1)
+          return
+        }
+      }
+    },
+    // remove song locally
+    removeSongToShow: (state, data) => {
+      for (let i = 0; i < state.showSongs.length; i++) {
+        if (data.general.songId === state.showSongs[i].general.songId) {
+          state.showSongs.splice(i, 1)
           return
         }
       }
@@ -231,13 +256,35 @@ export default new Vuex.Store({
       state.lastQuery = data
     },
     changePage: (state, data) => {
-      state.pageCounter = state.pageCounter + data
+      if (state.pageCounter + data > 0) {
+        state.pageCounter = state.pageCounter + data
+      } else {
+        state.pageCounter = 1
+      }
     },
     resetPage: state => {
       state.pageCounter = 1
     },
     changeSongFilter: (state, data) => {
       state.currentSongFilter = data
+    },
+    createLikedSongsRef: (state, data) => {
+      state.likedSongsRef = data
+    },
+    addLikedSong: (state, data) => {
+      state.user.likedSongs.push(data)
+    },
+    removeLikedSong: (state, data) => {
+      let index = state.user.likedSongs.indexOf(data)
+      state.user.likedSongs.splice(index, 1)
+    },
+    changeUsername: (state, data) => {
+      state.user.username = data
+    },
+    resetUser: state => {
+      state.user = {}
+      Vue.set(state.user, 'username', '')
+      Vue.set(state.user, 'likedSongs', [])
     }
   },
   actions: {
@@ -247,8 +294,12 @@ export default new Vuex.Store({
       if ((payload.requestedPage === 'next' && context.state.queryState === 'last') || (payload.requestedPage === 'previous' && context.state.pageCounter === 1)) {
         return
       }
+      // ignore calls if there is not more than one page for songs
+      if (context.state.pageCounter === 1 && context.state.queryState === 'last' && payload.requestedPage !== 'first') {
+        return
+      }
       let oldQuery = context.state.showSongs.slice(0)
-      let pageSize = 25
+      let pageSize = 5
       let query = null
       if (payload.requestedPage === 'first') {
         // indicate that this is the first request and first page
@@ -256,12 +307,15 @@ export default new Vuex.Store({
         // reset page counter to 1
         context.commit('resetPage')
         // change query according to the selected filter
-        if (payload.filter === 'Recently Updated') {
+        if (payload.filter === 'Most Recent') {
           query = firebase.database.ref('songs').orderByChild('general/updatedAt').limitToLast(pageSize)
         } else if (payload.filter === 'Title (A-Z)') {
           query = firebase.database.ref('songs').orderByChild('general/title').limitToFirst(pageSize)
         } else if (payload.filter === 'Most Popular') {
           query = firebase.database.ref('songs').orderByChild('general/likedBy').limitToLast(pageSize)
+        } else if (payload.filter === 'My Creations') {
+          if (context.state.user.username === null) return
+          query = firebase.database.ref('songs').orderByChild('general/createdBy').equalTo(context.state.user.username).limitToLast(pageSize)
         }
       } else if (payload.requestedPage === 'next') {
         // indicate that this is not the first request
@@ -269,12 +323,14 @@ export default new Vuex.Store({
         // add 1 to page counter
         context.commit('changePage', 1)
         // change query according to the selected filter
-        if (payload.filter === 'Recently Updated') {
+        if (payload.filter === 'Most Recent') {
           query = firebase.database.ref('songs').orderByChild('general/updatedAt').endAt(context.state.songs[0].general.updatedAt, context.state.songs[0].general.songId).limitToLast(pageSize + 1)
         } else if (payload.filter === 'Title (A-Z)') {
           query = firebase.database.ref('songs').orderByChild('general/title').startAt(context.state.songs[context.state.songs.length - 1].general.title, context.state.songs[context.state.songs.length - 1].general.songId).limitToFirst(pageSize + 1)
         } else if (payload.filter === 'Most Popular') {
           query = firebase.database.ref('songs').orderByChild('general/likedBy').endAt(context.state.songs[0].general.likedBy, context.state.songs[0].general.songId).limitToLast(pageSize + 1)
+        } else if (payload.filter === 'My Creations') {
+          query = firebase.database.ref('songs').orderByChild('general/createdBy').startAt(context.state.songs[0].general.createdBy).endAt(context.state.songs[0].general.createdBy, context.state.songs[0].general.songId).limitToLast(pageSize + 1)
         }
       } else { // previous page
         // indicate that this is not the first request
@@ -282,12 +338,14 @@ export default new Vuex.Store({
         // remove one from page counting
         context.commit('changePage', -1)
         // change query according to the selected filter
-        if (payload.filter === 'Recently Updated') {
+        if (payload.filter === 'Most Recent') {
           query = firebase.database.ref('songs').orderByChild('general/updatedAt').startAt(context.state.songs[context.state.songs.length - 1].general.updatedAt, context.state.songs[context.state.songs.length - 1].general.songId).limitToFirst(pageSize + 1)
         } else if (payload.filter === 'Title (A-Z)') {
           query = firebase.database.ref('songs').orderByChild('general/title').endAt(context.state.songs[0].general.title, context.state.songs[0].general.songId).limitToLast(pageSize + 1)
         } else if (payload.filter === 'Most Popular') {
           query = firebase.database.ref('songs').orderByChild('general/likedBy').startAt(context.state.songs[context.state.songs.length - 1].general.likedBy, context.state.songs[context.state.songs.length - 1].general.songId).limitToFirst(pageSize + 1)
+        } else if (payload.filter === 'My Creations') {
+          query = firebase.database.ref('songs').orderByChild('general/createdBy').startAt(context.state.songs[context.state.songs.length - 1].general.createdBy, context.state.songs[context.state.songs.length - 1].general.songId).endAt(context.state.songs[0].general.createdBy).limitToFirst(pageSize + 1)
         }
       }
       // reset loaded songs, sonce we will not listen for their changes anymore
@@ -314,7 +372,9 @@ export default new Vuex.Store({
         // if all items of the new query were included in the old query
         if (repeatedItems === context.state.songs.length) {
           // this is the last page and the old query should be kept
-          context.commit('changeQueryState', 'last')
+          if (payload.requestedPage !== 'previous') {
+            context.commit('changeQueryState', 'last')
+          }
           // remove all songs from the array
           context.commit('resetSongs')
           context.commit('resetShowSongs')
@@ -331,10 +391,36 @@ export default new Vuex.Store({
           if (context.state.lastQuery !== null) {
             context.state.lastQuery.off()
           }
+          if (payload.filter === 'My Creations' && context.state.pageCounter === 1) {
+            query.on('child_added', data => {
+              let song = data.val()
+              song.general.songId = data.key
+              let alreadyLoaded = false
+              for (let loadedSong of context.state.songs) {
+                if (loadedSong.general.songId === data.key) {
+                  alreadyLoaded = true
+                  break
+                }
+              }
+              if (!alreadyLoaded) {
+                context.commit('addSong', song)
+                context.commit('addSongToShowSongs', song)
+              }
+            })
+          }
           query.on('child_removed', data => {
             let song = data.val()
             song.general.songId = data.key
-            context.commit('removeSong', song)
+            firebase.database.ref('songs').orderByKey().equalTo(data.key).once('value', value => {
+              if (value.val() === null) {
+                // remove song from both arrays - the song doesnt exist anymore
+                context.commit('removeSong', song)
+                context.commit('removeSongToShow', song)
+              } else {
+                // remove song only from the reference array
+                context.commit('removeSong', song)
+              }
+            })
           })
           // listen for child changed events
           query.on('child_changed', (data, prevChild) => {
@@ -386,15 +472,36 @@ export default new Vuex.Store({
     },
     // react to auth state change
     onStateChange: context => {
-      // TODO: this should reflect the changes done in the user node
-      // onChildAdded and onChildRemoved for likedSongs and createdSongs would be nice
+      context.state.changingState = true
       firebase.auth.onAuthStateChanged((userState) => {
+        context.commit('resetUser')
         if (userState) {
-          firebase.database.ref(`users/${userState.uid}`).once('value').then((value) => {
-            context.commit('changeUser', value.val())
+          firebase.database.ref(`users/${userState.uid}/username`).once('value').then(value => {
+            let username = value.val()
+            // commit username
+            context.commit('changeUsername', username)
+            return username
+          }).then(() => {
+            let likedSongsRef = firebase.database.ref(`users/${userState.uid}/likedSongs`)
+            // add listener to likedSongs
+            likedSongsRef.on('child_added', data => {
+              // if the current filter is my favorites, request this song to the database
+              context.commit('addLikedSong', data.key)
+            })
+            likedSongsRef.on('child_removed', data => {
+              context.commit('removeLikedSong', data.key)
+            })
+            context.commit('createLikedSongsRef', likedSongsRef)
+            // go to song selection
             context.commit('goToScene', 'song-selection')
+            context.state.changingState = false
+          }).catch(err => {
+            context.commit('somethingWentWrong')
+            context.commit('changeWrongMessage', err.message)
+            context.state.changingState = false
           })
         } else {
+          context.state.changingState = false
           context.commit('changeUser', null)
           context.commit('goToScene', 'home')
         }

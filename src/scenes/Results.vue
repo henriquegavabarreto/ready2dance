@@ -9,7 +9,7 @@
             </v-card-title>
             <v-divider></v-divider>
             <div class="text-xs-center headline font-weight-medium mb-3 mt-3">
-              {{$store.state.selectedSong.general.title}} - {{$store.state.selectedSong.general.artist}}<br/>{{$store.state.selectedDifficulty.toUpperCase()}}
+              {{$store.state.selectedSong.general.title.toUpperCase()}} - {{$store.state.selectedSong.general.artist.toUpperCase()}}<br/>{{$store.state.selectedDifficulty.toUpperCase()}}
             </div>
             <v-divider></v-divider>
             <v-card-text :class="!$vuetify.breakpoint.xs ? 'display-1 font-weight-medium' : 'headline'">
@@ -54,7 +54,7 @@
               </v-layout>
             </v-card-text>
             <v-card-actions icons-and-text class="justify-center">
-              <v-btn @click="goToSongSelection"><v-icon :class="!$vuetify.breakpoint.xs ? 'v-icon--left' : 'v-icon--center'">queue_music</v-icon><span class="hidden-xs-only">BACK TO SONG SELECTION</span></v-btn>
+              <v-btn @click="goToSongSelection"><v-icon :class="!$vuetify.breakpoint.xs ? 'v-icon--left' : 'v-icon--center'">queue_music</v-icon><span class="hidden-xs-only">SONG SELECTION</span></v-btn>
               <v-btn @click="toggleSettings"><v-icon :class="!$vuetify.breakpoint.xs ? 'v-icon--left' : 'v-icon--center'">settings</v-icon><span class="hidden-xs-only">SETTINGS</span></v-btn>
               <v-btn @click="playAgain"><v-icon :class="!$vuetify.breakpoint.xs ? 'v-icon--left' : 'v-icon--center'">replay</v-icon><span class="hidden-xs-only">PLAY AGAIN</span></v-btn>
             </v-card-actions>
@@ -108,23 +108,19 @@
     </v-container>
     <v-dialog
       v-model="settings"
-      max-width="400"
+      max-width="500"
     >
       <v-card style="border-radius: 10px;">
         <v-card-title class="cyan headline justify-center white--text font-weight-medium">
-          Settings
+          SETTINGS
         </v-card-title>
 
         <v-card-text>
-          <h3>Animations</h3>
+          <h3>ANIMATIONS</h3>
           <v-checkbox
             color="blue"
-            v-model="options.showAnimation">
-            <template v-slot:label>
-              <div class="black--text">
-                Show animations
-              </div>
-            </template>
+            v-model="options.showAnimation"
+            label="Show animations">
           </v-checkbox>
           <v-select
             :disabled="!options.showAnimation"
@@ -135,15 +131,11 @@
             hint="Speed of the circles appearing on screen"
           ></v-select>
           <v-divider></v-divider>
-          <h3 class="mt-4">Camera</h3>
+          <h3 class="mt-4">CAMERA</h3>
           <v-checkbox
             color="blue"
-            v-model="options.showWebcam">
-            <template v-slot:label>
-              <div class="black--text">
-                Show webcam video
-              </div>
-            </template>
+            v-model="options.showWebcam"
+            label="Show webcam video">
           </v-checkbox>
           <v-text-field
             outline
@@ -152,11 +144,10 @@
             hint="ex: 0.32"
           >
           </v-text-field>
-          <a href="https://www.youtube.com/watch?v=WXud3F-Cuac"><p>Check out this video if you are having any trouble to find your camera's latency</p></a>
-          <p class="text-xs-center">OR</p>
           <v-btn block @click="goToLatencyCalibration">Calibrate Latency (WIP)</v-btn>
+          <a href="https://www.youtube.com/watch?v=WXud3F-Cuac" target="_blank"><p class="mt-2">More about latency</p></a>
           <v-divider></v-divider>
-          <h3 class="mt-4">Change pose detection precision <a href="https://www.npmjs.com/package/@tensorflow-models/posenet">(advanced)</a></h3>
+          <h3 class="mt-4">POSE DETECTION <a href="https://www.npmjs.com/package/@tensorflow-models/posenet" target="_blank">(advanced)</a></h3>
           <v-select
             outline
             class="mt-4"
@@ -193,7 +184,7 @@
           <v-spacer></v-spacer>
 
           <v-btn
-          class="white"
+            class="white"
             color="green darken-1"
             flat
             @click="settings = false"
@@ -203,13 +194,19 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <loading-screen :dialog="loading"></loading-screen>
   </div>
 </template>
 
 <script>
+import LoadingScreen from '../components/LoadingScreen.vue'
 export default {
+  components: {
+    'loading-screen': LoadingScreen
+  },
   data () {
     return {
+      loading: false,
       settings: false,
       multipliers: [0.5, 0.75, 1.0],
       outputStrideValues: [8, 16, 32],
@@ -240,18 +237,22 @@ export default {
       this.$store.commit('goToScene', 'song-selection')
     },
     playAgain: function () {
+      this.loading = true
       if (this.options.multiplier !== this.$store.state.gameOptions.multiplier) {
         this.$store.dispatch('loadNet', this.options.multiplier).then(response => {
           this.$store.commit('loadNet', response)
           this.$store.commit('changeOptions', this.options)
           this.$store.commit('saveOptionsOnStorage')
+          this.loading = false
           this.$store.commit('goToScene', 'game')
         }, error => {
+          this.loading = false
           this.$store.commit('changeWrongMessage', `Due to a problem with PoseNet the game is not available right now. Please try it again later. \n ${error}`)
           this.$store.commit('somethingWentWrong')
           this.store.commit('goToScene', 'error')
         })
       } else {
+        this.loading = false
         this.$store.commit('changeOptions', this.options)
         this.$store.commit('saveOptionsOnStorage')
         this.$store.commit('goToScene', 'game')
@@ -269,8 +270,8 @@ export default {
           this.$store.dispatch('changeSelectedChart', '-LhMV2qkovpJ_sAFWcRm').then(() => {
             this.$store.commit('goToScene', 'latency-test')
           })
-        }, error => {
-          console.log(error)
+        }, err => {
+          alert(err)
           this.$store.commit('changeWrongMessage', 'Due to a problem with PoseNet the game is not available right now. Please try it again later.')
           this.$store.commit('somethingWentWrong')
           this.store.commit('goToScene', 'error')
@@ -364,8 +365,8 @@ export default {
   }
   td {
     border: none;
-    padding-top: 10px;
-    padding-bottom: 10px;
+    padding-top: 7px;
+    padding-bottom: 7px;
     vertical-align: middle;
   }
   .resultNumbers {

@@ -50,28 +50,6 @@
         </v-list>
       </v-menu>
     </v-toolbar>
-    <!-- snackbars to show change of user status or not
-    TODO: this could be only one snackbar that would change depending on the changeUserStatus response -->
-    <v-snackbar
-      auto-height
-      v-model="usernameNotFound"
-      class="black--text"
-      color="yellow"
-      :timeout="4000"
-    >
-      {{ userNameNotFoundText }}
-    <v-btn dark small @click="usernameNotFound = !usernameNotFound">CLOSE</v-btn>
-    </v-snackbar>
-    <v-snackbar
-      auto-height
-      v-model="userStatusChanged"
-      class="black--text"
-      color="green"
-      :timeout="4000"
-    >
-      User Status Changed.
-      <v-btn dark small @click="userStatusChanged = !userStatusChanged">CLOSE</v-btn>
-    </v-snackbar>
     <Welcome />
     <!-- settings dialog - where user can change options regarding in game animations and
     posenet configuration
@@ -117,7 +95,7 @@
           <v-btn block @click="goToLatencyCalibration">Calibrate Latency (WIP)</v-btn>
           <a href="https://www.youtube.com/watch?v=WXud3F-Cuac" target="_blank"><p class="mt-2">More about latency</p></a>
           <v-divider></v-divider>
-          <h3 class="mt-4">POSE DETECTION <a href="https://www.npmjs.com/package/@tensorflow-models/posenet">(advanced)</a></h3>
+          <h3 class="mt-4">POSE DETECTION <a href="https://www.npmjs.com/package/@tensorflow-models/posenet" target="_blank">(advanced)</a></h3>
           <v-select
             outline
             class="mt-4"
@@ -165,26 +143,7 @@
       </v-card>
     </v-dialog>
     <!-- loading dialog in case it takes some time to load posenet to go into the game -->
-    <v-dialog
-      v-model="loading"
-      hide-overlay
-      persistent
-      width="300"
-    >
-      <v-card
-        style="border-radius: 10px;"
-        dark
-      >
-        <v-card-text>
-          Loading
-          <v-progress-linear
-            indeterminate
-            color="white"
-            class="mb-0"
-          ></v-progress-linear>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
+    <loading-screen :dialog="loading"></loading-screen>
     <v-content style="min-height: 100vh;">
       <v-container fluid fill-height class="pa-2">
         <v-layout row wrap>
@@ -227,7 +186,7 @@
                           <v-chip small v-for="(charts,name) in song.charts" :key="name" color="black" text-color="white" class="text-xs-center">{{name.toUpperCase()}}</v-chip>
                           <div class="body-2 font-weight-regular">
                             <span>created by {{song.general.createdBy}}</span>
-                            <span class="ml-5"><v-icon color="white">favorite</v-icon></span><span class="ml-1">{{song.general.likedBy ? song.general.likedBy : 0 }}</span>
+                            <span class="ml-5"><v-icon :color="$store.state.user === null ? 'white' : $store.state.user.likedSongs.includes(song.general.songId) ? 'purple' : 'white'">favorite</v-icon></span><span class="ml-1">{{song.general.likedBy ? song.general.likedBy : 0 }}</span>
                           </div>
                         </div>
                       </v-card-title>
@@ -311,12 +270,14 @@
 import playerConfig from '../tools/editor/config/youtube-player'
 import firebase from '../tools/config/firebase'
 import Welcome from '../components/Welcome.vue'
+import LoadingScreen from '../components/LoadingScreen.vue'
 
 const YTPlayer = require('yt-player')
 
 export default {
   components: {
-    Welcome
+    Welcome,
+    'loading-screen': LoadingScreen
   },
   data () {
     return {
@@ -344,16 +305,9 @@ export default {
       },
       loading: false,
       processingLike: false,
-      usernameToChange: '',
-      usernameNotFound: false,
-      userNameNotFoundText: '',
-      userStatusChanged: false,
       username: '',
-      manageUsers: false,
-      selectedUser: '',
-      users: null,
       player: null,
-      filters: ['Title (A-Z)', 'Recently Updated', 'Most Popular'],
+      filters: ['Title (A-Z)', 'Most Recent', 'Most Popular', 'My Creations'],
       filter: 'Most Popular'
     }
   },
@@ -361,7 +315,10 @@ export default {
     this.filter = this.$store.state.currentSongFilter
     // load all songs from the database in the store on create lifecicle
     if (this.$store.state.songs.length === 0 || this.$store.state.songs.length === 1) {
-      this.$store.dispatch('loadSongs', { filter: this.filter, requestedPage: 'first' })
+      this.loading = true
+      this.$store.dispatch('loadSongs', { filter: this.filter, requestedPage: 'first' }).then(() => {
+        this.loading = false
+      })
     }
     if (!this.$store.state.welcomeShown) {
       this.$store.commit('toggleWelcome', true)
@@ -394,21 +351,63 @@ export default {
   },
   methods: {
     loadNextPage: function () {
-      this.$store.dispatch('loadSongs', { filter: this.filter, requestedPage: 'next' })
+      this.loading = true
+      this.$store.dispatch('loadSongs', { filter: this.filter, requestedPage: 'next' }).then(() => {
+        this.loading = false
+      }).catch(() => {
+        this.loading = false
+        this.$store.commit('changeWrongMessage', 'Something went wrong trying to load this page.')
+        this.$store.commit('somethingWentWrong')
+      })
     },
     loadPreviousPage: function () {
-      this.$store.dispatch('loadSongs', { filter: this.filter, requestedPage: 'previous' })
+      this.loading = true
+      this.$store.dispatch('loadSongs', { filter: this.filter, requestedPage: 'previous' }).then(() => {
+        this.loading = false
+      }).catch(() => {
+        this.loading = false
+        this.$store.commit('changeWrongMessage', 'Something went wrong trying to load this page.')
+        this.$store.commit('somethingWentWrong')
+      })
     },
     logChange: function (selection) {
+      this.loading = true
       this.$store.commit('changeSongFilter', selection)
-      this.$store.dispatch('loadSongs', { filter: this.filter, requestedPage: 'first' })
+      this.$store.dispatch('loadSongs', { filter: this.filter, requestedPage: 'first' }).then(() => {
+        this.loading = false
+      }).catch(() => {
+        this.loading = false
+        this.$store.commit('changeWrongMessage', 'Something went wrong trying to load this page.')
+        this.$store.commit('somethingWentWrong')
+      })
     },
     goToEditor: function () { // go to editor
+      this.loading = true
       this.player.stop()
       this.player.destroy()
-      this.$store.commit('changeOptions', this.options)
-      this.$store.commit('saveOptionsOnStorage')
-      this.$store.commit('goToScene', 'editor')
+      // No Song, chart or difficulty should be in the store when going to the Editor
+      this.$store.commit('selectSong', null)
+      this.$store.commit('selectChart', null)
+      this.$store.commit('selectSongId', null)
+      this.$store.commit('selectDifficulty', '')
+      this.$store.commit('changeSongFilter', 'My Creations')
+      if (this.filter !== 'My Creations') {
+        this.$store.dispatch('loadSongs', { filter: 'My Creations', requestedPage: 'first' }).then(() => {
+          this.loading = false
+          this.$store.commit('changeOptions', this.options)
+          this.$store.commit('saveOptionsOnStorage')
+          this.$store.commit('goToScene', 'editor')
+        }).catch(() => {
+          this.loading = false
+          this.$store.commit('changeWrongMessage', 'Something went wrong trying to load this page.')
+          this.$store.commit('somethingWentWrong')
+        })
+      } else {
+        this.loading = false
+        this.$store.commit('changeOptions', this.options)
+        this.$store.commit('saveOptionsOnStorage')
+        this.$store.commit('goToScene', 'editor')
+      }
     },
     selectSong: function (song) { // get song info from the list of filtered songs
       this.selectedSong = song
@@ -498,29 +497,34 @@ export default {
       this.settings = !this.settings
     },
     logout: function () { // sign out
+      this.loading = true
       firebase.auth.signOut().then(() => {
+        this.loading = false
         this.$store.commit('changeSongScores', 'Select a Song!')
         this.player.stop()
         this.player.destroy()
-        this.$store.commit('changeUser', null)
+        this.$store.commit('resetUser', null)
         this.$store.commit('goToScene', 'home')
       }).catch((err) => {
-        alert(err)
+        this.$store.commit('changeWrongMessage', err.message)
+        this.$store.commit('somethingWentWrong')
       })
     },
     goToLatencyCalibration: function () { // similar to goToGame function, but instead loads webcam latency calibration
+      this.loading = true
       if (this.options.multiplier !== this.$store.state.gameOptions.multiplier || this.$store.state.net === null) {
         this.$store.dispatch('loadNet', this.options.multiplier).then(response => {
           this.$store.commit('loadNet', response)
           this.$store.commit('changeOptions', this.options)
           this.$store.commit('saveOptionsOnStorage')
           this.$store.dispatch('changeSelectedChart', '-LhMV2qkovpJ_sAFWcRm').then(() => {
+            this.loading = false
             this.player.stop()
             this.player.destroy()
             this.$store.commit('goToScene', 'latency-test')
           })
-        }, error => {
-          alert(error)
+        }, () => {
+          this.loading = false
           this.$store.commit('changeWrongMessage', 'Due to a problem with PoseNet the game is not available right now. Please try it again later.')
           this.$store.commit('somethingWentWrong')
           this.player.stop()
@@ -528,6 +532,7 @@ export default {
           this.store.commit('goToScene', 'error')
         })
       } else {
+        this.loading = false
         this.$store.commit('changeOptions', this.options)
         this.$store.commit('saveOptionsOnStorage')
         this.$store.dispatch('changeSelectedChart', '-LhMV2qkovpJ_sAFWcRm').then(() => {
@@ -557,13 +562,19 @@ export default {
             }
           }
           // ignore songs with only drafts that were not created by the user (not playable)
-          if (!onlyDrafts || song.general.createdBy === this.$store.state.user.username) {
+          if (!onlyDrafts) {
             orderedSongs.push(song)
+          } else {
+            if (this.$store.state.user !== null) {
+              if (song.general.createdBy === this.$store.state.user.username) {
+                orderedSongs.push(song)
+              }
+            }
           }
         }
       })
 
-      if (this.filter === 'Recently Updated') {
+      if (this.filter === 'Most Recent') {
         orderedSongs.sort((a, b) => {
           if (a.general.updatedAt < b.general.updatedAt) {
             return 1
@@ -597,8 +608,14 @@ export default {
           }
           return 0
         })
+      } else if (this.filter === 'My Creations') {
+        if (this.$store.state.user) {
+          orderedSongs = orderedSongs.filter(song => song.general.createdBy === this.$store.state.user.username)
+        } else {
+          orderedSongs = []
+        }
       }
-      if (this.$store.state.queryState !== 'first' && this.$store.state.pageCounter !== 1) {
+      if (this.$store.state.queryState !== 'first' && this.$store.state.pageCounter !== 1 && orderedSongs.length > 1 && this.filter !== 'My Creations') {
         orderedSongs.shift()
       }
       return orderedSongs

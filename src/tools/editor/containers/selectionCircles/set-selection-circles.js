@@ -28,10 +28,13 @@ function setSelectionCircles (containers, textures) {
     /* pointerdown event allows the user to select where the player will need
     to place their hands in a given beat of the song
     However, it is in circleSelection that the circles are set to be interactive or not. */
-    circle.on('pointerdown', (event) => {
+    circle.on('pointerup', (event) => {
       circle.alpha = 0.4
       editorConfig.selectedCircles.push(circle.name)
     })
+    // circle.on('rightclick', (event) => {
+    //   console.log('right clicked')
+    // })
     containers.auxiliary.selectionCircles.addChild(circle)
   }
 }

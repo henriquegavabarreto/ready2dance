@@ -6,7 +6,7 @@ as the frame when it was recognized as positive or not
 export default function giveFeedback (leftHand, rightHand, leftHitType, rightHitType, container, textures) {
   if (leftHand !== 'X') {
     let feedback = container.getChildAt(parseInt(leftHand[1]) - 1)
-    feedback.texture = textures[leftHitType]
+    feedback.texture = textures[leftHitType].texture
     feedback.visible = true
     setTimeout(() => {
       feedback.visible = false
@@ -14,7 +14,7 @@ export default function giveFeedback (leftHand, rightHand, leftHitType, rightHit
   }
   if (rightHand !== 'X') {
     let feedback = container.getChildAt(parseInt(rightHand[1]) - 1)
-    feedback.texture = textures[rightHitType]
+    feedback.texture = textures[rightHitType].texture
     feedback.visible = true
     setTimeout(() => {
       feedback.visible = false

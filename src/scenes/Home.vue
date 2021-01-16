@@ -6,12 +6,20 @@
         <!-- Webpage title and enter options -->
         <v-flex xs12>
           <v-container fluid justify-center align-center>
-            <v-layout row wrap align-center justify-center style="min-height: 88.5vh;">
+            <v-layout row wrap align-center justify-center style="min-height: 90vh;">
               <v-flex class="text-xs-center" xs12>
                 <span class="display-1 font-weight-thin mb-0 text-xs-center">Get</span><br>
                 <span class="display-4 font-weight-medium text-xs-center">Ready 2 Dance</span>
               </v-flex>
-              <v-flex style="display: block;" class="text-xs-center mt-1" xs12>
+              <v-flex v-if="$store.state.changingState" style="display: block;" class="text-xs-center mt-1" xs12>
+                <v-progress-circular
+                  :size="70"
+                  :width="7"
+                  color="purple"
+                  indeterminate
+                ></v-progress-circular>
+              </v-flex>
+              <v-flex v-else style="display: block;" class="text-xs-center mt-1" xs12>
                 <v-layout row wrap>
                   <v-flex xs12>
                     <v-btn style="min-width: 15vw;" large dark @click="toggleLoginModal">log in</v-btn>
@@ -28,7 +36,7 @@
           </v-container>
         </v-flex>
         <!-- v-flex to show that there is an about below -->
-        <v-flex class="mt-2" xs12>
+        <v-flex xs12>
           <v-container fluid class="pa-0">
             <v-layout row wrap class="pa-0">
               <v-flex dark class="black white--text px-0 text-xs-center" xs12>
@@ -178,36 +186,27 @@ export default {
     registerNewUser: function () {
       if (this.$refs.register.validate()) {
         this.loading = true
+        // check if username is available
         firebase.database.ref('usernames').orderByKey().equalTo(`${this.username}`).once('value', snapshot => {
           if (snapshot.val() === null) { // if there is no user with the chosen username create a new one
             firebase.auth.createUserWithEmailAndPassword(this.email, this.password).then((result) => { // create new user - the default type is always user TODO: should type be defined by a cloud function?
-              let user = {
-                username: this.username,
-                type: 'user'
-              }
+              // make a transaction to make sure it is a valid username
+              let updates = {}
+              updates[`usernames/${this.username}`] = result.user.uid
+              updates[`users/${result.user.uid}`] = { username: this.username }
 
-              let usernameToSet = {
-                [this.username]: `${result.user.uid}`
-              }
-              firebase.database.ref(`users/${result.user.uid}`).set(user).then(() => {
-                firebase.database.ref(`usernames`).update(usernameToSet).then(() => {
-                  this.loading = false
-                  this.$store.commit('changeUser', user)
-                  this.$store.commit('goToScene', 'song-selection')
-                }).catch(err => {
-                  this.loading = false
-                  this.error = err.message
-                  console.log(err)
-                })
-              }).catch((err) => {
+              firebase.database.ref().update(updates).then(() => {
                 this.loading = false
-                this.error = err.message
-                console.log(err)
+                this.$store.commit('changeUsername', this.username)
+                this.$store.commit('goToScene', 'song-selection')
+              }).catch(() => {
+                this.loading = false
+                this.$store.commit('changeWrongMessage', 'couldn\'t set user on database')
+                this.$store.commit('somethingWentWrong')
               })
-            }).catch((err) => {
+            }).catch(() => {
               this.loading = false
-              this.error = err.message
-              console.log(err)
+              this.error = 'Something went wrong. Please try again.'
             })
           } else { // when the username is not available, it doesn't go through
             this.loading = false
@@ -220,11 +219,8 @@ export default {
       this.loading = true
       // log user in with email and password
       firebase.auth.signInWithEmailAndPassword(this.email, this.password).then((result) => {
-        firebase.database.ref(`users/${result.user.uid}`).once('value').then((value) => {
-          this.$store.commit('changeUser', value.val())
-          this.loading = false
-          this.$store.commit('goToScene', 'song-selection')
-        })
+        this.loading = false
+        // onState change is happening here
       }).catch((err) => { // shows error in the modal dialog in case the user can't log in
         this.error = err.message
         if (err.code === 'auth/invalid-email') {
@@ -240,6 +236,7 @@ export default {
     /* Enter the game with no need of login in, doesn't save points to the
     database and maybe can't use the (to be implemented) chat feature */
     enterAsGuest: function () {
+      this.$store.commit('changeUser', null)
       this.$store.commit('goToScene', 'song-selection')
     },
     // reset password
