@@ -35,7 +35,9 @@ export default new Vuex.Store({
       multiplier: 0,
       outputStride: 16,
       imageScale: 0.5,
-      speed: 1
+      speed: 1,
+      videoDeviceId: '',
+      videoDevice: ''
     },
     currentScene: '',
     previousScene: '',
@@ -196,6 +198,8 @@ export default new Vuex.Store({
       state.gameOptions.speed = parseInt(data.speed)
       state.gameOptions.outputStride = parseInt(data.outputStride)
       state.gameOptions.imageScale = parseFloat(data.imageScale)
+      state.gameOptions.videoDevice = data.videoDevice
+      state.gameOptions.videoDeviceId = data.videoDeviceId
       // latency is changed only if latency is a number
       if (!isNaN(data.latency)) {
         state.gameOptions.latency = parseFloat(data.latency)
@@ -221,24 +225,17 @@ export default new Vuex.Store({
       localStorage.setItem('welcomeShown', true)
     },
     loadLocalStorage: state => {
-      // load items from storage or get default values if the storage does not have the item
+      // load items from storage and parse them or get default values if the storage does not have the item
       state.welcomeShown = JSON.parse(localStorage.getItem('welcomeShown'))
-      state.gameOptions.showAnimation = localStorage.getItem('showAnimation') || state.gameOptions.showAnimation
-      state.gameOptions.showWebcam = localStorage.getItem('showWebcam') || state.gameOptions.showWebcam
-      state.gameOptions.latency = localStorage.getItem('latency') || state.gameOptions.latency
-      state.gameOptions.multiplier = localStorage.getItem('multiplier') || state.gameOptions.multiplier
-      state.gameOptions.speed = localStorage.getItem('speed') || state.gameOptions.speed
-      state.gameOptions.outputStride = localStorage.getItem('outputStride') || state.gameOptions.outputStride
-      state.gameOptions.imageScale = localStorage.getItem('imageScale') || state.gameOptions.imageScale
-
-      // parse all options in case they come from storage
-      state.gameOptions.showAnimation = JSON.parse(state.gameOptions.showAnimation)
-      state.gameOptions.showWebcam = JSON.parse(state.gameOptions.showWebcam)
-      state.gameOptions.latency = JSON.parse(state.gameOptions.latency)
-      state.gameOptions.multiplier = JSON.parse(state.gameOptions.multiplier)
-      state.gameOptions.speed = JSON.parse(state.gameOptions.speed)
-      state.gameOptions.outputStride = JSON.parse(state.gameOptions.outputStride)
-      state.gameOptions.imageScale = JSON.parse(state.gameOptions.imageScale)
+      state.gameOptions.showAnimation = JSON.parse(localStorage.getItem('showAnimation')) || state.gameOptions.showAnimation
+      state.gameOptions.showWebcam = JSON.parse(localStorage.getItem('showWebcam')) || state.gameOptions.showWebcam
+      state.gameOptions.latency = JSON.parse(localStorage.getItem('latency')) || state.gameOptions.latency
+      state.gameOptions.multiplier = JSON.parse(localStorage.getItem('multiplier')) || state.gameOptions.multiplier
+      state.gameOptions.speed = JSON.parse(localStorage.getItem('speed')) || state.gameOptions.speed
+      state.gameOptions.outputStride = JSON.parse(localStorage.getItem('outputStride')) || state.gameOptions.outputStride
+      state.gameOptions.imageScale = JSON.parse(localStorage.getItem('imageScale')) || state.gameOptions.imageScale
+      state.gameOptions.videoDevice = localStorage.getItem('videoDevice') || state.gameOptions.videoDevice
+      state.gameOptions.videoDeviceId = localStorage.getItem('videoDeviceId') || state.gameOptions.videoDeviceId
     },
     saveOptionsOnStorage: state => { // save game options / settings to local storage
       localStorage.setItem('showAnimation', state.gameOptions.showAnimation)
@@ -248,6 +245,8 @@ export default new Vuex.Store({
       localStorage.setItem('speed', state.gameOptions.speed)
       localStorage.setItem('outputStride', state.gameOptions.outputStride)
       localStorage.setItem('imageScale', state.gameOptions.imageScale)
+      localStorage.setItem('videoDevice', state.gameOptions.videoDevice)
+      localStorage.setItem('videoDeviceId', state.gameOptions.videoDeviceId)
     },
     changeQueryState: (state, data) => {
       state.queryState = data

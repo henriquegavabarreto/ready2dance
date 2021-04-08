@@ -80,6 +80,13 @@
           ></v-select>
           <v-divider></v-divider>
           <h3 class="mt-4">CAMERA</h3>
+          <v-select
+            outline
+            class="mt-4"
+            :items="videoDevicesLabels"
+            v-model="selectedDeviceLabel"
+            label="devices"
+            @change="selectDevice"></v-select>
           <v-checkbox
             color="blue"
             v-model="options.showWebcam"
@@ -290,6 +297,9 @@ export default {
       },
       selectedChart: '',
       settings: false,
+      videoDevicesLabels: [],
+      selectedDeviceLabel: '',
+      videoDevicesIds: {},
       multipliers: [0.5, 0.75, 1.0],
       outputStrideValues: [8, 16, 32],
       speed: [0.5, 1, 2],
@@ -301,7 +311,9 @@ export default {
         latency: 0.32,
         showAnimation: true,
         showWebcam: true,
-        speed: 1
+        speed: 1,
+        videoDevice: '',
+        videoDeviceId: ''
       },
       loading: false,
       processingLike: false,
@@ -348,8 +360,35 @@ export default {
   mounted () {
     // to make sure the player div was created, create new youtube player when the view is mounted
     this.player = new YTPlayer('#player', playerConfig)
+    this.getDevices()
   },
   methods: {
+    getDevices: function () {
+      navigator.mediaDevices.enumerateDevices().then(this.gotDevices).catch(err => {
+        this.$store.commit('changeWrongMessage', 'Something went wrong trying to get your camera devices... Make sure they are connected and refresh this webpage.\n' + err.message)
+        this.$store.commit('somethingWentWrong')
+      })
+    },
+    selectDevice: function (label) {
+      this.options.videoDevice = label
+      this.options.videoDeviceId = this.videoDevicesIds[label]
+    },
+    gotDevices: function (devicesInfo) {
+      devicesInfo.forEach(device => {
+        // consider only video input
+        if (device.kind === 'videoinput') {
+          // push labels to an array
+          this.videoDevicesLabels.push(device.label)
+          // add id to an object with label as key
+          this.videoDevicesIds[device.label] = device.deviceId
+          // the first value that comes in will be the default
+          if (this.selectedDeviceLabel === '') {
+            this.selectedDeviceLabel = device.label
+            this.selectDevice(device.label)
+          }
+        }
+      })
+    },
     loadNextPage: function () {
       this.loading = true
       this.$store.dispatch('loadSongs', { filter: this.filter, requestedPage: 'next' }).then(() => {

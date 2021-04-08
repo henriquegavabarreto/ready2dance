@@ -342,6 +342,7 @@ export default {
       let constraints = {
         audio: false,
         video: {
+          deviceId: this.gameOptions.videoDeviceId,
           frameRate: 30,
           facingMode: 'user',
           width: 300,
