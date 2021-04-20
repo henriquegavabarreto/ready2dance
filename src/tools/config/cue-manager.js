@@ -58,7 +58,7 @@ export default class CueManager {
       }
     }
 
-    // if there are no cues to draw, cues should not be visible and makes no sense going any firther in this function
+    // if there are no cues to draw, cues should not be visible and makes no sense going any further in this function
     if (this.movesToDraw.length === 0 && this.holdsToDraw.length === 0) {
       cues.visible = false
       this.lastBeat = this.songManager.currentBeat
@@ -75,21 +75,24 @@ export default class CueManager {
     // else keeps drawing the moves in the array
     if (this.movesToDraw.length > 0) {
       for (let i = this.movesToDraw.length - 1; i >= 0; i--) {
-        let proportion = ((this.config.advanceSpawn / this.speed) - (this.movesToDraw[i][0] - this.songManager.currentQuarterBeat)) / (this.config.advanceSpawn / this.speed)
-        // remove hold move cues a bit before it reaches proportion === 1
-        if (proportion > 0.98) {
-          if (this.movesToDraw[i][2][0] === 'H' || this.movesToDraw[i][3][0] === 'H') {
-            this.movesToDraw.splice(1, i)
+        // make sure movesToDraw[i] exists
+        if (this.movesToDraw[i]) {
+          let proportion = ((this.config.advanceSpawn / this.speed) - (this.movesToDraw[i][0] - this.songManager.currentQuarterBeat)) / (this.config.advanceSpawn / this.speed)
+          // remove hold move cues a bit before it reaches proportion === 1
+          if (proportion > 0.98) {
+            if (this.movesToDraw[i][2][0] === 'H' || this.movesToDraw[i][3][0] === 'H') {
+              this.movesToDraw.splice(1, i)
+            } else {
+              if (proportion > 1) this.movesToDraw.splice(i, 1)
+            }
           } else {
-            if (proportion > 1) this.movesToDraw.splice(i, 1)
-          }
-        } else {
-          let leftHand = this.movesToDraw[i][2]
-          let rightHand = this.movesToDraw[i][3]
+            let leftHand = this.movesToDraw[i][2]
+            let rightHand = this.movesToDraw[i][3]
 
-          let size = this.config.cue.size * proportion
-          if (rightHand !== 'X') this.drawCue('R', rightHand, size, cues)
-          if (leftHand !== 'X') this.drawCue('L', leftHand, size, cues)
+            let size = this.config.cue.size * proportion
+            if (rightHand !== 'X') this.drawCue('R', rightHand, size, cues)
+            if (leftHand !== 'X') this.drawCue('L', leftHand, size, cues)
+          }
         }
       }
     }

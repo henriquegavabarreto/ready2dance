@@ -227,6 +227,7 @@
                             <v-btn color="red" dark @click="eraseAll = true">Erase all moves</v-btn>
                             <v-btn color="purple" dark @click="testChart" :disabled="testable" class="mr-3">Test</v-btn>
                             <v-btn color="green" dark @click="saveToFirebase" class="pt-0 mr-3">Save Chart</v-btn>
+                            <v-btn color="blue" dark @click="exportToJSON" class="pt-0 mr-3">Export Chart</v-btn>
                           </v-layout>
                         </v-card-actions>
                       </v-card>
@@ -613,23 +614,34 @@ export default {
     }
 
     this.ticker.add(() => {
-      animationManager.animate(this.songManager, this.containers, this.cueManager, this.danceChart)
       // adds an oscillator to sound the metronome
-      if (this.songManager.currentBeat > this.latestMetronomeBeat && this.enableMetronome && this.songManager.currentBeat !== this.lastBeat) {
-        let oscillator = this.audioCtx.createOscillator()
-        var gainNode = this.audioCtx.createGain()
-        oscillator.connect(gainNode)
-        gainNode.connect(this.audioCtx.destination)
-        oscillator.start()
-        // 0.05 is the length of the note played by the oscillator
-        oscillator.stop(this.audioCtx.currentTime + 0.05)
-        // keep track of the latest metronome beat, so the sound is played every beat
-        this.latestMetronomeBeat++
-        // last beat is here so the ticker is no triggered more than once per beat in case the user seeks the player (there is a delay between seek and player.on('playing') happens)
-        this.lastBeat = this.songManager.currentBeat
-      }
-      if (this.player.getState() === 'playing' || this.player.getState() === 'paused') {
+      if (this.songManager.currentBeat !== this.lastBeat) {
+        animationManager.animate(this.songManager, this.containers, this.cueManager, this.danceChart)
+        if (this.songManager.currentBeat > this.latestMetronomeBeat && this.enableMetronome) {
+          let oscillator = this.audioCtx.createOscillator()
+          var gainNode = this.audioCtx.createGain()
+          oscillator.connect(gainNode)
+          gainNode.connect(this.audioCtx.destination)
+          oscillator.start()
+          // 0.05 is the length of the note played by the oscillator
+          oscillator.stop(this.audioCtx.currentTime + 0.05)
+          // keep track of the latest metronome beat, so the sound is played every beat
+          this.latestMetronomeBeat++
+        }
+
+        // this is leading to unexpected behavior when a move is deleted
         this.cueManager.drawDynamicCues(this.danceChart.moves, this.textures.cues)
+
+        if (editorConfig.creatingMove) {
+          // create notes in the canvas
+          this.noteManager.createNotes(editorConfig.pressedKey, this.containers, this.textures)
+          // add selected and in between beats to array - necessary when selecting areas
+          this.moveManager.addBeatToArray()
+        }
+        // if making a selection, draw it on screen
+        if (editorConfig.selectingMoves) drawSelection(this.songManager, this.containers, this.textures)
+
+        this.lastBeat = this.songManager.currentBeat
       }
     })
 
@@ -648,6 +660,7 @@ export default {
       this.cueManager.movesToDraw = []
     })
 
+    // Seek video position to the nearest beat time when the video is paused
     this.player.on('paused', () => {
       this.player.seek(this.songManager.getNearestBeatTime())
     })
@@ -659,24 +672,31 @@ export default {
     this.resize()
   },
   methods: {
+    exportToJSON: function () {
+      const a = document.createElement('a')
+      const file = new Blob([JSON.stringify(this.danceChart)], { type: 'text/plain' })
+      a.href = URL.createObjectURL(file)
+      a.download = `${this.danceChart.artist} - ${this.danceChart.title}.json`
+      a.click()
+    },
     moveToNextQuarterBeat: function () {
       if (!this.selectingArea) {
-        moveToBeat(this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, this.containers, this.textures, 1)
+        moveToBeat(this.player, this.songManager, this.cueManager, this.danceChart, this.containers, this.textures, 1)
       }
     },
     moveToPreviousQuarterBeat: function () {
       if (!this.selectingArea) {
-        moveToBeat(this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, this.containers, this.textures, -1)
+        moveToBeat(this.player, this.songManager, this.cueManager, this.danceChart, this.containers, this.textures, -1)
       }
     },
     moveToNextBeat: function () {
       if (!this.selectingArea) {
-        moveToBeat(this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, this.containers, this.textures, 4)
+        moveToBeat(this.player, this.songManager, this.cueManager, this.danceChart, this.containers, this.textures, 4)
       }
     },
     moveToPreviousBeat: function () {
       if (!this.selectingArea) {
-        moveToBeat(this.player, this.songManager, this.moveManager, this.noteManager, this.cueManager, this.danceChart, this.containers, this.textures, -4)
+        moveToBeat(this.player, this.songManager, this.cueManager, this.danceChart, this.containers, this.textures, -4)
       }
     },
     playAndPause: function () { // shortcut for play and pause when canvas is selected
@@ -755,7 +775,7 @@ export default {
         this.moveManager.deleteMove(this.danceChart, event.key, this.noteManager, this.containers)
       }
     },
-    dealWithSelection: function () { // What happens after selection occurs. this event is triggered every time the user clicks the canvas
+    dealWithSelection: function () { // What happens after a circle selection occurs. this event is triggered every time the user clicks the canvas
       if (editorConfig.creatingMove) { // on creating mode
         if (editorConfig.selectedCircles.length === 1 && editorConfig.circleCount > 1) {
           this.player.seek(this.songManager.getBeatTime(editorConfig.beatArray[editorConfig.beatArray.length - 1]))
@@ -793,7 +813,7 @@ export default {
         this.saved = true
       }
     },
-    saveSongInfo: function () {
+    saveSongInfo: function () { // save song details to danceChart
       if (this.$refs.songInfo.validate()) {
         this.danceChart.title = this.settings.title
         this.danceChart.artist = this.settings.artist
@@ -861,7 +881,7 @@ export default {
         this.warningSnack = true
       }
     },
-    loadVideoById: function () { // loads a video according to the input id
+    loadVideoById: function () { // loads a video to the iframe according to the input id
       if (this.$refs.videoId.validate()) {
         // video is loaded if it is parapara related only
         this.youtube.getVideoByID(this.danceChart.videoId).then(result => {
@@ -1078,6 +1098,7 @@ export default {
           genre: this.danceGenre
         }
       }
+      // if there is no posenet model loaded
       if (this.$store.state.net === null) {
         this.$store.dispatch('loadNet', this.$store.state.gameOptions.multiplier).then(response => {
           this.$store.commit('loadNet', response)
@@ -1160,6 +1181,7 @@ export default {
       return this.$store.state.selectedChartId
     },
     testable: function () {
+      // check if chart can be tested (if the player has a video loaded)
       if (this.player) {
         if (this.player.videoId) {
           return false
