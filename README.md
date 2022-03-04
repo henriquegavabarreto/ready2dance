@@ -16,6 +16,7 @@ Ready2Dance tries to solve this issue using any camera connected to your device,
 
 - You can play instantly in your browser with nothing more than an internet connection and a webcam.
 - Log in and create your own shared levels with the level editor.
+- Export and import charts
 - Scoring and Grading System. The better you go, the higher your grade.
 - Compete for the best score in the ranking.
 - Adjustable speed. Make the circle animation faster or slower.
@@ -36,6 +37,11 @@ Open an issue, make a PR or even send an e-mail to `ready2dancegame at gmail.com
 - Real-Time Pose Detection using [TensorFlow.js](https://www.tensorflow.org/js) and [PoseNet](https://www.npmjs.com/package/@tensorflow-models/posenet/v/1.0.3)
 - Videos streamed using an [YouTube Player API](https://developers.google.com/youtube/iframe_api_reference) abstraction ([yt-player](https://www.npmjs.com/package/yt-player))
 - Data stored at [Firebase](https://firebase.google.com/)
+
+## To Do
+
+- Change pose detection from PoseNet to MoveNet
+- Add possibility to export and import songs so the game can be played localy only, removing database support
 
 ## Development
 
