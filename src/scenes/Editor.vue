@@ -86,6 +86,16 @@
                                   </v-card-actions>
                                 </v-card>
                               </v-flex>
+                              <v-flex xs12 class="my-3">
+                                  <v-card>
+                                    <v-card-title>
+                                      Load From File
+                                    </v-card-title>
+                                    <v-card-actions>
+                                      <input type="file" accept="application/json" @change="importFromJSON">
+                                    </v-card-actions>
+                                  </v-card>
+                                </v-flex>
                               <v-card class="mt-3" style="min-width: 100%">
                                 <v-card-title>
                                   Load Chart
@@ -131,7 +141,7 @@
                           </v-container>
                         </v-card-text>
                         <v-card-actions class="justify-space-around">
-                          <v-btn @click="loadChart(selectedSong, selectedChartId)">Load</v-btn>
+                          <v-btn @click="loadChart(selectedChartId)">Load</v-btn>
                           <v-btn dark color="red" @click="selectToDelete()">Delete</v-btn>
                         </v-card-actions>
                       </v-card>
@@ -673,11 +683,99 @@ export default {
   },
   methods: {
     exportToJSON: function () {
+      // do not perform any action if there is no title, artist or video id
+      if (this.danceChart.title === '' || this.danceChart.artist === '' || this.danceChart.videoId === '') return
       const a = document.createElement('a')
-      const file = new Blob([JSON.stringify(this.danceChart)], { type: 'text/plain' })
+      let savableChart = {
+        title: this.danceChart.title,
+        artist: this.danceChart.artist,
+        offset: this.danceChart.offset,
+        bpm: this.danceChart.bpm,
+        videoId: this.danceChart.videoId,
+        videoStart: this.danceChart.videoStart,
+        videoEnd: this.danceChart.videoEnd,
+        moves: this.danceChart.moves
+      }
+      const file = new Blob([JSON.stringify(savableChart)], { type: 'text/plain' })
       a.href = URL.createObjectURL(file)
-      a.download = `${this.danceChart.artist} - ${this.danceChart.title}.json`
+      a.download = `${savableChart.artist} - ${savableChart.title}.json`
       a.click()
+    },
+    importFromJSON: function (event) {
+      let file = event.target.files[0]
+      var reader = new FileReader()
+      // when file is loaded
+      reader.onload = (e) => {
+        let loadedFile = JSON.parse(e.target.result)
+        let requiredFields = ['artist', 'title', 'moves', 'bpm', 'videoStart', 'videoEnd', 'videoId', 'offset']
+        if (this.hasProperties(loadedFile, requiredFields)) {
+          if (this.validateLoadedFile(loadedFile)) {
+            // Load file content in settings and danceChart
+            // TODO: Preserve chartId and songId?
+            this.firstTimeLoading = true
+            this.dataManager.updateChartAndSettings(this.danceChart, this.settings, loadedFile)
+            this.dataManager.updateManagers(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.cueManager)
+            this.noteManager.redraw(this.danceChart, this.containers, this.textures)
+            this.player.load(this.danceChart.videoId, true)
+          } else {
+            this.showWarningMessage('This is not a valid chart. It has inconsistent moves or fields.')
+          }
+        } else {
+          this.showWarningMessage('This is not a valid chart. Required fields are missing.')
+        }
+      }
+      // actual file reading
+      reader.readAsText(file)
+    },
+    hasProperties: function (obj, arr) { // checks all properties of an object based on array of given keys
+      let allIncluded = true
+      for (let i = 0; i < arr.length; i++) {
+        if (!obj.hasOwnProperty(arr[0])) {
+          allIncluded = false
+          break
+        }
+      }
+      return allIncluded
+    },
+    validateLoadedFile: function (chart) {
+      // chart to hold types of all key values that should be checked
+      let chartTypes = {
+        title: 'string',
+        artist: 'string',
+        offset: 0,
+        bpm: 100,
+        videoId: 'string',
+        videoStart: 0,
+        videoEnd: 0,
+        moves: []
+      }
+
+      let hasValidTypes = true
+      let allValidMoves = true
+
+      // check all keys of the loaded file with chart types
+      let keys = Object.keys(chartTypes)
+      for (let i = 0; i < keys.length; i++) {
+        if (typeof chart[keys[i]] !== typeof chartTypes[keys[i]]) {
+          hasValidTypes = false
+          break
+        }
+      }
+
+      // check move inconsistency - It does not check for Hold and Motion "sandwiches"
+      if (hasValidTypes) {
+        console.log('Types are valid')
+        for (let j = 0; j < chart.moves.length; j++) {
+          console.log(chart.moves[j].join(','))
+          console.log(/^(([0-9]+),([01]),(S[0-9]|[MH](P|[0-9][SEP])|X|H[0-9]S([0-9]+)),(S[0-9]|[MH](P|[0-9][SEP])|X|H[0-9]S([0-9]+)))$/.test(chart.moves[j].join(',')))
+          if (!/^(([0-9]+),([01]),(S[0-9]|[MH](P|[0-9][SEP])|X|H[0-9]S([0-9]+)),(S[0-9]|[MH](P|[0-9][SEP])|X|H[0-9]S([0-9]+)))$/.test(chart.moves[j].join(','))) {
+            allValidMoves = false
+            break
+          }
+        }
+      }
+
+      return hasValidTypes && allValidMoves
     },
     moveToNextQuarterBeat: function () {
       if (!this.selectingArea) {
@@ -825,6 +923,7 @@ export default {
       // the information needs to be valid, a difficulty must be selected and the song must have a genre if it is the first saving it (see selectedSongDanceGenre in computed properties)
       if (validInformation && this.difficulties.includes(this.difficulty)) {
         let songId = this.$store.state.selectedSongId
+        // todo: song should be a query to the database instead
         let song = this.getSongById(songId)
 
         if (songId === '') { // if there is no song loaded
@@ -832,16 +931,14 @@ export default {
             this.saved = true
             this.$store.commit('selectSongId', res)
           }).catch(err => {
-            this.warningSnack = true
-            this.warningText = err.message
+            this.showWarningMessage(err.message)
           })
         } else {
           if (!song.charts.hasOwnProperty(this.difficulty)) { // if the song exists, but this difficulty has not been set
             this.dataManager.saveNewChart(this.danceChart, this.player, songId, this.difficulty, this.draft, this.$store.state.user.username).then(res => {
               this.saved = true
             }).catch(err => {
-              this.warningSnack = true
-              this.warningText = err.message
+              this.showWarningMessage(err.message)
             })
           } else { // if there is the set difficulty for this song id
             // check if user is allowed to save the chart under the selected difficulty
@@ -851,14 +948,12 @@ export default {
               this.duplicate.difficulty = this.difficulty
               this.duplicateChart = true
             } else {
-              this.warningText = 'You don\'t have permission to save to the selected difficulty.'
-              this.warningSnack = true
+              this.showWarningMessage('You don\'t have permission to save to the selected difficulty.')
             }
           }
         }
       } else {
-        this.warningText = 'Can\'t save if any information is missing or inconsistent. Check all fields and apply before saving.'
-        this.warningSnack = true
+        this.showWarningMessage('Can\'t save if any information is missing or inconsistent. Check all fields and apply before saving.')
       }
     },
     // returns true if the danceChart has at least title, artist and one move on the chart
@@ -873,12 +968,10 @@ export default {
           this.duplicateChart = false
           this.saved = true
         }).catch(err => {
-          this.warningSnack = true
-          this.warningText = err.message
+          this.showWarningMessage(err.message)
         })
       } else {
-        this.warningText = 'Can\'t save if any information is missing. Check all fields.'
-        this.warningSnack = true
+        this.showWarningMessage('Can\'t save if any information is missing. Check all fields.')
       }
     },
     loadVideoById: function () { // loads a video to the iframe according to the input id
@@ -908,12 +1001,10 @@ export default {
             // no song was selected
             this.$store.commit('selectSongId', '')
           } else {
-            this.warningText = 'This is not a valid ParaPara video. Please try another ID.'
-            this.warningSnack = true
+            this.showWarningMessage('This is not a valid ParaPara video. Please try another ID.')
           }
         }).catch(err => {
-          this.warningText = `Something went wrong. Please try again another time. \n ${err}`
-          this.warningSnack = true
+          this.showWarningMessage(`Something went wrong. Please try again another time. \n ${err}`)
         })
       }
     },
@@ -922,7 +1013,7 @@ export default {
       this.$store.commit('selectDifficulty', dif)
       this.$store.commit('selectChart', chartId)
     },
-    loadChart: function (song, chartId) { // pulls chart info from the database and applies to the danceChart and settings tab
+    loadChart: function (chartId) { // pulls chart info from the database and applies to the danceChart and settings tab
       if (chartId) {
         let songId = this.selectedSongId
         let song = this.getSongById(songId)
@@ -949,12 +1040,10 @@ export default {
           this.noteManager.redraw(this.danceChart, this.containers, this.textures)
           this.player.load(this.danceChart.videoId, true)
         }).catch(err => {
-          this.warningText = `An error occured trying to load this chart. Please try again later. \n ${err}`
-          this.warningSnack = true
+          this.showWarningMessage(`An error occured trying to load this chart. Please try again later. \n ${err}`)
         })
       } else {
-        this.warningText = `There is no chart selected to be loaded.`
-        this.warningSnack = true
+        this.showWarningMessage(`There is no chart selected to be loaded.`)
       }
     },
     // select chart that user wants to delete
@@ -1005,8 +1094,7 @@ export default {
           this.toDelete.dif = ''
 
           this.deleteChart = false
-          this.warningSnack = true
-          this.warningText = 'Chart Deleted'
+          this.showWarningMessage('Chart Deleted.')
         }
       }
     },
@@ -1122,6 +1210,8 @@ export default {
       this.selectedSongId = songId
     },
     getSongById: function (id) {
+      // this function should go to the database and get the song
+      // because of the pagination the current loaded song can be in another page
       for (let i = 0; i < this.songs.length; i++) {
         if (this.songs[i].general.songId === id) {
           return this.songs[i]
@@ -1149,6 +1239,10 @@ export default {
       this.dataManager.updateManagers(this.danceChart, this.songManager, this.moveManager, this.noteManager, this.cueManager)
       this.noteManager.redraw(this.danceChart, this.containers, this.textures)
       this.eraseAll = false
+    },
+    showWarningMessage: function (message) {
+      this.warningText = message
+      this.warningSnack = true
     }
   },
   computed: {

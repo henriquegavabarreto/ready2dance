@@ -112,7 +112,11 @@ export default {
     danceChart.offset = parseFloat(loadedChart.offset)
     danceChart.artist = loadedChart.artist
     danceChart.title = loadedChart.title
-    danceChart.moves = this.parseChart(loadedChart.moves)
+    if (typeof loadedChart.moves === 'object') {
+      danceChart.moves = loadedChart.moves
+    } else {
+      danceChart.moves = this.parseChart(loadedChart.moves)
+    }
     danceChart.videoEnd = parseFloat(loadedChart.videoEnd)
     danceChart.videoStart = parseFloat(loadedChart.videoStart)
     danceChart.videoId = loadedChart.videoId
