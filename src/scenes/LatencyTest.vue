@@ -132,7 +132,7 @@ export default {
     getMoves: function () {
       if (this.moveIndex < this.moves.length) { // index value is not higher than the array length
         if (this.moves[this.moveIndex][0] + 6 <= this.songManager.currentQuarterBeat) { // if the beat of the current index has passed the current beat + 6
-          this.promiseArray.push(this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride))
+          this.promiseArray.push(this.$store.state.net.estimatePoses(this.stream))
           this.promiseArray.push(this.moves[this.moveIndex])
           Promise.all(this.promiseArray).then((values) => {
             let handMove = values.splice(values.length - 1, 1)[0]
@@ -143,7 +143,7 @@ export default {
               // this array stores every left hand x position of all positions captured
               let leftHandX = []
               values.forEach(pose => {
-                leftHandX.push(pose.keypoints[9].position.x)
+                leftHandX.push(pose[0].keypoints[9].x)
               })
               // get index of greatest x
               let highestLeft = leftHandX.indexOf(Math.max(...leftHandX))
@@ -157,7 +157,7 @@ export default {
               // this array stores every right hand x position of all positions captured
               let rightHandX = []
               values.forEach(pose => {
-                rightHandX.push(pose.keypoints[10].position.x)
+                rightHandX.push(pose[0].keypoints[10].x)
               })
               // get index of least x
               let highestRight = rightHandX.indexOf(Math.min(...rightHandX))
@@ -176,7 +176,7 @@ export default {
         }
         if (this.moveIndex < this.moves.length) {
           if (this.moves[this.moveIndex][0] <= this.songManager.currentQuarterBeat) { // push estimate pose to promise array if there is a move for this beat - this will be checked until beat + 6
-            this.promiseArray.push(this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride))
+            this.promiseArray.push(this.$store.state.net.estimatePoses(this.stream))
             this.timeStamps[this.moves[this.moveIndex][0]].push(this.player.getCurrentTime())
           }
         }
@@ -254,9 +254,9 @@ export default {
               this.stream.play()
               /* as there is a delay in posenet first estimations, 2 estimations are done at the time the stream starts
               to prevent delay when estimations are supposed to occur quickly during the game */
-              this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride)
+              this.$store.state.net.estimatePoses(this.stream)
               setTimeout(() => {
-                this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride)
+                this.$store.state.net.estimatePoses(this.stream)
               }, 2000)
             }
             return true
@@ -290,9 +290,9 @@ export default {
               this.stream.height = 300
               this.stream.play()
               // estimate poses to prevent delays on first estimation in game
-              this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride)
+              this.$store.state.net.estimatePoses(this.stream)
               setTimeout(() => {
-                this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride)
+                this.$store.state.net.estimatePoses(this.stream)
               }, 2000)
             }
             return true

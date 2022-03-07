@@ -153,38 +153,6 @@
           </v-text-field>
           <v-btn block @click="goToLatencyCalibration">Calibrate Latency (WIP)</v-btn>
           <a href="https://www.youtube.com/watch?v=WXud3F-Cuac" target="_blank"><p class="mt-2">More about latency</p></a>
-          <v-divider></v-divider>
-          <h3 class="mt-4">POSE DETECTION <a href="https://www.npmjs.com/package/@tensorflow-models/posenet" target="_blank">(advanced)</a></h3>
-          <v-select
-            outline
-            class="mt-4"
-            :items="multipliers"
-            v-model="options.multiplier"
-            label="multiplier"
-            hint="The larger the value, more accurate at the cost of speed - defaults to 0.5, which is recommended for mobiles"
-          ></v-select>
-          <v-select
-            outline
-            class="mt-4"
-            :items="outputStrideValues"
-            v-model="options.outputStride"
-            label="output stride"
-            hint="The smaller the value, more accurate at the cost of speed - defaults to 16"
-          ></v-select>
-          <v-slider
-            class="mt-4"
-            v-model="options.imageScale"
-            color="blue"
-            always-dirty
-            label="Image Scale"
-            thumb-label="always"
-            :thumb-size="24"
-            :min="0.2"
-            :max="1"
-            step="0.01"
-            hint="The larger the value, more accurate at the cost of speed - defaults to 0.5"
-            persistent-hint
-          ></v-slider>
         </v-card-text>
 
         <v-card-actions class="cyan">
@@ -215,16 +183,11 @@ export default {
     return {
       loading: false,
       settings: false,
-      multipliers: [0.5, 0.75, 1.0],
-      outputStrideValues: [8, 16, 32],
       speed: [0.5, 1, 2],
       videoDevicesLabels: [],
       selectedDeviceLabel: '',
       videoDevicesIds: {},
       options: {
-        multiplier: 0.5,
-        outputStride: 16,
-        imageScale: 0.5,
         latency: 0.32,
         showAnimation: true,
         showWebcam: true,
@@ -239,9 +202,6 @@ export default {
     this.options.showWebcam = this.$store.state.gameOptions.showWebcam
     this.options.latency = this.$store.state.gameOptions.latency
     this.options.speed = this.$store.state.gameOptions.speed
-    this.options.outputStride = this.$store.state.gameOptions.outputStride
-    this.options.imageScale = this.$store.state.gameOptions.imageScale
-    this.options.multiplier = this.$store.state.gameOptions.multiplier
     this.options.videoDevice = this.$store.state.gameOptions.videoDevice
     this.options.videoDeviceId = this.$store.state.gameOptions.videoDeviceId
   },
@@ -281,8 +241,8 @@ export default {
     },
     playAgain: function () {
       this.loading = true
-      if (this.options.multiplier !== this.$store.state.gameOptions.multiplier) {
-        this.$store.dispatch('loadNet', this.options.multiplier).then(response => {
+      if (this.$store.state.net === null) {
+        this.$store.dispatch('loadNet').then(response => {
           this.$store.commit('loadNet', response)
           this.$store.commit('changeOptions', this.options)
           this.$store.commit('saveOptionsOnStorage')
@@ -290,7 +250,7 @@ export default {
           this.$store.commit('goToScene', 'game')
         }, error => {
           this.loading = false
-          this.$store.commit('changeWrongMessage', `Due to a problem with PoseNet the game is not available right now. Please try it again later. \n ${error}`)
+          this.$store.commit('changeWrongMessage', `Due to a problem with MoveNet the game is not available right now. Please try it again later. \n Error: ${error}`)
           this.$store.commit('somethingWentWrong')
           this.store.commit('goToScene', 'error')
         })
@@ -305,8 +265,8 @@ export default {
       this.settings = !this.settings
     },
     goToLatencyCalibration: function () {
-      if (this.options.multiplier !== this.$store.state.gameOptions.multiplier) {
-        this.$store.dispatch('loadNet', this.options.multiplier).then(response => {
+      if (this.$store.state.net === null) {
+        this.$store.dispatch('loadNet').then(response => {
           this.$store.commit('loadNet', response)
           this.$store.commit('changeOptions', this.options)
           this.$store.commit('saveOptionsOnStorage')
@@ -314,8 +274,7 @@ export default {
             this.$store.commit('goToScene', 'latency-test')
           })
         }, err => {
-          alert(err)
-          this.$store.commit('changeWrongMessage', 'Due to a problem with PoseNet the game is not available right now. Please try it again later.')
+          this.$store.commit('changeWrongMessage', `Due to a problem with MoveNet the game is not available right now. Please try it again later. \n Error: ${err}`)
           this.$store.commit('somethingWentWrong')
           this.store.commit('goToScene', 'error')
         })

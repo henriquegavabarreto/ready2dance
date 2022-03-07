@@ -16,12 +16,11 @@ Ready2Dance tries to solve this issue using any camera connected to your device,
 
 - You can play instantly in your browser with nothing more than an internet connection and a webcam.
 - Log in and create your own shared levels with the level editor.
-- Export and import charts
+- Export and import charts on the level editor.
 - Scoring and Grading System. The better you go, the higher your grade.
 - Compete for the best score in the ranking.
 - Adjustable speed. Make the circle animation faster or slower.
 - Hidden Animation Mode. You can hide the animations completely and just dance to the choreography.
-- Configurable Pose Detection Sensibility. You can adjust how well the pose detection can be depending on your machine's capabilities.
 - Camera Latency Calibration. Detect your camera latency using the game.
 
 ## Contributing
@@ -34,13 +33,12 @@ Open an issue, make a PR or even send an e-mail to `ready2dancegame at gmail.com
 
 - Web Application designed using [Vue](https://vuejs.org/), [Vuex](https://vuex.vuejs.org/) and [Vuetify](https://vuetifyjs.com/)
 - Game and editor engines built using [PixiJS](https://www.pixijs.com/)
-- Real-Time Pose Detection using [TensorFlow.js](https://www.tensorflow.org/js) and [PoseNet](https://www.npmjs.com/package/@tensorflow-models/posenet/v/1.0.3)
+- Real-Time Pose Detection using [TensorFlow.js](https://www.tensorflow.org/js) and [MoveNet](https://tfhub.dev/google/tfjs-model/movenet/singlepose/thunder/3)
 - Videos streamed using an [YouTube Player API](https://developers.google.com/youtube/iframe_api_reference) abstraction ([yt-player](https://www.npmjs.com/package/yt-player))
 - Data stored at [Firebase](https://firebase.google.com/)
 
 ## To Do
 
-- Change pose detection from PoseNet to MoveNet
 - Add possibility to export and import songs so the game can be played localy only, removing database support
 
 ## Development
@@ -74,3 +72,7 @@ npm run lint
 
 #### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
+
+#### Log
+
+March 07 2022 - Changed pose detection from PoseNet to MoveNet for more satisfactory results

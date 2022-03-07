@@ -1188,14 +1188,14 @@ export default {
       }
       // if there is no posenet model loaded
       if (this.$store.state.net === null) {
-        this.$store.dispatch('loadNet', this.$store.state.gameOptions.multiplier).then(response => {
+        this.$store.dispatch('loadNet').then(response => {
           this.$store.commit('loadNet', response)
           this.$store.commit('selectSong', dummySong)
           this.$store.commit('changeSelectedChart', dummyChart)
           this.destroyAll()
           this.$store.commit('goToScene', 'game')
         }, error => {
-          this.$store.commit('changeWrongMessage', `Due to a problem with PoseNet the game is not available right now. Please try it again later. \n ${error.message}`)
+          this.$store.commit('changeWrongMessage', `Due to a problem with MoveNet the game is not available right now. Please try it again later. \n Error: ${error.message}`)
           this.$store.commit('somethingWentWrong')
         })
       } else {

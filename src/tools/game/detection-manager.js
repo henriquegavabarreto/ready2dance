@@ -2,15 +2,15 @@
 export default {
   detect: function (hand, position, pose) {
     // set relevant body parts based on keypoints
-    let nose = pose.keypoints[0].position
+    let nose = pose.keypoints[0]
     // let leftEar = pose.keypoints[3].position
     // let rightEar = pose.keypoints[4].position
-    let leftShoulder = pose.keypoints[5].position
-    let rightShoulder = pose.keypoints[6].position
-    let leftHip = pose.keypoints[11].position
-    let rightHip = pose.keypoints[12].position
-    let leftHand = pose.keypoints[9].position
-    let rightHand = pose.keypoints[10].position
+    let leftShoulder = pose.keypoints[5]
+    let rightShoulder = pose.keypoints[6]
+    let leftHip = pose.keypoints[11]
+    let rightHip = pose.keypoints[12]
+    let leftHand = pose.keypoints[9]
+    let rightHand = pose.keypoints[10]
 
     let shouldersY = (leftShoulder.y + rightShoulder.y) / 2
     let hipsY = (leftHip.y + rightHip.y) / 2

@@ -8,8 +8,11 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "@tensorflow-models/posenet": "^1.0.3",
-    "@tensorflow/tfjs": "^1.7.4",
+    "@mediapipe/pose": "^0.5.1635988162",
+    "@tensorflow-models/pose-detection": "^2.0.0",
+    "@tensorflow/tfjs-backend-webgl": "^3.14.0",
+    "@tensorflow/tfjs-converter": "^3.14.0",
+    "@tensorflow/tfjs-core": "^3.14.0",
     "core-js": "^2.6.12",
     "firebase": "^7.24.0",
     "pixi.js": "^4.8.9",

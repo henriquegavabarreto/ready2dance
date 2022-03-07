@@ -364,9 +364,9 @@ export default {
               this.stream.play()
               /* as there is a delay in posenet first estimations, 2 estimations are done at the time the stream starts
               to prevent delay when estimations are supposed to occur quickly during the game */
-              this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride)
+              this.$store.state.net.estimatePoses(this.stream)
               setTimeout(() => {
-                this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride)
+                this.$store.state.net.estimatePoses(this.stream)
               }, 2000)
             }
             return true
@@ -400,9 +400,9 @@ export default {
               this.stream.height = 300
               this.stream.play()
               // estimate poses to prevent delays on first estimation in game
-              this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride)
+              this.$store.state.net.estimatePoses(this.stream)
               setTimeout(() => {
-                this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride)
+                this.$store.state.net.estimatePoses(this.stream)
               }, 2000)
             }
             return true
@@ -436,6 +436,8 @@ export default {
       /* stop player ticker and capture
       destroy player, ticker and animation helpers if necessary
       remove resize event listener */
+      this.stopCapture()
+
       if (this.ticker !== null) {
         this.ticker.stop()
       }
@@ -454,8 +456,6 @@ export default {
         }
         this.app.destroy()
       }
-
-      this.stopCapture()
 
       window.removeEventListener('resize', this.resizeWindow)
       window.onresize = null
@@ -491,9 +491,11 @@ export default {
         if (this.moves[this.moveIndex][0] + 1 <= this.songManager.currentQuarterBeat - this.cameraLatency) { // if the beat of the current index has passed the current beat
           if (!(this.moves[this.moveIndex][2][0] === 'H' && this.moves[this.moveIndex][2].length === 2) && !(this.moves[this.moveIndex][3][0] === 'H' && this.moves[this.moveIndex][3].length === 2) &&
             !(this.moves[this.moveIndex][2][0] === 'M' && this.moves[this.moveIndex][2].length === 2) && !(this.moves[this.moveIndex][3][0] === 'M' && this.moves[this.moveIndex][3].length === 2)) {
-            this.promiseArray.push(this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride))
+            this.promiseArray.push(this.$store.state.net.estimatePoses(this.stream))
+            // add the reference move to the end of the promiseArray
             this.promiseArray.push(this.moves[this.moveIndex])
             Promise.all(this.promiseArray).then((values) => {
+              // separate reference values for each hand
               let handMove = values.splice(values.length - 1, 1)[0]
               let rightHandMove = handMove[3]
               let leftHandMove = handMove[2]
@@ -506,30 +508,30 @@ export default {
                 let rightHandDetected = false
                 let leftHandDetected = false
 
-                if (pose.score > 0.6) { // set a minimum confidence for poses. Less than 0.6 shall not pass!
+                if (pose[0].score > 0.4) { // set a minimum confidence for poses. Less than the value will be ignored
                   this.noPose = false
                   if (leftHandMove !== 'X') {
                     if (leftHandMove[0] === 'S') { // evaluate Sharp move
-                      leftHandDetected = detectionManager.detect('L', leftHandMove[1], pose)
+                      leftHandDetected = detectionManager.detect('L', leftHandMove[1], pose[0])
                     } else if (leftHandMove[0] === 'H' && leftHandMove.length > 2) { // evaluate Hold move
                       if (leftHandMove[2] === 'S') this.holdingLeft = true // if it is the first of a hold, holding left is true
-                      leftHandDetected = detectionManager.detect('L', leftHandMove[1], pose)
+                      leftHandDetected = detectionManager.detect('L', leftHandMove[1], pose[0])
                     } else if (leftHandMove[0] === 'M' && leftHandMove.length > 2) { // evaluate Motion move
                       if (leftHandMove[2] === 'S') this.holdingLeft = true // if it is the first of a motion, holding left is true
-                      leftHandDetected = detectionManager.detect('L', leftHandMove[1], pose)
+                      leftHandDetected = detectionManager.detect('L', leftHandMove[1], pose[0])
                     }
                     if (leftHandDetected) leftHit.push(i)
                   }
 
                   if (rightHandMove !== 'X') {
                     if (rightHandMove[0] === 'S') { // evaluate Sharp move
-                      rightHandDetected = detectionManager.detect('R', rightHandMove[1], pose)
+                      rightHandDetected = detectionManager.detect('R', rightHandMove[1], pose[0])
                     } else if (rightHandMove[0] === 'H' && rightHandMove.length > 2) { // evaluate Hold move
                       if (rightHandMove[2] === 'S') this.holdingRight = true // if it is the first of a hold, holding right is true
-                      rightHandDetected = detectionManager.detect('R', rightHandMove[1], pose)
+                      rightHandDetected = detectionManager.detect('R', rightHandMove[1], pose[0])
                     } else if (rightHandMove[0] === 'M' && rightHandMove.length > 2) { // evaluate Motion move
                       if (rightHandMove[2] === 'S') this.holdingRight = true // if it is the first of a motion, holding right is true
-                      rightHandDetected = detectionManager.detect('R', rightHandMove[1], pose)
+                      rightHandDetected = detectionManager.detect('R', rightHandMove[1], pose[0])
                     }
                     if (rightHandDetected) rightHit.push(i)
                   }
@@ -648,7 +650,7 @@ export default {
           if (this.moves[this.moveIndex][0] <= this.songManager.currentQuarterBeat - this.cameraLatency) { // push estimate pose to promise array if it is a move with length > 2 (except Sharp)
             if (!(this.moves[this.moveIndex][2][0] === 'H' && this.moves[this.moveIndex][2].length === 2) && !(this.moves[this.moveIndex][3][0] === 'H' && this.moves[this.moveIndex][3].length === 2) &&
               !(this.moves[this.moveIndex][2][0] === 'M' && this.moves[this.moveIndex][2].length === 2) && !(this.moves[this.moveIndex][3][0] === 'M' && this.moves[this.moveIndex][3].length === 2)) {
-              this.promiseArray.push(this.$store.state.net.estimateSinglePose(this.stream, this.gameOptions.imageScale, false, this.gameOptions.outputStride))
+              this.promiseArray.push(this.$store.state.net.estimatePoses(this.stream))
             }
           }
         }

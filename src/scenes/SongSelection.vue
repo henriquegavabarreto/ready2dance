@@ -101,38 +101,6 @@
           </v-text-field>
           <v-btn block @click="goToLatencyCalibration">Calibrate Latency (WIP)</v-btn>
           <a href="https://www.youtube.com/watch?v=WXud3F-Cuac" target="_blank"><p class="mt-2">More about latency</p></a>
-          <v-divider></v-divider>
-          <h3 class="mt-4">POSE DETECTION <a href="https://www.npmjs.com/package/@tensorflow-models/posenet" target="_blank">(advanced)</a></h3>
-          <v-select
-            outline
-            class="mt-4"
-            :items="multipliers"
-            v-model="options.multiplier"
-            label="multiplier"
-            hint="The larger the value, more accurate at the cost of speed - defaults to 0.5, which is recommended for mobiles"
-          ></v-select>
-          <v-select
-            outline
-            class="mt-4"
-            :items="outputStrideValues"
-            v-model="options.outputStride"
-            label="output stride"
-            hint="The smaller the value, more accurate at the cost of speed - defaults to 16"
-          ></v-select>
-          <v-slider
-            class="mt-4"
-            v-model="options.imageScale"
-            color="blue"
-            always-dirty
-            label="Image Scale"
-            thumb-label="always"
-            :thumb-size="24"
-            :min="0.2"
-            :max="1"
-            step="0.01"
-            hint="The larger the value, more accurate at the cost of speed - defaults to 0.5"
-            persistent-hint
-          ></v-slider>
         </v-card-text>
 
         <v-card-actions class="cyan">
@@ -300,14 +268,9 @@ export default {
       videoDevicesLabels: [],
       selectedDeviceLabel: '',
       videoDevicesIds: {},
-      multipliers: [0.5, 0.75, 1.0],
-      outputStrideValues: [8, 16, 32],
       speed: [0.5, 1, 2],
       // local and initial setting values
       options: {
-        multiplier: 0.5,
-        outputStride: 16,
-        imageScale: 0.5,
         latency: 0.32,
         showAnimation: true,
         showWebcam: true,
@@ -340,22 +303,6 @@ export default {
     this.options.showWebcam = this.$store.state.gameOptions.showWebcam
     this.options.latency = this.$store.state.gameOptions.latency
     this.options.speed = this.$store.state.gameOptions.speed
-    this.options.outputStride = this.$store.state.gameOptions.outputStride
-    this.options.imageScale = this.$store.state.gameOptions.imageScale
-    if (this.$store.state.gameOptions.multiplier === 0) {
-      // not ideal solution, but detects major mobile devices
-      // this only happens when loading this scene for the first time, after that multiplier will be loaded from the local storage
-      if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-        // load multiplier 0.5 if mobile device
-        this.options.multiplier = 0.5
-      } else {
-        // load multiplier 0.75 if not mobile
-        this.options.multiplier = 0.75
-      }
-      this.$store.commit('changeMultiplier', this.options.multiplier)
-    } else {
-      this.options.multiplier = this.$store.state.gameOptions.multiplier
-    }
   },
   mounted () {
     // to make sure the player div was created, create new youtube player when the view is mounted
@@ -484,9 +431,9 @@ export default {
       if (this.selectedSong !== {} && this.selectedChart !== '') { // makes sure there is a selected song and a selected chart
         this.loading = true
         /* if the local settings are different from the store, save the local options to the store
-        but alter that only after the new posenet is loaded (if the local multiplier is different from the store) */
-        if (this.options.multiplier !== this.$store.state.gameOptions.multiplier || this.$store.state.net === null) {
-          this.$store.dispatch('loadNet', this.options.multiplier).then(response => {
+        but alter that only after posenet is loaded */
+        if (this.$store.state.net === null) {
+          this.$store.dispatch('loadNet').then(response => {
             this.$store.commit('loadNet', response)
             this.$store.commit('changeOptions', this.options)
             this.$store.commit('saveOptionsOnStorage')
@@ -499,14 +446,14 @@ export default {
           }, error => {
             // deal with errors when loading posenet (if they occur)
             alert(error)
-            this.$store.commit('changeWrongMessage', 'Due to a problem with PoseNet the game is not available right now. Please try it again later.')
+            this.$store.commit('changeWrongMessage', 'Due to a problem with MoveNet the game is not available right now. Please try it again later.')
             this.$store.commit('somethingWentWrong')
             this.player.stop()
             this.player.destroy()
             this.store.commit('goToScene', 'error')
           })
         } else {
-          // if there is no need to load a new multiplier for posenet
+          // if there is no need to load posenet
           this.$store.commit('changeOptions', this.options)
           this.$store.commit('saveOptionsOnStorage')
           this.$store.commit('selectSong', this.selectedSong)
@@ -551,8 +498,8 @@ export default {
     },
     goToLatencyCalibration: function () { // similar to goToGame function, but instead loads webcam latency calibration
       this.loading = true
-      if (this.options.multiplier !== this.$store.state.gameOptions.multiplier || this.$store.state.net === null) {
-        this.$store.dispatch('loadNet', this.options.multiplier).then(response => {
+      if (this.$store.state.net === null) {
+        this.$store.dispatch('loadNet').then(response => {
           this.$store.commit('loadNet', response)
           this.$store.commit('changeOptions', this.options)
           this.$store.commit('saveOptionsOnStorage')

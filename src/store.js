@@ -1,11 +1,12 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import firebase from './tools/config/firebase'
-import * as posenet from '@tensorflow-models/posenet'
+import * as poseDetection from '@tensorflow-models/pose-detection'
+import '@tensorflow/tfjs-backend-webgl'
 
 Vue.use(Vuex)
 Vue.use(firebase)
-Vue.use(posenet)
+Vue.use(poseDetection)
 
 export default new Vuex.Store({
   state: {
@@ -32,9 +33,6 @@ export default new Vuex.Store({
       showAnimation: true,
       showWebcam: true,
       latency: 0.32,
-      multiplier: 0,
-      outputStride: 16,
-      imageScale: 0.5,
       speed: 1,
       videoDeviceId: '',
       videoDevice: ''
@@ -194,20 +192,13 @@ export default new Vuex.Store({
     changeOptions: (state, data) => {
       state.gameOptions.showAnimation = data.showAnimation
       state.gameOptions.showWebcam = data.showWebcam
-      state.gameOptions.multiplier = data.multiplier
       state.gameOptions.speed = parseInt(data.speed)
-      state.gameOptions.outputStride = parseInt(data.outputStride)
-      state.gameOptions.imageScale = parseFloat(data.imageScale)
       state.gameOptions.videoDevice = data.videoDevice
       state.gameOptions.videoDeviceId = data.videoDeviceId
       // latency is changed only if latency is a number
       if (!isNaN(data.latency)) {
         state.gameOptions.latency = parseFloat(data.latency)
       }
-    },
-    // change only posenet multiplier
-    changeMultiplier: (state, data) => {
-      state.gameOptions.multiplier = data
     },
     // change latency
     changeLatency: (state, data) => {
@@ -230,10 +221,7 @@ export default new Vuex.Store({
       state.gameOptions.showAnimation = JSON.parse(localStorage.getItem('showAnimation')) || state.gameOptions.showAnimation
       state.gameOptions.showWebcam = JSON.parse(localStorage.getItem('showWebcam')) || state.gameOptions.showWebcam
       state.gameOptions.latency = JSON.parse(localStorage.getItem('latency')) || state.gameOptions.latency
-      state.gameOptions.multiplier = JSON.parse(localStorage.getItem('multiplier')) || state.gameOptions.multiplier
       state.gameOptions.speed = JSON.parse(localStorage.getItem('speed')) || state.gameOptions.speed
-      state.gameOptions.outputStride = JSON.parse(localStorage.getItem('outputStride')) || state.gameOptions.outputStride
-      state.gameOptions.imageScale = JSON.parse(localStorage.getItem('imageScale')) || state.gameOptions.imageScale
       state.gameOptions.videoDevice = localStorage.getItem('videoDevice') || state.gameOptions.videoDevice
       state.gameOptions.videoDeviceId = localStorage.getItem('videoDeviceId') || state.gameOptions.videoDeviceId
     },
@@ -241,10 +229,7 @@ export default new Vuex.Store({
       localStorage.setItem('showAnimation', state.gameOptions.showAnimation)
       localStorage.setItem('showWebcam', state.gameOptions.showWebcam)
       localStorage.setItem('latency', state.gameOptions.latency)
-      localStorage.setItem('multiplier', state.gameOptions.multiplier)
       localStorage.setItem('speed', state.gameOptions.speed)
-      localStorage.setItem('outputStride', state.gameOptions.outputStride)
-      localStorage.setItem('imageScale', state.gameOptions.imageScale)
       localStorage.setItem('videoDevice', state.gameOptions.videoDevice)
       localStorage.setItem('videoDeviceId', state.gameOptions.videoDeviceId)
     },
@@ -447,10 +432,10 @@ export default new Vuex.Store({
         context.commit('changeWrongMessage', err.message)
       })
     },
-    // load posenet based on multiplier
-    loadNet: (context, payload) => {
+    // load movenet
+    loadNet: () => {
       return new Promise((resolve, reject) => {
-        posenet.load(payload).then(response => {
+        poseDetection.createDetector(poseDetection.SupportedModels.MoveNet, { modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER }).then(response => {
           resolve(response)
         }, error => {
           reject(error)
