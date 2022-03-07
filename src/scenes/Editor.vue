@@ -762,12 +762,9 @@ export default {
         }
       }
 
-      // check move inconsistency - It does not check for Hold and Motion "sandwiches"
+      // todo: check move inconsistency - It does not check for Hold and Motion "sandwiches"
       if (hasValidTypes) {
-        console.log('Types are valid')
         for (let j = 0; j < chart.moves.length; j++) {
-          console.log(chart.moves[j].join(','))
-          console.log(/^(([0-9]+),([01]),(S[0-9]|[MH](P|[0-9][SEP])|X|H[0-9]S([0-9]+)),(S[0-9]|[MH](P|[0-9][SEP])|X|H[0-9]S([0-9]+)))$/.test(chart.moves[j].join(',')))
           if (!/^(([0-9]+),([01]),(S[0-9]|[MH](P|[0-9][SEP])|X|H[0-9]S([0-9]+)),(S[0-9]|[MH](P|[0-9][SEP])|X|H[0-9]S([0-9]+)))$/.test(chart.moves[j].join(','))) {
             allValidMoves = false
             break
