@@ -33,12 +33,13 @@ Open an issue, make a PR or even send an e-mail to `ready2dancegame at gmail.com
 
 - Web Application designed using [Vue](https://vuejs.org/), [Vuex](https://vuex.vuejs.org/) and [Vuetify](https://vuetifyjs.com/)
 - Game and editor engines built using [PixiJS](https://www.pixijs.com/)
-- Real-Time Pose Detection using [TensorFlow.js](https://www.tensorflow.org/js) and [MoveNet](https://tfhub.dev/google/tfjs-model/movenet/singlepose/thunder/3)
+- Real-Time Pose Detection using [TensorFlow.js](https://www.tensorflow.org/js) and [MoveNet](https://blog.tensorflow.org/2021/05/next-generation-pose-detection-with-movenet-and-tensorflowjs.html)
 - Videos streamed using an [YouTube Player API](https://developers.google.com/youtube/iframe_api_reference) abstraction ([yt-player](https://www.npmjs.com/package/yt-player))
 - Data stored at [Firebase](https://firebase.google.com/)
 
 ## To Do
 
+- Create a 'what's new' welcoming message
 - Add possibility to export and import songs so the game can be played localy only, removing database support
 
 ## Development
