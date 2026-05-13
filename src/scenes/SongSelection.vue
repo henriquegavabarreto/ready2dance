@@ -407,25 +407,41 @@ export default {
     },
     toggleLike: function (songId) {
       this.processingLike = true
-      let toggleLike = firebase.functions.httpsCallable('toggleLike')
-      toggleLike({ songId: songId }).then(res => {
-        this.processingLike = false
-        setTimeout(() => {
-          let foundSong = false
-          for (let song of this.$store.state.songs) {
-            if (song.general.songId === songId) {
-              foundSong = true
+      let songLikeRef = firebase.database.ref(`songs/${songId}/general/likedBy`)
+      let userLikeRef = firebase.database.ref(`users/${firebase.auth.currentUser.uid}/likedSongs/${songId}`)
+      userLikeRef
+        .once('value')
+        .then(snapshot => {
+          let liked = snapshot.val()
+          if (liked) {
+            return Promise.all([
+              userLikeRef.remove(),
+              songLikeRef.transaction(val => val - 1)
+            ]).then(() => 'unlike')
+          } else {
+            return Promise.all([
+              userLikeRef.set(true),
+              songLikeRef.transaction(val => (val || 0) + 1)
+            ]).then(() => 'like')
+          }
+        }).then(res => {
+          this.processingLike = false
+          setTimeout(() => {
+            let foundSong = false
+            for (let song of this.$store.state.songs) {
+              if (song.general.songId === songId) {
+                foundSong = true
+              }
             }
-          }
-          if (!foundSong) {
-            this.$store.commit('manuallyToggleLike', { songId: songId, likeState: res.data })
-          }
-        }, 200)
-      }).catch(err => {
-        this.$store.commit('changeWrongMessage', `${err.message}`)
-        this.$store.commit('somethingWentWrong')
-        this.processingLike = false
-      })
+            if (!foundSong) {
+              this.$store.commit('manuallyToggleLike', { songId: songId, likeState: res })
+            }
+          }, 200)
+        }).catch(err => {
+          this.$store.commit('changeWrongMessage', `${err.message}`)
+          this.$store.commit('somethingWentWrong')
+          this.processingLike = false
+        })
     },
     goToGame: function () { // goes to the game after the chart is loaded
       if (this.selectedSong !== {} && this.selectedChart !== '') { // makes sure there is a selected song and a selected chart
