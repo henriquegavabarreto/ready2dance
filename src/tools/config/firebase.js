@@ -1,7 +1,6 @@
 import * as firebase from 'firebase/app'
 import 'firebase/database'
 import 'firebase/auth'
-import 'firebase/functions'
 
 // firebase config
 var config = {
@@ -19,6 +18,5 @@ firebase.initializeApp(config)
 // export database and auth
 export default {
   database: firebase.database(),
-  auth: firebase.auth(),
-  functions: firebase.functions()
+  auth: firebase.auth()
 }
