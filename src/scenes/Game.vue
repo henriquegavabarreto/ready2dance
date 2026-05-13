@@ -266,23 +266,50 @@ export default {
       })
 
       if (this.$store.state.user !== null) { // if the user is registered
-        let saveScore = firebase.functions.httpsCallable('saveScore')
-        let toUpdate = {
-          difficulty: this.$store.state.selectedDifficulty,
-          songId: this.$store.state.selectedSongId,
-          userScore: this.score
-        }
-        saveScore(toUpdate).then(results => {
-          this.$store.dispatch('updateSongScores', results.data.scoreId)
-        }).catch(err => {
-          this.$store.commit('somethingWentWrong')
-          this.$store.commit('changeWrongMessage', `Couldn't save scores at this time. \n ${err.message}`)
-        }).finally(() => {
-          this.loading = false
-          this.stopAndDestroy()
-          // go to results scene
-          this.$store.commit('goToScene', 'results')
-        })
+        // check if there is a score for this difficulty
+        firebase.database.ref(`songs/${this.$store.state.selectedSongId}/scores/${this.$store.state.selectedDifficulty}`)
+          .once('value')
+          .then(snapshot => {
+            // get the existing id value or create a new id in scores
+            const scoreId = snapshot.val() || firebase.database.ref('/scores').push().key
+            const latestScoreRef = firebase.database.ref(`scores/${scoreId}/${this.$store.state.user.username}`)
+
+            return Promise.all([
+              Promise.resolve(!snapshot.val()),
+              Promise.resolve(scoreId),
+              latestScoreRef.once('value')
+            ])
+          }).then(([isNewId, scoreId, latestScoreSnapshot]) => {
+            let latestScore = latestScoreSnapshot.val()
+            let updates = {}
+
+            if (isNewId) {
+              updates[`songs/${this.$store.state.selectedSongId}/scores/${this.$store.state.selectedDifficulty}`] = scoreId
+            }
+            if (latestScore === null || this.score > latestScore) {
+              updates[`scores/${scoreId}/${this.$store.state.user.username}`] = this.score
+            }
+
+            // dispatch if there are no updates to write
+            if (Object.keys(updates).length === 0) {
+              this.$store.dispatch('updateSongScores', scoreId)
+              return
+            }
+
+            // write updates
+            return firebase.database.ref().update(updates)
+              .then(() => {
+                this.$store.dispatch('updateSongScores', scoreId)
+              })
+          }).catch(err => {
+            this.$store.commit('somethingWentWrong')
+            this.$store.commit('changeWrongMessage', `Couldn't save scores at this time. \n ${err.message}`)
+          }).finally(() => {
+            this.loading = false
+            this.stopAndDestroy()
+            // go to results scene
+            this.$store.commit('goToScene', 'results')
+          })
       } else { // for non registered users
         if (this.$store.state.selectedSong.hasOwnProperty('scores')) { // if has scores
           if (this.$store.state.selectedSong.scores.hasOwnProperty(this.$store.state.selectedDifficulty)) { // if there are scores for the difficulty
