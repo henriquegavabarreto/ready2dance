@@ -199,6 +199,14 @@ export default {
           this.loading = false
         })
 
+        this.player.on('error', () => {
+          this.goToSelectionWithMessage('An error occured and the video cannot be player this time. Try again later.')
+        })
+
+        this.player.on('unplayable', () => {
+          this.goToSelectionWithMessage('This video is not playable anymore. Contact the chart creator or create your own chart.')
+        })
+
         // set volume to 0 on mount to fade music in when video starts
         this.player.setVolume(0)
       }
@@ -250,6 +258,12 @@ export default {
         window.addEventListener('resize', this.resizeWindow())
         this.resize()
       }
+    },
+    goToSelectionWithMessage: function (message) {
+      this.stopAndDestroy()
+      this.$store.commit('changeWrongMessage', message)
+      this.$store.commit('somethingWentWrong')
+      this.$store.commit('goToScene', 'song-selection')
     },
     goToResults: function () {
       this.loading = true
@@ -398,19 +412,11 @@ export default {
             }
             return true
           }).catch(err => {
-            let errorMessage = 'The following error occurred: ' + err.name
-            this.stopAndDestroy()
-            this.$store.commit('changeWrongMessage', errorMessage)
-            this.$store.commit('somethingWentWrong')
-            this.$store.commit('goToScene', 'song-selection')
+            this.goToSelectionWithMessage('The following error occurred: ' + err.name)
             return false
           })
         } else {
-          let errorMessage = 'This browser has no camera support. Check your browser settings or try another browser.'
-          this.stopAndDestroy()
-          this.$store.commit('changeWrongMessage', errorMessage)
-          this.$store.commit('somethingWentWrong')
-          this.$store.commit('goToScene', 'song-selection')
+          this.goToSelectionWithMessage('This browser has no camera support. Check your browser settings or try another browser.')
           return Promise.resolve(false)
         }
       } else {
@@ -435,8 +441,6 @@ export default {
             return true
           })
           .catch((err) => { // catch error from mediaDevices
-            this.stopAndDestroy()
-
             let errorMessage = 'Something went wrong...'
 
             if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
@@ -452,9 +456,7 @@ export default {
             } else {
               errorMessage = 'Something went wrong... Check if you have a camera, if it\'s working and that this website can use it. Check your settings and try again.'
             }
-            this.$store.commit('changeWrongMessage', errorMessage)
-            this.$store.commit('somethingWentWrong')
-            this.$store.commit('goToScene', 'song-selection')
+            this.goToSelectionWithMessage(errorMessage)
             return false
           })
       }
