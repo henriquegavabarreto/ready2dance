@@ -94,6 +94,7 @@ import * as PIXI from 'pixi.js'
 import firebase from '../tools/config/firebase'
 import giveFeedback from '../tools/game/give-feedback'
 import LoadingScreen from '../components/LoadingScreen.vue'
+import dataManager from '../tools/editor/data-manager'
 
 const YTPlayer = require('yt-player')
 
@@ -204,6 +205,22 @@ export default {
         })
 
         this.player.on('unplayable', () => {
+          // gather unplayable chart information, and parse moves with data manager
+          let chart = this.$store.state.selectedChart
+          let song = this.$store.state.selectedSong
+          let unplayableChart = {
+            title: song.general.title,
+            artist: song.general.artist,
+            offset: chart.offset,
+            bpm: chart.bpm,
+            videoId: chart.videoId,
+            videoStart: chart.videoStart,
+            videoEnd: chart.videoEnd,
+            moves: dataManager.parseChart(chart.moves)
+          }
+          // save relevant information in the store for future access
+          this.$store.commit('toggleUnplayableState')
+          this.$store.commit('setUnplayableChart', unplayableChart)
           this.goToSelectionWithMessage('This video is not playable anymore. Contact the chart creator or create your own chart.')
         })
 

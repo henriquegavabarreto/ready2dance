@@ -23,11 +23,13 @@ export default new Vuex.Store({
     songScores: 'Select a song!',
     somethingWentWrong: false,
     wrongMessage: '',
+    unplayableVideo: false,
     selectedSongId: null,
     selectedSong: null,
     selectedChartId: null,
     selectedChart: null,
     selectedDifficulty: null,
+    unplayableChart: null,
     results: {},
     gameOptions: {
       showAnimation: true,
@@ -183,6 +185,14 @@ export default new Vuex.Store({
     // toggle something went wrong to show error message
     somethingWentWrong: state => {
       state.somethingWentWrong = !state.somethingWentWrong
+    },
+    // toggle unplayableVideo to show download unplayable chart button
+    toggleUnplayableState: state => {
+      state.unplayableVideo = !state.unplayableVideo
+    },
+    // set unplayable chart data
+    setUnplayableChart: (state, data) => {
+      state.unplayableChart = data
     },
     // change wrong message content
     changeWrongMessage: (state, data) => {

@@ -12,6 +12,14 @@
       <v-icon color="yellow" dark left>warning</v-icon>
       <span class="red--text"></span>
         {{$store.state.wrongMessage}}
+        <!-- Add download chart button if video was unplayable in game -->
+        <v-btn
+          v-if="$store.state.unplayableVideo && $store.state.selectedChart"
+          flat
+          @click="downloadUnplayable"
+          >
+          Download Chart
+        </v-btn>
         <v-btn
           flat
           @click="toggleWrong"
@@ -68,8 +76,29 @@ export default {
     }
   },
   methods: {
+    // close snackbar and toggle unplayableVideo if necessary
     toggleWrong: function () {
       this.$store.commit('somethingWentWrong')
+      // reset unplayable chart and state on dismiss
+      if (this.$store.state.unplayableVideo) {
+        this.$store.commit('toggleUnplayableState')
+        this.$store.commit('setUnplayableChart', null)
+      }
+    },
+    downloadUnplayable: function () {
+      // get unplayable chart from store
+      let chart = this.$store.state.unplayableChart
+
+      // download as JSON file
+      const a = document.createElement('a')
+      const file = new Blob([JSON.stringify(chart)], { type: 'text/plain' })
+      a.href = URL.createObjectURL(file)
+      a.download = `${chart.artist} - ${chart.title}.json`
+      a.click()
+
+      // reset unplayable chart after download
+      this.$store.commit('setUnplayableChart', null)
+      this.toggleWrong()
     }
   }
 }
