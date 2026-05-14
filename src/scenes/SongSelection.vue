@@ -161,7 +161,7 @@
                           <v-chip small v-for="(charts,name) in song.charts" :key="name" color="black" text-color="white" class="text-xs-center">{{name.toUpperCase()}}</v-chip>
                           <div class="body-2 font-weight-regular">
                             <span>created by {{song.general.createdBy}}</span>
-                            <span class="ml-5"><v-icon :color="$store.state.user === null ? 'white' : $store.state.user.likedSongs.includes(song.general.songId) ? 'purple' : 'white'">favorite</v-icon></span><span class="ml-1">{{song.general.likedBy ? song.general.likedBy : 0 }}</span>
+                            <span class="ml-5"><v-icon :color="$store.state.user === null ? 'white' : $store.state.user.likedSongs.includes(song.general.songId) ? 'purple' : 'white'" @click="toggleLike(song.general.songId)">favorite</v-icon></span><span class="ml-1">{{song.general.likedBy ? song.general.likedBy : 0 }}</span>
                           </div>
                         </div>
                       </v-card-title>
@@ -184,7 +184,6 @@
                     <v-layout class="justify-space-between align-center">
                       <h3 v-if="selectedSong.general.title" class="headline font-weight-bold">{{selectedSong.general.title.toUpperCase()}} - {{selectedSong.general.artist.toUpperCase()}}
                       </h3>
-                      <v-btn v-if="$store.state.user !== null" fab small :color="!$store.state.user ? 'red lighten-2' : !$store.state.user.likedSongs ? 'red lighten-2' : $store.state.user.likedSongs[$store.state.selectedSongId] ? 'red' : 'red lighten-2'" @click="toggleLike($store.state.selectedSongId)" :loading="processingLike" :disabled="processingLike"><v-icon color="white">favorite</v-icon></v-btn>
                     </v-layout>
                   </v-card-title>
                   <v-card-text>
