@@ -132,8 +132,8 @@
                                 </v-card-text>
                                 <v-card-actions>
                                   <v-flex xs12 class="text-sm-center">
-                                    <v-btn :disabled="$store.state.pageCounter === 1 || $store.state.queryState === 'first'" color="primary" @click="loadPreviousPage()">Previous</v-btn>
-                                    <v-btn :disabled="$store.state.queryState === 'last'" color="primary" @click="loadNextPage()">Next</v-btn>
+                                    <v-btn :disabled="!$store.state.user || $store.state.pageCounter === 1 || $store.state.queryState === 'first'" color="primary" @click="loadPreviousPage()">Previous</v-btn>
+                                    <v-btn :disabled="!$store.state.user || $store.state.queryState === 'last'" color="primary" @click="loadNextPage()">Next</v-btn>
                                   </v-flex>
                                 </v-card-actions>
                               </v-card>
@@ -916,6 +916,11 @@ export default {
       }
     },
     saveToFirebase: function () { // saves chart to firebase if all information is correct and videoId is unique
+      // make sure guest cannot save and show warning
+      if (this.$store.state.user === null) {
+        this.showWarningMessage('You need to be logged in to save charts.')
+        return
+      }
       let validInformation = this.validateBeforeSaving()
       // the information needs to be valid, a difficulty must be selected and the song must have a genre if it is the first saving it (see selectedSongDanceGenre in computed properties)
       if (validInformation && this.difficulties.includes(this.difficulty)) {
@@ -1011,6 +1016,11 @@ export default {
       this.$store.commit('selectChart', chartId)
     },
     loadChart: function (chartId) { // pulls chart info from the database and applies to the danceChart and settings tab
+      // make sure guest cannot delete charts and show warning
+      if (this.$store.state.user === null) {
+        this.showWarningMessage('You need to be logged in to load charts.')
+        return
+      }
       if (chartId) {
         let songId = this.selectedSongId
         let song = this.getSongById(songId)
@@ -1045,6 +1055,11 @@ export default {
     },
     // select chart that user wants to delete
     selectToDelete: function () {
+      // make sure guest cannot delete charts and show warning
+      if (this.$store.state.user === null) {
+        this.showWarningMessage('You need to be logged in to delete charts.')
+        return
+      }
       this.toDelete.song = this.getSongById(this.selectedSongId)
       this.toDelete.chartId = this.$store.state.selectedChartId
       this.toDelete.dif = this.$store.state.selectedDifficulty
@@ -1054,6 +1069,11 @@ export default {
       }
     },
     deleteSelectedChart: function () { // removes selected chart from the database
+      // make sure guest cannot delete charts and show warning
+      if (this.$store.state.user === null) {
+        this.showWarningMessage('You need to be logged in to delete charts.')
+        return
+      }
       // check if user is allowed to do that
       if (this.toDelete.song !== null) {
         let songId = this.toDelete.song.general.songId
@@ -1244,6 +1264,8 @@ export default {
   },
   computed: {
     songs: function () {
+      // return an empty array if the user is a guest
+      if (this.$store.state.user === null) return []
       let allSongs = this.$store.state.showSongs.slice(0)
       let orderedSongs = []
       for (let song of allSongs) {

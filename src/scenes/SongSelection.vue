@@ -38,14 +38,14 @@
             <v-list-tile-title><v-icon left>settings</v-icon><span>Settings</span></v-list-tile-title>
           </v-list-tile>
         </v-list>
-        <v-list class="py-0" v-if="$store.state.user !== null">
-          <v-list-tile v-if="$store.state.user !== null" @click="goToEditor">
+        <v-list class="py-0">
+          <v-list-tile @click="goToEditor">
             <v-list-tile-title><v-icon left>edit</v-icon><span>Editor</span></v-list-tile-title>
           </v-list-tile>
         </v-list>
         <v-list class="py-0">
           <v-list-tile @click="logout">
-            <v-list-tile-title><v-icon left>exit_to_app</v-icon><span>Sign Out</span></v-list-tile-title>
+            <v-list-tile-title><v-icon left>exit_to_app</v-icon><span>{{$store.state.user ? 'Sign Out' : 'Title Screen'}}</span></v-list-tile-title>
           </v-list-tile>
         </v-list>
       </v-menu>
@@ -376,12 +376,23 @@ export default {
       this.$store.commit('selectChart', null)
       this.$store.commit('selectSongId', null)
       this.$store.commit('selectDifficulty', '')
-      this.$store.commit('changeSongFilter', 'My Creations')
+      // save options before attempting to leave the scene
+      this.$store.commit('changeOptions', this.options)
+      this.$store.commit('saveOptionsOnStorage')
+
+      // let guests access editor without loading previously created songs
+      if (this.$store.state.user === null) {
+        this.loading = false
+        this.$store.commit('goToScene', 'editor')
+        return
+      } else {
+        // prioritize loading previously created songs for logged in users
+        this.$store.commit('changeSongFilter', 'My Creations')
+      }
       if (this.filter !== 'My Creations') {
+        // load user created songs if they are not currently loaded
         this.$store.dispatch('loadSongs', { filter: 'My Creations', requestedPage: 'first' }).then(() => {
           this.loading = false
-          this.$store.commit('changeOptions', this.options)
-          this.$store.commit('saveOptionsOnStorage')
           this.$store.commit('goToScene', 'editor')
         }).catch(() => {
           this.loading = false
@@ -389,9 +400,8 @@ export default {
           this.$store.commit('somethingWentWrong')
         })
       } else {
+        // creations are currently loaded and the logged in user can proceed to the editor
         this.loading = false
-        this.$store.commit('changeOptions', this.options)
-        this.$store.commit('saveOptionsOnStorage')
         this.$store.commit('goToScene', 'editor')
       }
     },
@@ -406,6 +416,8 @@ export default {
       if (this.$vuetify.breakpoint.xs) document.getElementById('currentlySelected').scrollIntoView()
     },
     toggleLike: function (songId) {
+      // ignore toggle like for non registered users
+      if (this.$store.state.user === null) return
       this.processingLike = true
       let songLikeRef = firebase.database.ref(`songs/${songId}/general/likedBy`)
       let userLikeRef = firebase.database.ref(`users/${firebase.auth.currentUser.uid}/likedSongs/${songId}`)
