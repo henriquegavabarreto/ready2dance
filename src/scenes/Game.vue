@@ -118,6 +118,7 @@ export default {
       songManager: null,
       // starter index to show cues on screen
       moveIndex: 0,
+      isNoteWindowOpen: false,
       // webcam video to be passed as a parameter to posenet
       stream: null,
       // pose detection helpers
@@ -531,6 +532,48 @@ export default {
         })
       }
       this.$store.commit('goToScene', this.$store.state.previousScene)
+    },
+    // set if move window is open or not
+    setMoveWindow: function () {
+      // ignore out of bounds indexes
+      if (this.moveIndex >= this.moves.length) return
+
+      const WINDOW_SIZE = 0.5 // one eighth beat
+      let currentBeat = this.songManager.currentQuarterBeat - this.cameraLatency
+      let moveBeat = this.moves[this.moveIndex][0]
+
+      // if current passed the current move beat by one eight of a beat
+      if (currentBeat > moveBeat + WINDOW_SIZE) {
+        this.gradeMove()
+        this.moveIndex++
+      }
+      
+      // re-check out of bound since moveIndex could've incremented
+      if (this.moveIndex >= this.moves.length) return
+      
+      moveBeat = this.moves[this.moveIndex][0] // update moveBeat
+
+      // check if move window should be open (one eighth beat before and after actual move beat)
+      let shouldBeOpen = currentBeat >= moveBeat - WINDOW_SIZE && currentBeat <= moveBeat + WINDOW_SIZE
+      if (shouldBeOpen && !this.isNoteWindowOpen) { // open window
+        this.isNoteWindowOpen = true
+        this.evaluatePoses()
+      } else if (!shouldBeOpen) { // close window
+        this.isNoteWindowOpen = false
+      }
+    },
+    // evaluate player pose against current move
+    evaluatePoses: function () {
+      // this.stream.requestVideoFrameCallback(() => {
+      //   //do something when we have a new video frame
+      //   this.$store.state.net.estimatePoses(this.stream).then(pose => {
+      //     // do something with the pose
+      //   })
+      // })
+    },
+    // grade current move based on pose evaluations and update score
+    gradeMove: function () {
+
     },
     detectAndGrade: function () {
       if (this.moveIndex < this.moves.length) { // index value is not higher than the array length
