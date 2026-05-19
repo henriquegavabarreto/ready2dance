@@ -119,6 +119,10 @@ export default {
       // starter index to show cues on screen
       moveIndex: 0,
       isNoteWindowOpen: false,
+      isRightEvaluationDone: false,
+      isLeftEvaluationDone: false,
+      currentHoldPositionRight: null,
+      currentHoldPositionLeft: null,
       // webcam video to be passed as a parameter to posenet
       stream: null,
       // pose detection helpers
@@ -564,12 +568,59 @@ export default {
     },
     // evaluate player pose against current move
     evaluatePoses: function () {
-      // this.stream.requestVideoFrameCallback(() => {
-      //   //do something when we have a new video frame
-      //   this.$store.state.net.estimatePoses(this.stream).then(pose => {
-      //     // do something with the pose
-      //   })
-      // })
+      if (!this.isNoteWindowOpen) return // return if window is closed
+      if (this.isRightEvaluationDone && this.isLeftEvaluationDone) return // return if evaluations are resolved
+
+      let move = this.moves[this.moveIndex]
+      let rightHandMove = move[3]
+      let leftHandMove = move[2]
+      let rightPosition = null
+      let leftPosition = null
+
+      // set evaluation done to true if there is no move to check for that hand
+      if (leftHandMove === 'X') this.isLeftEvaluationDone = true
+      if (rightHandMove === 'X') this.isRightEvaluationDone = true
+
+      // set left hand position
+      if(leftHandMove[0] === 'H' || leftHandMove[0] === 'M') {
+        if (leftHandMove.length > 2) { // keep track of hold position
+          this.currentHoldPositionLeft = leftHandMove[1]
+        }
+        leftPosition = this.currentHoldPositionLeft
+      } else {
+        leftPosition = leftHandMove[1]
+      }
+
+      // set right hand position
+      if(rightHandMove[0] === 'H' || rightHandMove[0] === 'M') {
+        if (rightHandMove.length > 2) {// keep track of hold position
+          this.currentHoldPositionRight = rightHandMove[1]
+        }
+        rightPosition = this.currentHoldPositionRight
+      } else {
+        rightPosition = rightHandMove[1]
+      }
+
+      let estimateAndEvaluate = () => {
+        // estimate pose
+        this.$store.state.net.estimatePoses(this.stream)
+          .then(pose => {
+            if (pose[0].score > 0.4) { // if score is high enough, detect if hand is in the right position
+              this.noPose = false
+              if (!this.isLeftEvaluationDone) this.isLeftEvaluationDone = detectionManager.detect('L', leftPosition, pose[0])
+              if (!this.isRightEvaluationDone) this.isRightEvaluationDone = detectionManager.detect('R', rightPosition, pose[0])
+            } else {
+              this.noPose = true
+            }
+            this.evaluatePoses() // run this function again until window closes or done conditions are met
+        })
+      }
+
+      if ('requestVideoFrameCallback' in HTMLVideoElement.prototype) {
+        this.stream.requestVideoFrameCallback(() => estimateAndEvaluate())
+      } else {
+        setTimeout(() => estimateAndEvaluate(), 33)
+      }
     },
     // grade current move based on pose evaluations and update score
     gradeMove: function () {
