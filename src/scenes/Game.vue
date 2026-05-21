@@ -43,34 +43,6 @@
                 </li>
               </ul>
             </v-flex>
-            <!-- show detailed score -->
-            <!-- <v-flex shrink hidden-sm-and-down>
-              <ul style="list-style-type: none;">
-                <li class="pb-2"><h3 class="title font-weight-bold">STATUS</h3></li>
-                <table style="border: 2px solid white; border-radius: 5px;" class="pl-2 pr-2 title font-weight-regular">
-                  <tbody>
-                    <tr>
-                      <td class="label">PERFECT</td>
-                      <td>{{perfect}}</td>
-                      <td class="label lRight">MISS</td>
-                      <td>{{miss}}</td>
-                    </tr>
-                    <tr>
-                      <td class="label">AWESOME</td>
-                      <td>{{awesome}}</td>
-                      <td class="label lRight">COMBO</td>
-                      <td>{{combo}}</td>
-                    </tr>
-                    <tr>
-                      <td class="label">GOOD</td>
-                      <td>{{good}}</td>
-                      <td class="label lRight">MAXCOMBO</td>
-                      <td>{{maxCombo}}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </ul>
-            </v-flex> -->
           </v-layout>
         </v-flex>
       </v-layout>
@@ -123,27 +95,19 @@ export default {
       isLeftEvaluationDone: false,
       currentHoldPositionRight: null,
       currentHoldPositionLeft: null,
+      rightHandStreak: 0,
+      leftHandStreak: 0,
+      isGrading: false,
+      isEvaluating: false,
       // webcam video to be passed as a parameter to posenet
       stream: null,
-      // pose detection helpers
-      holdingLeft: false,
-      holdingRight: false,
       // detailed score
       perfect: 0,
-      awesome: 0,
-      good: 0,
       miss: 0,
       combo: 0,
       maxCombo: 0,
       score: 0,
       displayScore: 0,
-      // report should be deprecated - shows right and left hand misses
-      report: {
-        rightHand: [],
-        leftHand: []
-      },
-      // holds all requests to be done to posenet as regarding the pose detection of a particular frame
-      promiseArray: [],
       // camera latency that should be considered for taking the correct frame from the camera stream and make the pose detection
       cameraLatency: 0,
       // stores the value of if there is a pose being detected by posenet
@@ -181,7 +145,8 @@ export default {
         // camera latency is transformed in quarter beats to make sense in game calculations
         this.cameraLatency = (this.gameOptions.latency / this.songManager.tempo) * 4
         // Game logic is added to ticker here
-        this.ticker.add(() => this.detectAndGrade())
+        this.ticker.add(() => this.setMoveWindow())
+        this.ticker.add(() => this.updateGame())
 
         this.player.on('ended', () => {
           this.endGame()
@@ -238,13 +203,16 @@ export default {
     restartTest: function () {
       if (this.$store.state.previousScene === 'editor') {
         this.moveIndex = 0
-        this.holdingLeft = false
-        this.holdingRight = false
         this.player.seek(this.videoStart)
+        this.resetEvaluationFlags()
         this.cueManager.index = 0
         this.cueManager.holdIndex = 0
         this.score = 0
         this.displayScore = 0
+        this.rightHandStreak = 0
+        this.leftHandStreak = 0
+        this.currentHoldPositionLeft = null
+        this.currentHoldPositionRight = null
       }
     },
     fadeIn: function () {
@@ -255,6 +223,37 @@ export default {
     fadeOut: function () {
       if (this.player.getCurrentTime() >= parseFloat(this.videoEnd) - 2 && parseFloat(this.videoEnd) !== 0) {
         this.player.setVolume(this.player.getVolume() - 1)
+      }
+    },
+    updateDisplayScore: function () {
+      // updates the displayed score with increments for a changing effect
+      if (this.displayScore < this.score) {
+        let dif = this.score - this.displayScore
+        if (dif <= 10) {
+          this.displayScore += 1
+        } else if (dif <= 100) {
+          this.displayScore += 10
+        } else if (dif <= 1000) {
+          this.displayScore += 100
+        } else if (dif <= 10000) {
+          this.displayScore += 1000
+        } else if (dif <= 100000) {
+          this.displayScore += 10000
+        } else {
+          this.displayScore += 100000
+        }
+      }
+    },
+    updateGame: function () {
+      // update display score
+      this.updateDisplayScore()
+      // fade in audio near the start of the video
+      this.fadeIn()
+      // fade out audio near the video end
+      this.fadeOut()
+      // end game at the time declared in the chart
+      if (this.player.getCurrentTime() >= parseFloat(this.videoEnd) && parseFloat(this.videoEnd) !== 0) {
+        this.endGame()
       }
     },
     endGame: function () {
@@ -292,13 +291,10 @@ export default {
       // change detailed results in score
       this.$store.commit('changeResults', {
         perfect: this.perfect,
-        awesome: this.awesome,
-        good: this.good,
         miss: this.miss,
         maxCombo: this.maxCombo,
         score: this.score,
-        maxPoints: this.maxPoints,
-        report: this.report
+        maxPoints: this.maxPoints
       })
 
       if (this.$store.state.user !== null) { // if the user is registered
@@ -526,13 +522,10 @@ export default {
       if (this.$store.state.previousScene === 'results') {
         this.$store.commit('changeResults', {
           perfect: this.perfect,
-          awesome: this.awesome,
-          good: this.good,
           miss: this.miss,
           maxCombo: this.maxCombo,
           score: this.score,
-          maxPoints: this.maxPoints,
-          report: this.report
+          maxPoints: this.maxPoints
         })
       }
       this.$store.commit('goToScene', this.$store.state.previousScene)
@@ -546,59 +539,64 @@ export default {
       let currentBeat = this.songManager.currentQuarterBeat - this.cameraLatency
       let moveBeat = this.moves[this.moveIndex][0]
 
-      // if current passed the current move beat by one eight of a beat
-      if (currentBeat > moveBeat + WINDOW_SIZE) {
-        this.gradeMove()
-        this.moveIndex++
-      }
-      
-      // re-check out of bound since moveIndex could've incremented
-      if (this.moveIndex >= this.moves.length) return
-      
-      moveBeat = this.moves[this.moveIndex][0] // update moveBeat
-
       // check if move window should be open (one eighth beat before and after actual move beat)
       let shouldBeOpen = currentBeat >= moveBeat - WINDOW_SIZE && currentBeat <= moveBeat + WINDOW_SIZE
-      if (shouldBeOpen && !this.isNoteWindowOpen) { // open window
+      if (shouldBeOpen) { // open window
         this.isNoteWindowOpen = true
-        this.evaluatePoses()
-      } else if (!shouldBeOpen) { // close window
+        if (!this.isEvaluating && !this.isGrading) {
+          // start pose evaluation process
+          this.isEvaluating = true
+          this.evaluatePoses(this.moves[this.moveIndex])
+        }
+      } else { // close window
         this.isNoteWindowOpen = false
       }
     },
     // evaluate player pose against current move
-    evaluatePoses: function () {
-      if (!this.isNoteWindowOpen) return // return if window is closed
-      if (this.isRightEvaluationDone && this.isLeftEvaluationDone) return // return if evaluations are resolved
+    evaluatePoses: function (move, leftPosition = null, rightPosition = null) {
+      if (!this.isNoteWindowOpen || this.isGrading) {
+        if (!this.isNoteWindowOpen && !this.isGrading && move) {
+          // make sure to grade and return when the evaluation window closes
+          this.gradeMove(move, leftPosition, rightPosition)
+        }
+        return
+      }
+      if (!move) return
+      // grade and return early if the the evaluation conditions were satified
+      if (this.isRightEvaluationDone && this.isLeftEvaluationDone) {
+        this.gradeMove(move, leftPosition, rightPosition)
+        return
+      }
 
-      let move = this.moves[this.moveIndex]
       let rightHandMove = move[3]
       let leftHandMove = move[2]
-      let rightPosition = null
-      let leftPosition = null
 
-      // set evaluation done to true if there is no move to check for that hand
-      if (leftHandMove === 'X') this.isLeftEvaluationDone = true
-      if (rightHandMove === 'X') this.isRightEvaluationDone = true
+      // set evaluation done to true if there is no move to check for that hand - X or MP
+      if (leftHandMove === 'X' || leftHandMove === 'MP') this.isLeftEvaluationDone = true
+      if (rightHandMove === 'X' || rightHandMove === 'MP') this.isRightEvaluationDone = true
 
       // set left hand position
-      if(leftHandMove[0] === 'H' || leftHandMove[0] === 'M') {
-        if (leftHandMove.length > 2) { // keep track of hold position
-          this.currentHoldPositionLeft = leftHandMove[1]
+      if (!leftPosition) {
+        if (leftHandMove[0] === 'H' || leftHandMove[0] === 'M') {
+          if (leftHandMove.length > 2) { // keep track of hold position
+            this.currentHoldPositionLeft = leftHandMove[1]
+          }
+          leftPosition = this.currentHoldPositionLeft
+        } else {
+          leftPosition = leftHandMove[1]
         }
-        leftPosition = this.currentHoldPositionLeft
-      } else {
-        leftPosition = leftHandMove[1]
       }
 
       // set right hand position
-      if(rightHandMove[0] === 'H' || rightHandMove[0] === 'M') {
-        if (rightHandMove.length > 2) {// keep track of hold position
-          this.currentHoldPositionRight = rightHandMove[1]
+      if (!rightPosition) {
+        if (rightHandMove[0] === 'H' || rightHandMove[0] === 'M') {
+          if (rightHandMove.length > 2) { // keep track of hold position
+            this.currentHoldPositionRight = rightHandMove[1]
+          }
+          rightPosition = this.currentHoldPositionRight
+        } else {
+          rightPosition = rightHandMove[1]
         }
-        rightPosition = this.currentHoldPositionRight
-      } else {
-        rightPosition = rightHandMove[1]
       }
 
       let estimateAndEvaluate = () => {
@@ -612,10 +610,11 @@ export default {
             } else {
               this.noPose = true
             }
-            this.evaluatePoses() // run this function again until window closes or done conditions are met
-        })
+            this.evaluatePoses(move, leftPosition, rightPosition) // run this function again until window closes or evaluation conditions are met
+          })
       }
 
+      // call estimate and evaluate on request video frame callback if available, use a set timeout otherwise
       if ('requestVideoFrameCallback' in HTMLVideoElement.prototype) {
         this.stream.requestVideoFrameCallback(() => estimateAndEvaluate())
       } else {
@@ -623,195 +622,71 @@ export default {
       }
     },
     // grade current move based on pose evaluations and update score
-    gradeMove: function () {
+    gradeMove: function (move, leftPosition, rightPosition) {
+      if (this.isGrading) return
+      if (!move) return
+      this.isGrading = true
 
+      let rightHandMove = move[3]
+      let leftHandMove = move[2]
+
+      let right = this.gradeHand(rightHandMove, this.isRightEvaluationDone, this.rightHandStreak)
+      let left = this.gradeHand(leftHandMove, this.isLeftEvaluationDone, this.leftHandStreak)
+
+      // update streaks
+      this.rightHandStreak = right.newStreak
+      this.leftHandStreak = left.newStreak
+
+      // update score
+      this.score += right.points + left.points
+
+      // update hit/miss counters
+      if (right.hit && rightHandMove !== 'X') this.perfect++
+      if (left.hit && leftHandMove !== 'X') this.perfect++
+      if (!right.hit && rightHandMove !== 'X' && rightHandMove !== 'MP') this.miss++
+      if (!left.hit && leftHandMove !== 'X' && leftHandMove !== 'MP') this.miss++
+
+      // update combo - reset if either hand misses
+      if ((!right.hit && rightHandMove !== 'X' && rightHandMove !== 'MP') || (!left.hit && leftHandMove !== 'X' && leftHandMove !== 'MP')) {
+        this.combo = 0
+      } else {
+        this.combo++
+        if (this.combo > this.maxCombo) this.maxCombo = this.combo
+      }
+
+      // give feedback if animation is on
+      if (this.gameOptions.showAnimation) {
+        giveFeedback(leftHandMove, rightHandMove, leftPosition, rightPosition, left.hitType, right.hitType, this.containers.feedback, this.textures)
+      }
+
+      // reset evaluation flags
+      this.resetEvaluationFlags()
+      this.moveIndex++
     },
-    detectAndGrade: function () {
-      if (this.moveIndex < this.moves.length) { // index value is not higher than the array length
-        if (this.moves[this.moveIndex][0] + 1 <= this.songManager.currentQuarterBeat - this.cameraLatency) { // if the beat of the current index has passed the current beat
-          if (!(this.moves[this.moveIndex][2][0] === 'H' && this.moves[this.moveIndex][2].length === 2) && !(this.moves[this.moveIndex][3][0] === 'H' && this.moves[this.moveIndex][3].length === 2) &&
-            !(this.moves[this.moveIndex][2][0] === 'M' && this.moves[this.moveIndex][2].length === 2) && !(this.moves[this.moveIndex][3][0] === 'M' && this.moves[this.moveIndex][3].length === 2)) {
-            this.promiseArray.push(this.$store.state.net.estimatePoses(this.stream))
-            // add the reference move to the end of the promiseArray
-            this.promiseArray.push(this.moves[this.moveIndex])
-            Promise.all(this.promiseArray).then((values) => {
-              // separate reference values for each hand
-              let handMove = values.splice(values.length - 1, 1)[0]
-              let rightHandMove = handMove[3]
-              let leftHandMove = handMove[2]
-              let rightHit = []
-              let leftHit = []
-              let rightHitType = ''
-              let leftHitType = ''
+    resetEvaluationFlags: function () {
+      this.isRightEvaluationDone = false
+      this.isLeftEvaluationDone = false
+      this.isEvaluating = false
+      this.isGrading = false
+    },
+    gradeHand: function (handMove, isEvaluationDone, streak) {
+      // no grade to return for X and MP moves - only leave streak as is
+      if (handMove === 'X' || handMove === 'MP') return { hitType: '', points: 0, newStreak: streak, hit: false }
 
-              values.forEach((pose, i) => {
-                let rightHandDetected = false
-                let leftHandDetected = false
-
-                if (pose[0].score > 0.4) { // set a minimum confidence for poses. Less than the value will be ignored
-                  this.noPose = false
-                  if (leftHandMove !== 'X') {
-                    if (leftHandMove[0] === 'S') { // evaluate Sharp move
-                      leftHandDetected = detectionManager.detect('L', leftHandMove[1], pose[0])
-                    } else if (leftHandMove[0] === 'H' && leftHandMove.length > 2) { // evaluate Hold move
-                      if (leftHandMove[2] === 'S') this.holdingLeft = true // if it is the first of a hold, holding left is true
-                      leftHandDetected = detectionManager.detect('L', leftHandMove[1], pose[0])
-                    } else if (leftHandMove[0] === 'M' && leftHandMove.length > 2) { // evaluate Motion move
-                      if (leftHandMove[2] === 'S') this.holdingLeft = true // if it is the first of a motion, holding left is true
-                      leftHandDetected = detectionManager.detect('L', leftHandMove[1], pose[0])
-                    }
-                    if (leftHandDetected) leftHit.push(i)
-                  }
-
-                  if (rightHandMove !== 'X') {
-                    if (rightHandMove[0] === 'S') { // evaluate Sharp move
-                      rightHandDetected = detectionManager.detect('R', rightHandMove[1], pose[0])
-                    } else if (rightHandMove[0] === 'H' && rightHandMove.length > 2) { // evaluate Hold move
-                      if (rightHandMove[2] === 'S') this.holdingRight = true // if it is the first of a hold, holding right is true
-                      rightHandDetected = detectionManager.detect('R', rightHandMove[1], pose[0])
-                    } else if (rightHandMove[0] === 'M' && rightHandMove.length > 2) { // evaluate Motion move
-                      if (rightHandMove[2] === 'S') this.holdingRight = true // if it is the first of a motion, holding right is true
-                      rightHandDetected = detectionManager.detect('R', rightHandMove[1], pose[0])
-                    }
-                    if (rightHandDetected) rightHit.push(i)
-                  }
-                } else {
-                  this.noPose = true
-                }
-              })
-
-              if (rightHit.length > 0) {
-                if (rightHandMove[0] === 'S') {
-                  if (rightHit[0] === 0) {
-                    rightHitType = 'perfect'
-                    this.perfect++
-                    this.score += 1000
-                  } else if (rightHit[0] === values.length - 1 && values.length > 2) {
-                    rightHitType = 'good'
-                    this.good++
-                    this.score += 600
-                  } else {
-                    rightHitType = 'awesome'
-                    this.awesome++
-                    this.score += 800
-                  }
-                  this.combo++
-                  if (this.combo > this.maxCombo) this.maxCombo = this.combo
-                } else if ((rightHandMove[0] === 'H' || rightHandMove[0] === 'M') && this.holdingRight === true) { // check only if holding is true
-                  if (rightHit[0] === 0) {
-                    rightHitType = 'perfect'
-                    this.perfect++
-                    this.score += 1000
-                  } else if (rightHit[0] === values.length - 1 && values.length > 2) {
-                    rightHitType = 'good'
-                    this.good++
-                    this.score += 600
-                  } else {
-                    rightHitType = 'awesome'
-                    this.awesome++
-                    this.score += 800
-                  }
-                  this.combo++
-                  if (this.combo > this.maxCombo) this.maxCombo = this.combo
-                  if ((rightHandMove[0] === 'H' || rightHandMove[0] === 'M') && rightHandMove[2] === 'E') this.holdingRight = false // if it is the last of the move, set back to false
-                } else if ((rightHandMove[0] === 'H' || rightHandMove[0] === 'M') && this.holdingRight === false) {
-                  rightHitType = 'miss'
-                  this.miss++
-                  this.report.rightHand.push(handMove)
-                  this.combo = 0
-                  this.holdingRight = false
-                }
-              } else if (rightHit.length === 0 && rightHandMove !== 'X' && !((rightHandMove[0] === 'H' || rightHandMove[0] === 'M') && rightHandMove.length === 2)) {
-                rightHitType = 'miss'
-                this.miss++
-                this.report.rightHand.push(handMove)
-                this.combo = 0
-                this.holdingRight = false
-              }
-
-              if (leftHit.length > 0) {
-                if (leftHandMove[0] === 'S') {
-                  if (leftHit[0] === 0) {
-                    leftHitType = 'perfect'
-                    this.perfect++
-                    this.score += 1000
-                  } else if (leftHit[0] === values.length - 1 && values.length > 2) {
-                    leftHitType = 'good'
-                    this.good++
-                    this.score += 600
-                  } else {
-                    leftHitType = 'awesome'
-                    this.awesome++
-                    this.score += 800
-                  }
-                  this.combo++
-                  if (this.combo > this.maxCombo) this.maxCombo = this.combo
-                } else if ((leftHandMove[0] === 'H' || leftHandMove[0] === 'M') && this.holdingLeft === true) { // check only if holding is true
-                  if (leftHit[0] === 0) {
-                    leftHitType = 'perfect'
-                    this.perfect++
-                    this.score += 1000
-                  } else if (leftHit[0] === values.length - 1 && values.length > 2) {
-                    leftHitType = 'good'
-                    this.good++
-                    this.score += 600
-                  } else {
-                    leftHitType = 'awesome'
-                    this.awesome++
-                    this.score += 800
-                  }
-                  this.combo++
-                  if (this.combo > this.maxCombo) this.maxCombo = this.combo
-                  if ((leftHandMove[0] === 'H' || leftHandMove[0] === 'M') && leftHandMove[2] === 'E') this.holdingLeft = false // if it is the last of the move, set back to false
-                } else if ((leftHandMove[0] === 'H' || leftHandMove[0] === 'M') && this.holdingLeft === false) {
-                  leftHitType = 'miss'
-                  this.miss++
-                  this.report.leftHand.push(handMove)
-                  this.combo = 0
-                  this.holdingLeft = false
-                }
-              } else if (leftHit.length === 0 && leftHandMove !== 'X' && !((leftHandMove[0] === 'H' || leftHandMove[0] === 'M') && leftHandMove.length === 2)) {
-                leftHitType = 'miss'
-                this.miss++
-                this.report.leftHand.push(handMove)
-                this.combo = 0
-                this.holdingLeft = false
-              }
-              if (this.gameOptions.showAnimation) giveFeedback(leftHandMove, rightHandMove, leftHitType, rightHitType, this.containers.feedback, this.textures)
-            }).catch(() => {
-              this.$store.commit('somethingWentWrong')
-              this.$store.commit('changeWrongMessage', `Something went wrong trying to detect poses.`)
-            })
-            this.promiseArray = []
-          }
-          this.moveIndex++
+      if (isEvaluationDone) {
+        let newStreak = streak
+        if (handMove[0] !== 'S') {
+          newStreak++
+          if (handMove.length > 2 && handMove[2] === 'E') newStreak = 0
         }
-        if (this.moveIndex < this.moves.length) {
-          if (this.moves[this.moveIndex][0] <= this.songManager.currentQuarterBeat - this.cameraLatency) { // push estimate pose to promise array if it is a move with length > 2 (except Sharp)
-            if (!(this.moves[this.moveIndex][2][0] === 'H' && this.moves[this.moveIndex][2].length === 2) && !(this.moves[this.moveIndex][3][0] === 'H' && this.moves[this.moveIndex][3].length === 2) &&
-              !(this.moves[this.moveIndex][2][0] === 'M' && this.moves[this.moveIndex][2].length === 2) && !(this.moves[this.moveIndex][3][0] === 'M' && this.moves[this.moveIndex][3].length === 2)) {
-              this.promiseArray.push(this.$store.state.net.estimatePoses(this.stream))
-            }
-          }
+        return {
+          hitType: 'perfect',
+          points: 1000 * Math.min(1 + newStreak, 5),
+          newStreak,
+          hit: true
         }
-      }
-      if (this.displayScore < this.score) {
-        let dif = this.score - this.displayScore
-        if (dif <= 10) {
-          this.displayScore += 1
-        } else if (dif <= 100 && dif > 10) {
-          this.displayScore += 10
-        } else {
-          this.displayScore += 100
-        }
-      }
-      // fade in near the start of the video
-      this.fadeIn()
-      // fade out near the video end
-      this.fadeOut()
-      // take action when the video ends
-      if (this.player.getCurrentTime() >= parseFloat(this.videoEnd) && parseFloat(this.videoEnd) !== 0) {
-        this.endGame()
+      } else {
+        return { hitType: 'miss', points: 0, newStreak: 0, hit: false }
       }
     }
   },
@@ -833,6 +708,7 @@ export default {
       }
     },
     // returns maximum number of points of the selected chart
+    // currently showing wrong values due to changes in point calculation
     maxPoints () {
       if (this.moves === []) {
         return 0
