@@ -8,16 +8,22 @@ export default function giveFeedback (leftHand, rightHand, leftPosition, rightPo
     let feedback = container.getChildAt(leftPosition - 1)
     feedback.texture = textures[leftHitType].texture
     feedback.visible = true
-    setTimeout(() => {
-      feedback.visible = false
-    }, 300)
+    // only hide after timeout if this is not a hold/motion in progress
+    if (leftHand[0] !== 'H') {
+      setTimeout(() => { feedback.visible = false }, 300)
+    } else if (leftHand[2] === 'E') {
+      // hide after the end node
+      setTimeout(() => { feedback.visible = false }, 300)
+    }
   }
   if (rightHand !== 'X' && rightHand !== 'MP') {
     let feedback = container.getChildAt(rightPosition - 1)
     feedback.texture = textures[rightHitType].texture
     feedback.visible = true
-    setTimeout(() => {
-      feedback.visible = false
-    }, 300)
+    if (rightHand[0] !== 'H') {
+      setTimeout(() => { feedback.visible = false }, 300)
+    } else if (rightHand[2] === 'E') {
+      setTimeout(() => { feedback.visible = false }, 300)
+    }
   }
 }
