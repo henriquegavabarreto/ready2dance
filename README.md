@@ -19,7 +19,7 @@ Ready2Dance solves this using any camera connected to your device. Real-time pos
 - **Level editor** — create charts for any ParaPara song using YouTube video IDs, with BPM tap tool and metronome for precise timing
 - **Camera latency calibration** — measure and compensate for your camera's latency for more accurate detection
 - **Export and import charts** — share charts as JSON files or load them locally without a database connection
-- **Scoring and grading system** — Perfect, Awesome, and Good ratings with combo tracking
+- **Scoring and grading system** — Perfect and miss ratings with combo tracking
 - **Leaderboards** — compete for the best score per song and difficulty
 - **Adjustable speed** — make circle animations faster or slower to match your skill level
 - **Hidden animation mode** — hide the on-screen cues and dance freely to the choreography

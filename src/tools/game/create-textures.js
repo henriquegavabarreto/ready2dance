@@ -24,24 +24,6 @@ export default function createTextures (app, textures, gameConfig) {
     align: 'center'
   })
 
-  textures.awesome = new PIXI.Text('AWESOME', {
-    fontFamily: 'Arial',
-    fontSize: 30,
-    fill: ['#0EB800', '#eeeeee', '#0EB800'],
-    stroke: '#cccccc',
-    strokeThickness: 2,
-    align: 'center'
-  })
-
-  textures.good = new PIXI.Text('GOOD', {
-    fontFamily: 'Arial',
-    fontSize: 30,
-    fill: ['#0051D5', '#eeeeee', '#0051D5'],
-    stroke: '#cccccc',
-    strokeThickness: 2,
-    align: 'center'
-  })
-
   textures.miss = new PIXI.Text('MISS', {
     fontFamily: 'Arial',
     fontSize: 30,
@@ -52,7 +34,5 @@ export default function createTextures (app, textures, gameConfig) {
   })
 
   textures.perfect.updateText()
-  textures.awesome.updateText()
-  textures.good.updateText()
   textures.miss.updateText()
 }
