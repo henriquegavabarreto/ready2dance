@@ -718,12 +718,12 @@ export default {
         return 0
       } else {
         let points = 0
-        // adds 1000 for each valid move - it considerates 'nodes' but not 'progress'
+        // adds 1000 for each valid move - it considerates 'nodes' but not 'motion progress'
         this.moves.forEach(move => {
-          if (move[2] !== 'X' || move[2] !== 'MP') {
+          if (move[2] !== 'X' && move[2] !== 'MP') {
             points += 1000
           }
-          if (move[3] !== 'X' || move[3] !== 'MP') {
+          if (move[3] !== 'X' && move[3] !== 'MP') {
             points += 1000
           }
         })

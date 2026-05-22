@@ -22,14 +22,6 @@
                         <td>PERFECT</td>
                       </tr>
                       <tr>
-                        <td class="resultNumbers">{{results.awesome}}</td>
-                        <td>AWESOME</td>
-                      </tr>
-                      <tr>
-                        <td class="resultNumbers">{{results.good}}</td>
-                        <td>GOOD</td>
-                      </tr>
-                      <tr>
                         <td class="resultNumbers">{{results.miss}}</td>
                         <td>MISS</td>
                       </tr>
@@ -309,7 +301,7 @@ export default {
       let rate = this.results.score / this.results.maxPoints
       if (rate >= 1) {
         grade = 'SS'
-      } else if (rate < 1 && rate >= 9.5) {
+      } else if (rate < 1 && rate >= 0.95) {
         grade = 'S'
       } else if (rate < 0.95 && rate >= 0.9) {
         grade = 'A'
