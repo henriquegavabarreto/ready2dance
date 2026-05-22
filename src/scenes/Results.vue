@@ -307,9 +307,9 @@ export default {
     grade: function () {
       let grade = ''
       let rate = this.results.score / this.results.maxPoints
-      if (rate === 1) {
+      if (rate >= 1) {
         grade = 'SS'
-      } else if (rate >= 0.95 && rate < 1) {
+      } else if (rate < 1 && rate >= 9.5) {
         grade = 'S'
       } else if (rate < 0.95 && rate >= 0.9) {
         grade = 'A'

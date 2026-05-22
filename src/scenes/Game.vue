@@ -713,7 +713,6 @@ export default {
       }
     },
     // returns maximum number of points of the selected chart
-    // currently showing wrong values due to changes in point calculation
     maxPoints () {
       if (this.moves === []) {
         return 0
@@ -721,10 +720,10 @@ export default {
         let points = 0
         // adds 1000 for each valid move - it considerates 'nodes' but not 'progress'
         this.moves.forEach(move => {
-          if (move[2].length === 3 || move[2][0] === 'S') {
+          if (move[2] !== 'X' || move[2] !== 'MP') {
             points += 1000
           }
-          if (move[3].length === 3 || move[3][0] === 'S') {
+          if (move[3] !== 'X' || move[3] !== 'MP') {
             points += 1000
           }
         })
