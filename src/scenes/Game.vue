@@ -99,6 +99,7 @@ export default {
       leftHandStreak: 0,
       isGrading: false,
       isEvaluating: false,
+      isPoseInFlight: false,
       // webcam video to be passed as a parameter to posenet
       stream: null,
       // detailed score
@@ -600,7 +601,9 @@ export default {
       }
 
       let estimateAndEvaluate = () => {
-        // estimate pose
+        // call recursive estimation one time only
+        if (this.isPoseInFlight) return
+        this.isPoseInFlight = true
         this.$store.state.net.estimatePoses(this.stream)
           .then(pose => {
             if (pose[0].score > 0.4) { // if score is high enough, detect if hand is in the right position
@@ -611,6 +614,8 @@ export default {
               this.noPose = true
             }
             this.evaluatePoses(move, leftPosition, rightPosition) // run this function again until window closes or evaluation conditions are met
+          }).finally(() => {
+            this.isPoseInFlight = false
           })
       }
 
