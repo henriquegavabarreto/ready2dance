@@ -200,6 +200,10 @@ export default {
       }
     })
   },
+  // stop capture before destroy to free the camera
+  beforeDestroy () {
+    this.stopCapture()
+  },
   methods: {
     restartTest: function () {
       if (this.$store.state.previousScene === 'editor') {

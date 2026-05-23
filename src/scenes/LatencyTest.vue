@@ -118,6 +118,10 @@ export default {
     })
     this.getMovesStamps()
   },
+  // stop capture before destroy to free the camera
+  beforeDestroy () {
+    this.stopCapture()
+  },
   methods: {
     fadeOut: function () {
       if (this.player.getCurrentTime() >= parseFloat(this.videoEnd) - 2 && parseFloat(this.videoEnd) !== 0) {
