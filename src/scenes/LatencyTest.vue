@@ -78,7 +78,8 @@ export default {
         document.getElementById('canvas').appendChild(this.app.view)
         this.cueManager = new CueManager(this.songManager, gameConfig, grid, this.gameOptions.speed)
 
-        window.addEventListener('resize', this.resizeWindow())
+        this.handleResize = () => this.resize()
+        window.addEventListener('resize', this.handleResize)
         this.resize()
         this.ticker.add(() => {
           this.cueManager.drawDynamicCues(this.moves, this.textures.cues)
@@ -204,11 +205,6 @@ export default {
       this.stream.srcObject.getVideoTracks().forEach((track) => {
         track.stop()
       })
-    },
-    resizeWindow: function () {
-      window.onresize = (event) => {
-        this.resize()
-      }
     },
     resize: function () {
       let ratio = pixiConfig.width / pixiConfig.height
@@ -351,8 +347,7 @@ export default {
 
       this.stopCapture()
 
-      window.removeEventListener('resize', this.resizeWindow)
-      window.onresize = null
+      window.removeEventListener('resize', this.handleResize)
 
       if (this.ticker !== null) {
         this.ticker.destroy()

@@ -281,7 +281,8 @@ export default {
           this.cueManager.drawDynamicCues(this.moves, this.textures.cues)
         })
         // always resize canvas conserving aspect ratio
-        window.addEventListener('resize', this.resizeWindow())
+        this.handleResize = () => this.resize()
+        window.addEventListener('resize', this.handleResize)
         this.resize()
       }
     },
@@ -369,12 +370,6 @@ export default {
         this.stream.srcObject.getVideoTracks().forEach((track) => {
           track.stop()
         })
-      }
-    },
-    // listen to window resize
-    resizeWindow: function () {
-      window.onresize = (event) => {
-        this.resize()
       }
     },
     // resize app.view based on window resize preserving aspect ratio
@@ -509,8 +504,7 @@ export default {
         this.app.destroy()
       }
 
-      window.removeEventListener('resize', this.resizeWindow)
-      window.onresize = null
+      window.removeEventListener('resize', this.handleResize)
 
       if (this.ticker !== null) {
         this.ticker.destroy()

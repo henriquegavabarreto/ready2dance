@@ -675,7 +675,8 @@ export default {
       this.player.seek(this.songManager.getNearestBeatTime())
     })
 
-    window.addEventListener('resize', this.resizeWindow())
+    this.handleResize = () => this.resize()
+    window.addEventListener('resize', this.handleResize)
     // document.getElementById('canvas').addEventListener('wheel', this.scrollContainer)
     // removes context menu from canvas when right clicking
     // document.getElementById('canvas').addEventListener('contextmenu', (e) => { e.preventDefault() })
@@ -1138,14 +1139,8 @@ export default {
       this.ticker.stop()
       this.ticker.destroy()
       this.editorApp.destroy()
-      window.removeEventListener('resize', this.resizeWindow)
+      window.removeEventListener('resize', this.handleResize)
       // document.getElementById('canvas').removeEventListener('wheel', this.scrollContainer)
-      window.onresize = null
-    },
-    resizeWindow: function () {
-      window.onresize = (event) => {
-        this.resize()
-      }
     },
     resize: function () {
       let ratio = pixiConfig.width / pixiConfig.height
