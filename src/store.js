@@ -37,7 +37,8 @@ export default new Vuex.Store({
       latency: 0.32,
       speed: 1,
       videoDeviceId: '',
-      videoDevice: ''
+      videoDevice: '',
+      modelPerformance: 'low'
     },
     currentScene: '',
     previousScene: '',
@@ -205,6 +206,7 @@ export default new Vuex.Store({
       state.gameOptions.speed = parseInt(data.speed)
       state.gameOptions.videoDevice = data.videoDevice
       state.gameOptions.videoDeviceId = data.videoDeviceId
+      state.gameOptions.modelPerformance = data.modelPerformance
       // latency is changed only if latency is a number
       if (!isNaN(data.latency)) {
         state.gameOptions.latency = parseFloat(data.latency)
@@ -234,6 +236,7 @@ export default new Vuex.Store({
       state.gameOptions.speed = JSON.parse(localStorage.getItem('speed')) || state.gameOptions.speed
       state.gameOptions.videoDevice = localStorage.getItem('videoDevice') || state.gameOptions.videoDevice
       state.gameOptions.videoDeviceId = localStorage.getItem('videoDeviceId') || state.gameOptions.videoDeviceId
+      state.gameOptions.modelPerformance = localStorage.getItem('modelPerformance') || state.gameOptions.modelPerformance
     },
     saveOptionsOnStorage: state => { // save game options / settings to local storage
       localStorage.setItem('showAnimation', state.gameOptions.showAnimation)
@@ -242,6 +245,7 @@ export default new Vuex.Store({
       localStorage.setItem('speed', state.gameOptions.speed)
       localStorage.setItem('videoDevice', state.gameOptions.videoDevice)
       localStorage.setItem('videoDeviceId', state.gameOptions.videoDeviceId)
+      localStorage.setItem('modelPerformance', state.gameOptions.modelPerformance)
     },
     changeQueryState: (state, data) => {
       state.queryState = data
