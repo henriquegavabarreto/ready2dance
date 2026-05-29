@@ -14,7 +14,7 @@
     "@tensorflow/tfjs-converter": "^3.14.0",
     "@tensorflow/tfjs-core": "^3.14.0",
     "core-js": "^2.6.12",
-    "firebase": "^7.24.0",
+    "firebase": "^12.14.0",
     "pixi.js": "^4.8.9",
     "simple-youtube-api": "^5.2.1",
     "vue": "^2.6.14",
