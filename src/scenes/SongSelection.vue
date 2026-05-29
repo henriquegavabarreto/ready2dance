@@ -52,8 +52,7 @@
     </v-toolbar>
     <Welcome />
     <!-- settings dialog - where user can change options regarding in game animations and
-    posenet configuration
-    TODO: when updated to posenet 2.0, change these options to match the package as well -->
+    movenet configuration -->
     <v-dialog
       v-model="settings"
       max-width="500"
@@ -99,8 +98,18 @@
             hint="ex: 0.32"
           >
           </v-text-field>
-          <v-btn block @click="goToLatencyCalibration">Calibrate Latency (WIP)</v-btn>
+          <v-btn block @click="goToLatencyCalibration">Calibrate Latency</v-btn>
           <a href="https://www.youtube.com/watch?v=WXud3F-Cuac" target="_blank"><p class="mt-2">More about latency</p></a>
+          <v-divider></v-divider>
+          <h3 class="mt-4">PERFORMANCE</h3>
+          <v-select
+            outline
+            class="mt-4"
+            :items="modelLabels"
+            v-model="options.modelPerformance"
+            label="pose detection quality"
+            hint="higher quality will make the detection more accurate but it can cause lag in some devices"
+            ></v-select>
         </v-card-text>
 
         <v-card-actions class="cyan">
@@ -268,6 +277,7 @@ export default {
       selectedDeviceLabel: '',
       videoDevicesIds: {},
       speed: [0.5, 1, 2],
+      modelLabels: ['low', 'high'],
       // local and initial setting values
       options: {
         latency: 0.32,
@@ -275,7 +285,8 @@ export default {
         showWebcam: true,
         speed: 1,
         videoDevice: '',
-        videoDeviceId: ''
+        videoDeviceId: '',
+        modelPerformance: 'low'
       },
       loading: false,
       processingLike: false,
@@ -302,6 +313,7 @@ export default {
     this.options.showWebcam = this.$store.state.gameOptions.showWebcam
     this.options.latency = this.$store.state.gameOptions.latency
     this.options.speed = this.$store.state.gameOptions.speed
+    this.options.modelPerformance = this.$store.state.gameOptions.modelPerformance
   },
   mounted () {
     // to make sure the player div was created, create new youtube player when the view is mounted

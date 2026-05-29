@@ -145,6 +145,16 @@
           </v-text-field>
           <v-btn block @click="goToLatencyCalibration">Calibrate Latency (WIP)</v-btn>
           <a href="https://www.youtube.com/watch?v=WXud3F-Cuac" target="_blank"><p class="mt-2">More about latency</p></a>
+          <v-divider></v-divider>
+          <h3 class="mt-4">PERFORMANCE</h3>
+          <v-select
+            outline
+            class="mt-4"
+            :items="modelLabels"
+            v-model="options.modelPerformance"
+            label="pose detection quality"
+            hint="higher quality will make the detection more accurate but it can cause lag in some devices"
+            ></v-select>
         </v-card-text>
 
         <v-card-actions class="cyan">
@@ -179,13 +189,15 @@ export default {
       videoDevicesLabels: [],
       selectedDeviceLabel: '',
       videoDevicesIds: {},
+      modelLabels: ['low', 'high'],
       options: {
         latency: 0.32,
         showAnimation: true,
         showWebcam: true,
         speed: 1,
         videoDevice: '',
-        videoDeviceId: ''
+        videoDeviceId: '',
+        modelPerformance: 'low'
       }
     }
   },
@@ -196,6 +208,7 @@ export default {
     this.options.speed = this.$store.state.gameOptions.speed
     this.options.videoDevice = this.$store.state.gameOptions.videoDevice
     this.options.videoDeviceId = this.$store.state.gameOptions.videoDeviceId
+    this.options.modelPerformance = this.$store.state.gameOptions.modelPerformance
   },
   mounted () {
     this.getDevices()
