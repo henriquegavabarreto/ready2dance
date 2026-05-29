@@ -246,50 +246,33 @@ export default {
     },
     playAgain: function () {
       this.loading = true
-      if (this.$store.state.net === null) {
-        this.$store.dispatch('loadNet').then(response => {
-          this.$store.commit('loadNet', response)
-          this.$store.commit('changeOptions', this.options)
-          this.$store.commit('saveOptionsOnStorage')
-          this.loading = false
-          this.$store.commit('goToScene', 'game')
-        }, error => {
-          this.loading = false
-          this.$store.commit('changeWrongMessage', `Due to a problem with MoveNet the game is not available right now. Please try it again later. \n Error: ${error}`)
-          this.$store.commit('somethingWentWrong')
-          this.store.commit('goToScene', 'error')
-        })
-      } else {
+      this.$store.commit('changeOptions', this.options)
+      this.$store.commit('saveOptionsOnStorage')
+      this.$store.dispatch('loadNet').then(() => {
         this.loading = false
-        this.$store.commit('changeOptions', this.options)
-        this.$store.commit('saveOptionsOnStorage')
         this.$store.commit('goToScene', 'game')
-      }
+      }, error => {
+        this.loading = false
+        this.$store.commit('changeWrongMessage', `Due to a problem with MoveNet the game is not available right now. Please try it again later. \n Error: ${error}`)
+        this.$store.commit('somethingWentWrong')
+        this.store.commit('goToScene', 'error')
+      })
     },
     toggleSettings: function () {
       this.settings = !this.settings
     },
     goToLatencyCalibration: function () {
-      if (this.$store.state.net === null) {
-        this.$store.dispatch('loadNet').then(response => {
-          this.$store.commit('loadNet', response)
-          this.$store.commit('changeOptions', this.options)
-          this.$store.commit('saveOptionsOnStorage')
-          this.$store.dispatch('changeSelectedChart', '-LhMV2qkovpJ_sAFWcRm').then(() => {
-            this.$store.commit('goToScene', 'latency-test')
-          })
-        }, err => {
-          this.$store.commit('changeWrongMessage', `Due to a problem with MoveNet the game is not available right now. Please try it again later. \n Error: ${err}`)
-          this.$store.commit('somethingWentWrong')
-          this.store.commit('goToScene', 'error')
-        })
-      } else {
-        this.$store.commit('changeOptions', this.options)
-        this.$store.commit('saveOptionsOnStorage')
+      this.$store.commit('changeOptions', this.options)
+      this.$store.commit('saveOptionsOnStorage')
+      this.$store.dispatch('loadNet').then(() => {
         this.$store.dispatch('changeSelectedChart', '-LhMV2qkovpJ_sAFWcRm').then(() => {
           this.$store.commit('goToScene', 'latency-test')
         })
-      }
+      }, err => {
+        this.$store.commit('changeWrongMessage', `Due to a problem with MoveNet the game is not available right now. Please try it again later. \n Error: ${err}`)
+        this.$store.commit('somethingWentWrong')
+        this.store.commit('goToScene', 'error')
+      })
     }
   },
   computed: {

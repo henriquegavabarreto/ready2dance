@@ -1198,24 +1198,17 @@ export default {
           genre: this.danceGenre
         }
       }
-      // if there is no posenet model loaded
-      if (this.$store.state.net === null) {
-        this.$store.dispatch('loadNet').then(response => {
-          this.$store.commit('loadNet', response)
-          this.$store.commit('selectSong', dummySong)
-          this.$store.commit('changeSelectedChart', dummyChart)
-          this.destroyAll()
-          this.$store.commit('goToScene', 'game')
-        }, error => {
-          this.$store.commit('changeWrongMessage', `Due to a problem with MoveNet the game is not available right now. Please try it again later. \n Error: ${error.message}`)
-          this.$store.commit('somethingWentWrong')
-        })
-      } else {
+
+      // load model and go to game with the dummy chart
+      this.$store.dispatch('loadNet').then(() => {
         this.$store.commit('selectSong', dummySong)
         this.$store.commit('changeSelectedChart', dummyChart)
         this.destroyAll()
         this.$store.commit('goToScene', 'game')
-      }
+      }, error => {
+        this.$store.commit('changeWrongMessage', `Due to a problem with MoveNet the game is not available right now. Please try it again later. \n Error: ${error.message}`)
+        this.$store.commit('somethingWentWrong')
+      })
     },
     selectSongAndVideoId: function (song, songId) {
       this.danceChart.videoId = song.general.videoId

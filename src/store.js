@@ -18,6 +18,7 @@ export default new Vuex.Store({
     },
     changingState: true,
     net: null,
+    currentModelType: null,
     songs: [],
     showSongs: [],
     songScores: 'Select a song!',
@@ -178,6 +179,9 @@ export default new Vuex.Store({
     // loads posenet
     loadNet: (state, data) => {
       state.net = data
+    },
+    changeCurrentModelType: (state, data) => {
+      state.currentModelType = data
     },
     // change result to be shown
     changeResults: (state, data) => {
@@ -447,14 +451,24 @@ export default new Vuex.Store({
       })
     },
     // load movenet
-    loadNet: () => {
-      return new Promise((resolve, reject) => {
-        poseDetection.createDetector(poseDetection.SupportedModels.MoveNet, { modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER }).then(response => {
-          resolve(response)
-        }, error => {
-          reject(error)
+    loadNet: context => {
+      // check which model should be loaded
+      let targetModelType = context.state.gameOptions.modelPerformance === 'high' ? poseDetection.movenet.modelType.SINGLEPOSE_THUNDER : poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING
+      // load model if there is no model loaded or if the current model is not the target model
+      if (context.state.net === null || context.state.currentModelType !== targetModelType) {
+        return new Promise((resolve, reject) => {
+          poseDetection.createDetector(poseDetection.SupportedModels.MoveNet, { modelType: targetModelType }).then(response => {
+            context.commit('changeCurrentModelType', targetModelType)
+            context.commit('loadNet', response)
+            resolve(true)
+          }, error => {
+            reject(error)
+          })
         })
-      })
+      } else {
+        // model is already loaded
+        return Promise.resolve(true)
+      }
     },
     // load scores of a specific chart
     updateSongScores: (context, payload) => {

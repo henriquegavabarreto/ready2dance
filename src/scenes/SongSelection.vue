@@ -111,7 +111,6 @@
             hint="higher quality will make the detection more accurate but it can cause lag in some devices"
             ></v-select>
         </v-card-text>
-
         <v-card-actions class="cyan">
           <v-spacer></v-spacer>
 
@@ -471,37 +470,24 @@ export default {
         this.loading = true
         /* if the local settings are different from the store, save the local options to the store
         but alter that only after posenet is loaded */
-        if (this.$store.state.net === null) {
-          this.$store.dispatch('loadNet').then(response => {
-            this.$store.commit('loadNet', response)
-            this.$store.commit('changeOptions', this.options)
-            this.$store.commit('saveOptionsOnStorage')
-            this.$store.commit('selectSong', this.selectedSong)
-            this.$store.dispatch('changeSelectedChart', this.selectedChart).then(() => {
-              this.player.stop()
-              this.player.destroy()
-              this.$store.commit('goToScene', 'game')
-            })
-          }, error => {
-            // deal with errors when loading posenet (if they occur)
-            alert(error)
-            this.$store.commit('changeWrongMessage', 'Due to a problem with MoveNet the game is not available right now. Please try it again later.')
-            this.$store.commit('somethingWentWrong')
-            this.player.stop()
-            this.player.destroy()
-            this.store.commit('goToScene', 'error')
-          })
-        } else {
-          // if there is no need to load posenet
-          this.$store.commit('changeOptions', this.options)
-          this.$store.commit('saveOptionsOnStorage')
+        this.$store.commit('changeOptions', this.options)
+        this.$store.commit('saveOptionsOnStorage')
+        this.$store.dispatch('loadNet').then(() => {
           this.$store.commit('selectSong', this.selectedSong)
           this.$store.dispatch('changeSelectedChart', this.selectedChart).then(() => {
             this.player.stop()
             this.player.destroy()
             this.$store.commit('goToScene', 'game')
           })
-        }
+        }, error => {
+          // deal with errors when loading posenet (if they occur)
+          alert(error)
+          this.$store.commit('changeWrongMessage', 'Due to a problem with MoveNet the game is not available right now. Please try it again later.')
+          this.$store.commit('somethingWentWrong')
+          this.player.stop()
+          this.player.destroy()
+          this.store.commit('goToScene', 'error')
+        })
       }
     },
     selectChart: function (chartId, dif) { // get the id of the selected chart so it can be loaded
@@ -537,35 +523,23 @@ export default {
     },
     goToLatencyCalibration: function () { // similar to goToGame function, but instead loads webcam latency calibration
       this.loading = true
-      if (this.$store.state.net === null) {
-        this.$store.dispatch('loadNet').then(response => {
-          this.$store.commit('loadNet', response)
-          this.$store.commit('changeOptions', this.options)
-          this.$store.commit('saveOptionsOnStorage')
-          this.$store.dispatch('changeSelectedChart', '-LhMV2qkovpJ_sAFWcRm').then(() => {
-            this.loading = false
-            this.player.stop()
-            this.player.destroy()
-            this.$store.commit('goToScene', 'latency-test')
-          })
-        }, () => {
-          this.loading = false
-          this.$store.commit('changeWrongMessage', 'Due to a problem with PoseNet the game is not available right now. Please try it again later.')
-          this.$store.commit('somethingWentWrong')
-          this.player.stop()
-          this.player.destroy()
-          this.store.commit('goToScene', 'error')
-        })
-      } else {
-        this.loading = false
-        this.$store.commit('changeOptions', this.options)
-        this.$store.commit('saveOptionsOnStorage')
+      this.$store.commit('changeOptions', this.options)
+      this.$store.commit('saveOptionsOnStorage')
+      this.$store.dispatch('loadNet').then(() => {
         this.$store.dispatch('changeSelectedChart', '-LhMV2qkovpJ_sAFWcRm').then(() => {
+          this.loading = false
           this.player.stop()
           this.player.destroy()
           this.$store.commit('goToScene', 'latency-test')
         })
-      }
+      }, () => {
+        this.loading = false
+        this.$store.commit('changeWrongMessage', 'Due to a problem with PoseNet the game is not available right now. Please try it again later.')
+        this.$store.commit('somethingWentWrong')
+        this.player.stop()
+        this.player.destroy()
+        this.store.commit('goToScene', 'error')
+      })
     }
   },
   computed: {
