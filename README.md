@@ -19,10 +19,11 @@ Ready2Dance solves this using any camera connected to your device. Real-time pos
 - **Level editor** — create charts for any ParaPara song using YouTube video IDs, with BPM tap tool and metronome for precise timing
 - **Camera latency calibration** — measure and compensate for your camera's latency for more accurate detection
 - **Export and import charts** — share charts as JSON files or load them locally without a database connection
-- **Scoring and grading system** — Perfect and miss ratings with combo tracking
+- **Scoring and grading system** — Perfect and miss ratings with combo tracking and multiplier for hold and motion notes. SS/S/A/B/C/D/F grading results.
 - **Leaderboards** — compete for the best score per song and difficulty
 - **Adjustable speed** — make circle animations faster or slower to match your skill level
 - **Hidden animation mode** — hide the on-screen cues and dance freely to the choreography
+- **Adjustable pose detection quality** - choose pose detection according to desired performance and hardware
 - **Community songs** — play charts created and shared by other players
 
 ## Camera Setup
@@ -38,7 +39,7 @@ Ready2Dance uses pose estimation to detect your movements, which works best unde
 
 - Single-page application built with [Vue 2](https://vuejs.org/), [Vuex](https://vuex.vuejs.org/), and [Vuetify](https://vuetifyjs.com/)
 - Game and editor rendering built with [PixiJS](https://www.pixijs.com/) — static elements pre-rendered as textures for performance; dynamic elements drawn per frame
-- Real-time pose detection using [TensorFlow.js](https://www.tensorflow.org/js) and [MoveNet](https://blog.tensorflow.org/2021/05/next-generation-pose-detection-with-movenet-and-tensorflowjs.html)
+- Real-time pose detection using [TensorFlow.js](https://www.tensorflow.org/js) and [MoveNet](https://blog.tensorflow.org/2021/05/next-generation-pose-detection-with-movenet-and-tensorflowjs.html) only during note windows for performance
 - YouTube video streaming via [yt-player](https://www.npmjs.com/package/yt-player) with [YouTube Data API v3](https://developers.google.com/youtube/v3) for video validation in the editor
 - Authentication, Realtime Database, and hosting via [Firebase](https://firebase.google.com/)
 
@@ -97,5 +98,5 @@ Requires the [Firebase CLI](https://firebase.google.com/docs/cli) and appropriat
 
 ## Log
 
-- **May 2026** — Removed Cloud Functions dependency; scoring and likes now use client-side Realtime Database writes. Editor opened to guest users.
+- **May 2026** — Removed Cloud Functions dependency; scoring and likes now use client-side Realtime Database writes. Editor opened to guest users allowing file loading and exporting. Refactored pose detection pipeline: decoupled estimation from render loop, added requestVideoFrameCallback support, redesigned hold/motion grading with streak multiplier system. Added low and high pose detection quality on settings, loading movenet lightning or thunder, respectively.
 - **March 2022** — Switched pose detection from PoseNet to MoveNet for improved accuracy and performance.
