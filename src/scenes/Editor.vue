@@ -362,6 +362,8 @@
                                 <v-card-text>
                                   <!-- metronome -->
                                   <v-checkbox class="ma-0" color="blue" v-model="enableMetronome" :label="metronomeLabel"></v-checkbox>
+                                  <!-- mirror video -->
+                                  <v-checkbox class="ma-0" color="blue" v-model="enableMirrorVideo" label="Mirror Video when playing"></v-checkbox>
                                 </v-card-text>
                               </v-card>
                             </v-flex>
@@ -535,6 +537,8 @@ export default {
       danceGenre: '',
       draft: true,
       enableMetronome: false,
+      enableMirrorVideo: false,
+      isPlaying: false,
       player: null,
       editorApp: null,
       ticker: null,
@@ -658,6 +662,7 @@ export default {
     this.ticker.start()
 
     this.player.on('playing', () => {
+      this.isPlaying = true
       // draw staff right when the video starts playing for the first time
       // this way getDuration won't return 0
       if (this.firstTimeLoading) {
@@ -668,11 +673,16 @@ export default {
       this.latestMetronomeBeat = this.songManager.currentRoundBeat
       this.cueManager.holdsToDraw = []
       this.cueManager.movesToDraw = []
+      // mirror video if the option is enabled
+      document.getElementById('player').style.transform = this.isPlaying && this.enableMirrorVideo ? 'scaleX(-1)' : ''
     })
 
     // Seek video position to the nearest beat time when the video is paused
     this.player.on('paused', () => {
+      this.isPlaying = false
       this.player.seek(this.songManager.getNearestBeatTime())
+      // reset video mirroring when pausing
+      document.getElementById('player').style.transform = ''
     })
 
     this.handleResize = () => this.resize()
@@ -1305,6 +1315,13 @@ export default {
         }
       } else {
         return this.danceChart.videoEnd
+      }
+    }
+  },
+  watch: {
+    enableMirrorVideo (val) {
+      if (this.isPlaying) {
+        document.getElementById('player').style.transform = val ? 'scaleX(-1)' : ''
       }
     }
   }
