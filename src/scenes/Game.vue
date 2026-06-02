@@ -32,6 +32,10 @@
                 </li>
               </ul>
             </v-flex>
+            <!-- mirror video checkbox -->
+            <v-flex shrink class="white-checkbox pl-3">
+              <v-checkbox v-model="enableMirrorVideo" label="Mirror Video"></v-checkbox>
+            </v-flex>
             <!-- display song details -->
             <v-flex hidden-xs-only xs3>
               <ul style="list-style-type: none;">
@@ -113,7 +117,9 @@ export default {
       cameraLatency: 0,
       // stores the value of if there is a pose being detected by posenet
       noPose: false,
-      loading: false
+      loading: false,
+      isPlaying: false,
+      enableMirrorVideo: false
     }
   },
   // creates a new ticker, and app, containers and textures if necessary
@@ -150,6 +156,9 @@ export default {
         this.ticker.add(() => this.updateGame())
 
         this.player.on('ended', () => {
+          // unmirror video if video is not playing
+          this.isPlaying = false
+          this.updateMirrorVideo()
           this.endGame()
         })
 
@@ -158,12 +167,18 @@ export default {
 
         // if there is a videoStart specified on the danceChart when the player first start playing, the player should seek to that time
         this.player.on('playing', () => {
+          // mirror video when playing and if the checkbox is checked
+          this.isPlaying = true
+          this.updateMirrorVideo()
           if (parseFloat(this.videoStart) !== 0 && this.player.getCurrentTime() < 0.5) this.player.seek(parseFloat(this.videoStart))
           this.ticker.start()
         })
 
         // stop the ticker when the player is paused, as it is not necessary to continue doing this process
         this.player.on('paused', () => {
+          // unmirror video if video is not playing
+          this.isPlaying = false
+          this.updateMirrorVideo()
           this.ticker.stop()
         })
 
@@ -219,6 +234,10 @@ export default {
         this.currentHoldPositionLeft = null
         this.currentHoldPositionRight = null
       }
+    },
+    updateMirrorVideo: function () {
+      // mirror or unmirror video based on isPlaying and enableMirrorVideo values
+      document.getElementById('player').style.transform = this.isPlaying && this.enableMirrorVideo ? 'scaleX(-1)' : ''
     },
     fadeIn: function () {
       if (this.player.getCurrentTime() <= parseFloat(this.videoStart) + 5) {
@@ -747,6 +766,12 @@ export default {
         return { display: 'none' }
       }
     }
+  },
+  watch: {
+    enableMirrorVideo () {
+      // mirror video on the fly if the checkbox is checked while the video is playing
+      this.updateMirrorVideo()
+    }
   }
 }
 </script>
@@ -770,5 +795,9 @@ export default {
   }
   .lRight {
     padding-left: 80px;
+  }
+  .white-checkbox ::v-deep .v-label,
+  .white-checkbox ::v-deep .v-icon {
+    color: white !important;
   }
 </style>

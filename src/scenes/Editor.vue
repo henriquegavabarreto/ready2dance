@@ -663,6 +663,7 @@ export default {
 
     this.player.on('playing', () => {
       this.isPlaying = true
+      this.updateMirrorVideo() // mirror video if option is enabled
       // draw staff right when the video starts playing for the first time
       // this way getDuration won't return 0
       if (this.firstTimeLoading) {
@@ -673,16 +674,13 @@ export default {
       this.latestMetronomeBeat = this.songManager.currentRoundBeat
       this.cueManager.holdsToDraw = []
       this.cueManager.movesToDraw = []
-      // mirror video if the option is enabled
-      document.getElementById('player').style.transform = this.isPlaying && this.enableMirrorVideo ? 'scaleX(-1)' : ''
     })
 
     // Seek video position to the nearest beat time when the video is paused
     this.player.on('paused', () => {
       this.isPlaying = false
+      this.updateMirrorVideo() // unmirror video when pausing
       this.player.seek(this.songManager.getNearestBeatTime())
-      // reset video mirroring when pausing
-      document.getElementById('player').style.transform = ''
     })
 
     this.handleResize = () => this.resize()
@@ -693,6 +691,10 @@ export default {
     this.resize()
   },
   methods: {
+    updateMirrorVideo: function () {
+      // mirror or unmirror video based on isPlaying and enableMirrorVideo values
+      document.getElementById('player').style.transform = this.isPlaying && this.enableMirrorVideo ? 'scaleX(-1)' : ''
+    },
     exportToJSON: function () {
       // do not perform any action if there is no title, artist or video id
       if (this.danceChart.title === '' || this.danceChart.artist === '' || this.danceChart.videoId === '') return
@@ -1319,10 +1321,8 @@ export default {
     }
   },
   watch: {
-    enableMirrorVideo (val) {
-      if (this.isPlaying) {
-        document.getElementById('player').style.transform = val ? 'scaleX(-1)' : ''
-      }
+    enableMirrorVideo () {
+      this.updateMirrorVideo()
     }
   }
 }
