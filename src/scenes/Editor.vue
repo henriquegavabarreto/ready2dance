@@ -29,8 +29,8 @@
               </v-tab>
 
               <v-tab>
-                Song & Timing
-                <v-icon>audiotrack</v-icon>
+                Song & Settings
+                <v-icon>queue_music</v-icon>
               </v-tab>
 
               <v-tab>
