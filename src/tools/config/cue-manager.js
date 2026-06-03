@@ -13,23 +13,61 @@ export default class CueManager {
 
   // this function litteraly draws the cues in the canvas
   // Helper function to be used in the functions below
-  drawCue (hand, handMove, size, cues) { // draw circle cues
+  drawCue (hand, handMove, size, cues, cueType = 'circle') { // draw circle cues
     if (handMove[0] === 'S' && handMove.length > 1) {
-      cues.lineStyle(this.config.cue.lineWidth, this.config.colors.sharp, 1)
-      cues.drawCircle(this.grid[handMove[1]].x, this.grid[handMove[1]].y, size)
+      if (cueType === 'circle') { // draw circle cue
+        cues.lineStyle(this.config.cue.lineWidth, this.config.colors.sharp, 1)
+        cues.drawCircle(this.grid[handMove[1]].x, this.grid[handMove[1]].y, size)
+      } else { // draw arc cue
+        if (hand === 'L') {
+          this.drawLeftArc(this.grid[handMove[1]].x, this.grid[handMove[1]].y, size, this.config.colors.sharp, cues)
+        } else {
+          this.drawRightArc(this.grid[handMove[1]].x, this.grid[handMove[1]].y, size, this.config.colors.sharp, cues)
+        }
+      }
     } else if (handMove[0] === 'H' && handMove[2] === 'S') {
       if (size < 80) {
-        cues.lineStyle(this.config.cue.lineWidth, this.config.colors.hold, 1)
-        cues.drawCircle(this.grid[handMove[1]].x, this.grid[handMove[1]].y, size)
+        if (cueType === 'circle') { // draw circle cue
+          cues.lineStyle(this.config.cue.lineWidth, this.config.colors.hold, 1)
+          cues.drawCircle(this.grid[handMove[1]].x, this.grid[handMove[1]].y, size)
+        } else { // draw arc cue
+          if (hand === 'L') {
+            this.drawLeftArc(this.grid[handMove[1]].x, this.grid[handMove[1]].y, size, this.config.colors.hold, cues)
+          } else {
+            this.drawRightArc(this.grid[handMove[1]].x, this.grid[handMove[1]].y, size, this.config.colors.hold, cues)
+          }
+        }
       }
     } else if (handMove[0] === 'M' && handMove.length === 3) {
-      cues.lineStyle(this.config.cue.lineWidth, this.config.colors.motion, 1)
-      cues.drawCircle(this.grid[handMove[1]].x, this.grid[handMove[1]].y, size)
+      if (cueType === 'circle') { // draw circle cue
+        cues.lineStyle(this.config.cue.lineWidth, this.config.colors.motion, 1)
+        cues.drawCircle(this.grid[handMove[1]].x, this.grid[handMove[1]].y, size)
+      } else { // draw arc cue
+        if (hand === 'L') {
+          this.drawLeftArc(this.grid[handMove[1]].x, this.grid[handMove[1]].y, size, this.config.colors.motion, cues)
+        } else {
+          this.drawRightArc(this.grid[handMove[1]].x, this.grid[handMove[1]].y, size, this.config.colors.motion, cues)
+        }
+      }
     }
   }
 
+  // draw arc from 6 o'clock to 3 o'clock
+  drawLeftArc (cx, cy, size, color, cues) {
+    cues.lineStyle(this.config.cue.lineWidth, color, 1)
+    cues.moveTo(cx, cy + size)
+    cues.arc(cx, cy, size, Math.PI * 0.5, Math.PI * 2)
+  }
+
+  // draw arc from 9 o'clock to 6 o'clock
+  drawRightArc (cx, cy, size, color, cues) {
+    cues.lineStyle(this.config.cue.lineWidth, color, 1)
+    cues.moveTo(cx - size, cy)
+    cues.arc(cx, cy, size, Math.PI, Math.PI * 0.5)
+  }
+
   // selects the moves that should be drawn this frame and pushes to specific array
-  drawDynamicCues (moves, cues) {
+  drawDynamicCues (moves, cues, cueType = 'circle') {
     if (this.lastBeat === this.songManager.currentBeat) return
 
     // checks for a hold in the moves array at the current holdIndex
@@ -90,8 +128,8 @@ export default class CueManager {
             let rightHand = this.movesToDraw[i][3]
 
             let size = this.config.cue.size * proportion
-            if (rightHand !== 'X') this.drawCue('R', rightHand, size, cues)
-            if (leftHand !== 'X') this.drawCue('L', leftHand, size, cues)
+            if (rightHand !== 'X') this.drawCue('R', rightHand, size, cues, cueType)
+            if (leftHand !== 'X') this.drawCue('L', leftHand, size, cues, cueType)
           }
         }
       }
