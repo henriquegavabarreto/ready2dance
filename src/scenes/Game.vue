@@ -297,7 +297,7 @@ export default {
         // create cueManager and add drawDynamicCues to ticker
         this.cueManager = new CueManager(this.songManager, gameConfig, grid, this.gameOptions.speed)
         this.ticker.add(() => {
-          this.cueManager.drawDynamicCues(this.moves, this.textures.cues)
+          this.cueManager.drawDynamicCues(this.moves, this.textures.cues, this.gameOptions.cueType)
         })
         // always resize canvas conserving aspect ratio
         this.handleResize = () => this.resize()

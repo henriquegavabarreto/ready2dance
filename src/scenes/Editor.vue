@@ -644,7 +644,7 @@ export default {
         }
 
         // this is leading to unexpected behavior when a move is deleted
-        this.cueManager.drawDynamicCues(this.danceChart.moves, this.textures.cues)
+        this.cueManager.drawDynamicCues(this.danceChart.moves, this.textures.cues, this.gameOptions.cueType)
 
         if (editorConfig.creatingMove) {
           // create notes in the canvas
@@ -1263,6 +1263,9 @@ export default {
     }
   },
   computed: {
+    gameOptions: function () {
+      return this.$store.state.gameOptions
+    },
     songs: function () {
       // return an empty array if the user is a guest
       if (this.$store.state.user === null) return []
