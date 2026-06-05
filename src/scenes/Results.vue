@@ -122,6 +122,13 @@
             label="Circle Animation Speed"
             hint="Speed of the circles appearing on screen"
           ></v-select>
+          <v-select
+            outline
+            :items="cueTypes"
+            v-model="options.cueType"
+            label="Cue Type"
+            hint="Type cues appearing on screen"
+          ></v-select>
           <v-divider></v-divider>
           <h3 class="mt-4">CAMERA</h3>
           <v-select
@@ -190,6 +197,7 @@ export default {
       selectedDeviceLabel: '',
       videoDevicesIds: {},
       modelLabels: ['low', 'high'],
+      cueTypes: ['circle', 'arc'],
       options: {
         latency: 0.32,
         showAnimation: true,
@@ -197,7 +205,8 @@ export default {
         speed: 1,
         videoDevice: '',
         videoDeviceId: '',
-        modelPerformance: 'low'
+        modelPerformance: 'low',
+        cueType: 'circle'
       }
     }
   },
@@ -209,6 +218,7 @@ export default {
     this.options.videoDevice = this.$store.state.gameOptions.videoDevice
     this.options.videoDeviceId = this.$store.state.gameOptions.videoDeviceId
     this.options.modelPerformance = this.$store.state.gameOptions.modelPerformance
+    this.options.cueType = this.$store.state.gameOptions.cueType
   },
   mounted () {
     this.getDevices()

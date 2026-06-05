@@ -77,6 +77,13 @@
             label="Circle Animation Speed"
             hint="Speed of the circles appearing on screen"
           ></v-select>
+          <v-select
+            outline
+            :items="cueTypes"
+            v-model="options.cueType"
+            label="Cue Type"
+            hint="Type cues appearing on screen"
+          ></v-select>
           <v-divider></v-divider>
           <h3 class="mt-4">CAMERA</h3>
           <v-select
@@ -277,6 +284,7 @@ export default {
       videoDevicesIds: {},
       speed: [0.5, 1, 2],
       modelLabels: ['low', 'high'],
+      cueTypes: ['circle', 'arc'],
       // local and initial setting values
       options: {
         latency: 0.32,
@@ -285,7 +293,8 @@ export default {
         speed: 1,
         videoDevice: '',
         videoDeviceId: '',
-        modelPerformance: 'low'
+        modelPerformance: 'low',
+        cueType: 'circle'
       },
       loading: false,
       processingLike: false,
@@ -313,6 +322,7 @@ export default {
     this.options.latency = this.$store.state.gameOptions.latency
     this.options.speed = this.$store.state.gameOptions.speed
     this.options.modelPerformance = this.$store.state.gameOptions.modelPerformance
+    this.options.cueType = this.$store.state.gameOptions.cueType
   },
   mounted () {
     // to make sure the player div was created, create new youtube player when the view is mounted
