@@ -23,6 +23,7 @@ Ready2Dance solves this using any camera connected to your device. Real-time pos
 - **Leaderboards** — compete for the best score per song and difficulty
 - **Adjustable speed** — make circle animations faster or slower to match your skill level
 - **Hidden animation mode** — hide the on-screen cues and dance freely to the choreography
+- **Cue shape** - select cue shape of circle or arc
 - **Adjustable pose detection quality** - choose pose detection according to desired performance and hardware
 - **Mirror video** - Mirror video when playing the game or on the editor to make it easier to see the moves
 - **Community songs** — play charts created and shared by other players
@@ -99,6 +100,6 @@ Requires the [Firebase CLI](https://firebase.google.com/docs/cli) and appropriat
 
 ## Log
 
-- **June 2026** - Add video mirroring on the editor and game.
+- **June 2026** - Add video mirroring on the editor and game. Add option to select arc cues that might represent the difference between right and left hand movements more clearly.
 - **May 2026** — Removed Cloud Functions dependency; scoring and likes now use client-side Realtime Database writes. Editor opened to guest users allowing file loading and exporting. Refactored pose detection pipeline: decoupled estimation from render loop, added requestVideoFrameCallback support, redesigned hold/motion grading with streak multiplier system. Added low and high pose detection quality on settings, loading movenet lightning or thunder, respectively.
 - **March 2022** — Switched pose detection from PoseNet to MoveNet for improved accuracy and performance.
